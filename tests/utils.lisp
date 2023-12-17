@@ -5,7 +5,9 @@
 
 (define-test log2up-of-negative ()
   ;; This test SHOULD throw an error
-  (assert-error 'simple-error (chil/utils:log2up -1)))
+  (check-it:check-it (check-it:generator (integer * -1))
+                     (lambda (x)
+                       (assert-error 'simple-error (chil/utils:log2up x)))))
 
 (define-test log2up-normal ()
   (assert-equal 1 (chil/utils:log2up 1))
