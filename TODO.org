@@ -58,6 +58,8 @@ Chisel uses the Scala Build System (SBT) to define and declare projects, and use
 But SBT does not work for projects that need to leave the Scala world?
 Hence, larger projects like Chipyard need a combination of scripts, Makefiles, and Scala-generated Makefiles to make everything happen.
 
+Chisel, Chipyard, Rocket, etc. all moved to using [[https://mill-build.com/mill/Intro_to_Mill.html][Mill]] instead of SBT.
+
 * Optimization
 Within Chil, I would like to have an optimization framework for the higher-level language.
 I am not sure how much optimization is possible in the long-run.
