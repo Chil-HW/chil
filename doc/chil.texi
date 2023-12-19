@@ -364,6 +364,9 @@ Chil system.
 
 @item Dahlia
 @url{https://capra.cs.cornell.edu/dahlia/page/about/}
+
+@item Veryl
+@url{https://github.com/dalance/veryl}
 @end table
 
 

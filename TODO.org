@@ -45,6 +45,9 @@ Look through [[https://www.microsoft.com/en-us/research/uploads/prod/2018/03/bui
 Implementing this could be done just by piggy-backing off of Common Lisp's already-present asdf.
 Then for larger scale automation, some utilities may be provided.
 
+[[https://github.com/dalance/veryl][Veryl]] is very similar to Verilog, with minor conveniences added to it.
+Its real draw is that it has a set of integrated tools that help manage your project, with commands similar to Rust's ~cargo~ tool.
+
 ** Notes after reading Build Systems à la Carte
 We want a suspending scheduler for the build system, where each thread/process building the project can be paused until its inputs are ready.
 But given Common Lisp's restart system, a restarting scheduler could be far more feasible.
