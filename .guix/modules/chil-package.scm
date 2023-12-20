@@ -88,4 +88,42 @@
    (home-page "http://github.com/KarlJoad/chil")
    (license gpl3+)))
 
+(define-public ecl-chil
+  (package
+   (name "ecl-chil")
+   (version "0.1")
+   (source (local-file "../.." "chil-checkout"
+                       #:recursive? #t
+                       #:select? vcs-file?))
+   (native-inputs
+    (list autoconf automake texinfo ;; Building the manual
+          cl-lisp-unit2
+          cl-log4cl
+          ecl))
+   (inputs
+    (list cl-alexandria
+          cl-slime-swank
+          cl-slynk
+          cl-check-it))
+   (build-system asdf-build-system/ecl)
+   ;; (build-system asdf-build-system/source) ;; Maybe use this?
+   (arguments
+    (list
+     #:phases
+     #~(modify-phases %standard-phases
+         (add-after 'install 'install-manual
+                    ;; FIXME: Replace bare ecl with actual ecl path in inputs
+           (lambda* (#:key (configure-flags '("--with-lisp=ecl")) (make-flags '()) outputs
+                     #:allow-other-keys)
+             (let* ((out  (assoc-ref outputs "out"))
+                    (info (string-append out "/share/info")))
+               (invoke "./bootstrap")
+               (apply invoke "sh" "./configure" "SHELL=sh" configure-flags)
+               (apply invoke "make" "info" make-flags)
+               (install-file "doc/chil.info" info)))))))
+   (synopsis "Constructing Hardware in Lisp")
+   (description "CHIL (Constructing Hardware in Lisp)")
+   (home-page "http://github.com/KarlJoad/chil")
+   (license gpl3+)))
+
 chil
