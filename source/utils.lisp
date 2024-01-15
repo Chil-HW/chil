@@ -1,6 +1,7 @@
 (defpackage :chil/utils
   (:use :cl)
-  (:export #:log2up))
+  (:export #:log2up)
+  (:documentation "General Utilities for working with Chil."))
 
 (in-package :chil/utils)
 
