@@ -371,6 +371,10 @@ Chil system.
 @item Amaranth
 @url{https://github.com/amaranth-lang/amaranth}@*
 @url{https://amaranth-lang.org/docs/amaranth/latest/index.html}
+
+@item Clash
+@url{https://clash-lang.org/}@*
+@url{https://github.com/clash-lang/clash-compiler}
 @end table
 
 
