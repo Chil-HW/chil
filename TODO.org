@@ -16,6 +16,23 @@ This can be done with the ~declaim~ function.
      Interesting works in software:
      * [[https://dl.acm.org/doi/10.1145/3428264][YARPGen]]
 
+** Formal Methods
+Hardware is extensively validated and verified with formal methods.
+Chil should support writing a formal specification of the hardware, which means we need a way to express these kinds of concepts.
+There are several kinds of formal methods that we should investigate and try to support:
+  1. Model & Property Checking (Lightweight formal methods)
+     We can take the core of our randomized property testing from [[https://ngyro.com/software/guile-quickcheck.html][guile-quickcheck]]?
+     The [[https://pkgs.racket-lang.org/package/forge][forge language]] built on top of Racket might also be a good resource to look at.
+  2. Formal Specification & Theorem Proving (Heavyweight formal methods)
+     We might be able to piggy-back of [[https://www.cs.utexas.edu/users/moore/acl2/][ACL2]] for this.
+
+I am not sure we want to support this in Chil directly, because this might be more generally useful.
+It might make more sense for this to be a separate project that Chil then relies on.
+It remains to be seen which is better, but initial development will start here I think.
+If it seems better to factor these formal methods tools out to a separate repository, then we will tackle that problem later.
+
+Many of the concepts discussed in this section come from [[https://jakob.space/blog/what-ive-learned-about-formal-methods.html][Jakob Kreuze]]'s blog post about their expeirence with formal methods in courses.
+
 * Higher-level Hardware
   1. Create higher-level versions of ~chil:module~ that is less painful to use, but can be converted into low-level Verilog-like format currently being used.
      Should support an implicit reset & clock, which can be overridden with a ~(with-reset/clock ...)~ macro(?).
