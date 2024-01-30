@@ -144,6 +144,7 @@ Methods to achieve requirements:
      2. Single-cycle
      3. Multi-cycle
      4. Pipelined (single issue)
+        1. [[https://mrisc32.bitsnbites.eu/][mrisc32]]
      5. Multi-issue in-order pipelined
      6. Single-issue out-of-order
      7. Multi-issue out-of-order
