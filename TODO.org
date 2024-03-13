@@ -11,7 +11,19 @@ This can be done with the ~declaim~ function.
      This way I only have to write the properties required, and not any actual implementation.
      Possible candidates:
      * [[https://github.com/DalekBaldwin/check-it][check-it]] (Last update 2015-06-05)
-     * [[https://github.com/mcandre/cl-quickcheck][cl-quickcheck]] (Last update 2020-05-08)
+       Does not play well with lisp-unit2 because ~lisp-unit2:assert-error~ does not return a value when an error is thrown.
+       #+begin_src lisp
+;; This should be a successful test.
+(lisp-unit2:assert-error 'simple-error (chil/utils:log2up -1))
+; No values
+
+;; This should be a failing assertion/test.
+(lisp-unit2:assert-error 'simple-error (- 2 1))
+1 (1 bit, #x1, #o1, #b1)
+       #+end_src
+       However, check-it expects the lambda predicate to return true or false depending on the result of the value.
+     * [[https://github.com/mcandre/cl-quickcheck][cl-quickcheck]] (Last update 2020-05-08) (Seems abandoned.)
+     * Write my own in the style of [[https://ngyro.com/software/guile-quickcheck.html][guile-quickcheck]] or [[https://docs.racket-lang.org/quickcheck/index.html][Racket's Quickcheck]].
   2. Automated generation of test programs for modules requiring simulation.
      Interesting works in software:
      * [[https://dl.acm.org/doi/10.1145/3428264][YARPGen]]
