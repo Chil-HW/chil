@@ -97,6 +97,15 @@ But for the small actively-working capacity of my mind, the [[https://github.com
   1. I might have to implement the [[https://github.com/nanopass][Nanopass Framework]] in ANSI Common Lisp...
      * If I did that, I might be able to get that upstreamed?
 
+** Pass Ideas
+Nanopass uses /very/ small passes that do relatively little work.
+They rewrite, modify, or analyze a very small subset of an AST to do something.
+One example is to convert instances of ~let*~ in Scheme to a ladder of ~let~ and ~lambda~.
+
+Some ideas for passes that I could write are:
+  * CheckWidths: FIRRTL has a pass to check if dynamic shifting uses a dynamic shift amount that has a bit-width $> 20$.
+    This is the ~firrtl.passes.CheckWidths~ pass, particularly the ~$DshlTooBig~ top-level function.
+
 * Outputs
 Generate other low-level HDLs.
   1. FIRRTL?
