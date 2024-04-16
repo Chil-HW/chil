@@ -1,5 +1,36 @@
 #+TITLE: TODO
 
+* Lessons from Nyxt
+  * [[https://nyxt.atlas.engineer/article/continuous-testing-and-packaging.org][Nyxt continuous testing/packaging]]
+  * [[https://nyxt.atlas.engineer/article/lisp-documentation-patterns.org][Good Common Lisp Documentation Patterns]]
+    - Dynamic/special/global variables with ~*earmuffs*~.
+    - Constants with ~+plus-signs+~.
+    - If internal functions and variables *must* be exported, wrap them with ~%percent-signs%~.
+    - Predicates with -p suffix.
+    - README layout:
+      1. Title and description - General information about the project. Goal and features.
+      2. Getting started - How to install and load.
+      3. Examples - Short code snippets for the most common use-cases.
+      4. How it works - Explanations of the underlying model and implementation details.
+    - Function/method doc-strings:
+      #+begin_src common-lisp
+"First line as a single sentence less than 80 chars long—for readability.
+Return VALUE or
+- VALUE-1
+- VALUE-2
+- etc.
+
+ARGUMENT-1 represents ...
+BOOLEAN-ARGUMENT mandates whether ...
+
+See also `another-symbol'."
+      #+end_src
+    - Generics should come from a defgeneric form for increased inspectability and reliability of access.
+      Methods can be undocumented, because they are generally just implementations for a documented generic.
+      Method documentation is where exceptional implementation details end up.
+    - Give *very* clear documentation about macros.
+      Include many examples for all common cases in the documentation!
+
 * Compilation Targets
 A variety of compilation targets should be available, either for debugging or performance.
 To make code "steppable" you must have set ~debug~ to be greater than ~speed~, ~space~, and ~compilation-speed~.
