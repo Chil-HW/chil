@@ -200,7 +200,9 @@ Methods to achieve requirements:
      5. Multi-issue in-order pipelined
      6. Single-issue out-of-order
      7. Multi-issue out-of-order
-  9. [[https://www.cl.cam.ac.uk/research/security/ctsrd/cheri/][CHERI]] in Hardware
-     This has already been done with ARM, MIPS, and recently RISC-V.
-     But I want to implement on this.
-  10. Custom architecture
+  9. [[https://github.com/adam-maj/tiny-gpu][tiny-gpu]]: A minimal GPU that executes a single kernel at a time with many threads per core.
+     This architecture also includes a small amount of possible configuration too.
+  10. [[https://www.cl.cam.ac.uk/research/security/ctsrd/cheri/][CHERI]] in Hardware
+      This has already been done with ARM, MIPS, and recently RISC-V.
+      But I want to implement on this.
+  11. Custom architecture
