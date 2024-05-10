@@ -108,6 +108,9 @@ Then for larger scale automation, some utilities may be provided.
 [[https://github.com/dalance/veryl][Veryl]] is very similar to Verilog, with minor conveniences added to it.
 Its real draw is that it has a set of integrated tools that help manage your project, with commands similar to Rust's ~cargo~ tool.
 
+There should be a define-able style guide which can be enforced by a linter.
+An example of a [[https://github.com/lowRISC/style-guides/blob/master/VerilogCodingStyle.md][Verilog Style Guide]].
+
 ** Notes after reading Build Systems à la Carte
 We want a suspending scheduler for the build system, where each thread/process building the project can be paused until its inputs are ready.
 But given Common Lisp's restart system, a restarting scheduler could be far more feasible.
