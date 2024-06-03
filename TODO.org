@@ -205,7 +205,10 @@ Methods to achieve requirements:
      7. Multi-issue out-of-order
   9. [[https://github.com/adam-maj/tiny-gpu][tiny-gpu]]: A minimal GPU that executes a single kernel at a time with many threads per core.
      This architecture also includes a small amount of possible configuration too.
-  10. [[https://www.cl.cam.ac.uk/research/security/ctsrd/cheri/][CHERI]] in Hardware
+  10. [[https://github.com/turbo9team/turbo9][turbo9]]: Pipelined Motorola 6809 design
+  11. [[https://gitlab.com/zephray/caster][Caster]]: Electrophoretics Display (eInk) Controller.
+      Used by [[https://github.com/Modos-Labs/Glider][Glider]].
+  12. [[https://www.cl.cam.ac.uk/research/security/ctsrd/cheri/][CHERI]] in Hardware
       This has already been done with ARM, MIPS, and recently RISC-V.
       But I want to implement on this.
-  11. Custom architecture
+  13. Custom architecture
