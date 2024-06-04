@@ -31,6 +31,10 @@ See also `another-symbol'."
     - Give *very* clear documentation about macros.
       Include many examples for all common cases in the documentation!
 
+* Look at Others
+These are some other HDL langauges that I may want to look at.
+  * [[https://github.com/Jacajack/hdl][HIRL HDL]]
+
 * Compilation Targets
 A variety of compilation targets should be available, either for debugging or performance.
 To make code "steppable" you must have set ~debug~ to be greater than ~speed~, ~space~, and ~compilation-speed~.
