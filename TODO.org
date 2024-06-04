@@ -34,6 +34,11 @@ See also `another-symbol'."
 * Look at Others
 These are some other HDL langauges that I may want to look at.
   * [[https://github.com/Jacajack/hdl][HIRL HDL]]
+  * [[https://github.com/rems-project/sail/][SAIL2]] - Single source of truth for ISA.
+    From formal & functional specification, can be:
+    - Mechanically checked
+    - Generate human-readable documentation
+    - Generate boilerplate for simulators & compilers & HDLs
 
 * Compilation Targets
 A variety of compilation targets should be available, either for debugging or performance.
