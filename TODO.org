@@ -120,6 +120,10 @@ Its real draw is that it has a set of integrated tools that help manage your pro
 There should be a define-able style guide which can be enforced by a linter.
 An example of a [[https://github.com/lowRISC/style-guides/blob/master/VerilogCodingStyle.md][Verilog Style Guide]].
 
+Something that SBT does that I think is really nice is that you can add a ~~~ to any ~sbt~ command, and it will "watch" the dependencies.
+This means that if you update a dependency for the command, the command is automatically re-run.
+For example, after saving edits to a file, the unit tests for that file run again *automatically*, with the necessary builds done in between.
+
 ** Notes after reading Build Systems à la Carte
 We want a suspending scheduler for the build system, where each thread/process building the project can be paused until its inputs are ready.
 But given Common Lisp's restart system, a restarting scheduler could be far more feasible.
