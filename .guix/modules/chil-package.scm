@@ -60,7 +60,7 @@
                        #:select? vcs-file?))
    (native-inputs
     (list autoconf automake texinfo ;; Building the manual
-          cl-lisp-unit2
+          cl-parachute
           cl-log4cl
           sbcl))
    (inputs

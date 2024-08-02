@@ -27,20 +27,12 @@
   :in-order-to ((test-op (test-op "chil/tests"))))
 
 (defsystem :chil/tests
-  :depends-on (:chil :alexandria :lisp-unit2 :check-it)
+  :depends-on (:chil :alexandria :parachute :check-it)
   :pathname #p"tests/"
+  :perform (asdf:test-op (op c) (uiop:symbol-call :parachute :test :chil/tests))
   :components ((:file "example")
                (:file "write-verilog")
                (:file "utils")))
-
-(defmethod asdf:perform ((o asdf:test-op) (c (eql (find-system :chil/tests))))
-  ;; Binding `*package*' to package-under-test makes for more reproducible tests.
-  (let ((*package* (find-package :chil/tests)))
-    (uiop:symbol-call
-     :lisp-unit2 :run-tests
-     :package *package*
-     :name :chil
-     :run-contexts (find-symbol "WITH-SUMMARY-CONTEXT" :lisp-unit2))))
 
 (defsystem :chil/sim
   :author "Karl Hallsby <karl@hallsby.com>"

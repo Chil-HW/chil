@@ -16,7 +16,7 @@ In addition, the highly malleable Lisp family of languages can allow for syntact
     - Quicklisp plugs into ASDF to download /and/ load/build the source for you.
   * UIOP (Utilities for Implementation and OS Portability)
   * Alexandria
-  * [[https://github.com/AccelerationNet/lisp-unit2][~lisp-unit2~]]
+  * [[https://shinmera.github.io/parachute][Parachute]]
     - Only needed for testing!
 
 ** Building
@@ -35,7 +35,7 @@ CHIL uses lisp-unit2 for its unit testing system.
 *** Testing on the REPL
 Make sure ASDF if capable of finding your copy of CHIL and lisp-unit2.
    * ~(asdf:test-system :chil)~
-   * ~(lisp-unit2:run-tests :package :chil/tests)~
+   * ~(parachute:test :chil/tests)~
 
 * Why?
 I personally felt this when specialty connection operators were required to be defined as experimental in chisel3; operators which I needed to connect hardware together.

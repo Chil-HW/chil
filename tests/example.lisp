@@ -1,10 +1,12 @@
 (defpackage :chil/tests
-  (:use :cl :lisp-unit2 :check-it))
+  (:use :cl :parachute :check-it))
 
 (in-package :chil/tests)
 
 (define-test example ()
-  (assert-eql 1 (- 2 1)))
+  (parachute:is eql
+    1
+    (- 2 1)))
 
 ;; The test below will always be correct, because the guard prevents odd numbers
 ;; from being generated as an input to the lambda.
