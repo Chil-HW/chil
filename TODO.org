@@ -67,6 +67,9 @@ This can be done with the ~declaim~ function.
   2. Automated generation of test programs for modules requiring simulation.
      Interesting works in software:
      * [[https://dl.acm.org/doi/10.1145/3428264][YARPGen]]
+  3. Generated output (Verilog, VHDL) should be checked against simulators for linting.
+     For Verilog, use Verilator & Icarus.
+     For VHDL, use GHDL.
 
 ** Formal Methods
 Hardware is extensively validated and verified with formal methods.

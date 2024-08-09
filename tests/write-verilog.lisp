@@ -33,7 +33,7 @@ endmodule // test_empty"
 (define-test generate-verilog-module-only-inputs ()
   (assert-equal "module test_inputs(
 input type addr,
-input type ready,
+input type ready
 );
 body;
 endmodule // test_inputs"
@@ -42,7 +42,7 @@ endmodule // test_inputs"
 (define-test generate-verilog-module-only-outputs ()
   (assert-equal "module test_outputs(
 output type addr,
-output type valid,
+output type valid
 );
 body;
 endmodule // test_outputs"
@@ -53,7 +53,7 @@ endmodule // test_outputs"
 input type addr,
 input type valid,
 output type addr,
-output type valid,
+output type valid
 );
 body;
 endmodule // test_inputs_outputs"

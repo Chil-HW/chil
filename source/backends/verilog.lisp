@@ -13,24 +13,23 @@
 
 (defmethod generate ((generator verilog-generator) module stream)
   "Generate Verilog for the provided MODULE."
-  (flet ((module-args (direction args)
-           "Generate Verilog argument string based on ARGS, noting the DIRECTION of the
-arguments in the string as well.
+  (flet ((module-io->strings (direction args)
+           "Generate Verilog argument string based on ARGS, noting the DIRECTION
+of the arguments in the string as well.
 
 The two directions supported are the symbols 'input and 'output."
-           (flet ((arg->string (arg)
-                    (format stream "~a type ~a,~&"
-                            (string-downcase (symbol-name direction))
-                            (chil-sym->verilog-sym arg))))
-
-             (uiop:reduce/strcat
-              (mapcar #'arg->string args)))))
+           (mapcar (lambda (arg)
+                     (format 'nil "~a type ~a"
+                             (string-downcase (symbol-name direction))
+                             (chil-sym->verilog-sym arg)))
+                     args)))
 
   (uiop:strcat
    (format stream "module ~a" (chil-sym->verilog-sym (chil:module-name module)))
-   (format stream "(~&")
-   (module-args 'input (chil:module-inputs module))
-   (module-args 'output (chil:module-outputs module))
+   (format stream "(")
+   (format stream "~%~{~a~^,~&~}~&" ; ~% FORCES a line break!
+           (append (module-io->strings 'input (chil:module-inputs module))
+                   (module-io->strings 'output (chil:module-outputs module))))
    (format stream ");~&")
    ;; TODO: Actually write a real body
    ;; TODO: Get indentation working
