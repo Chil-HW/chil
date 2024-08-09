@@ -24,37 +24,37 @@
   (chil/backends:generate (make-instance 'chil/backends:verilog-generator) module nil))
 
 (define-test generate-verilog-empty-module ()
-  (assert-equal "module test-empty(
+  (assert-equal "module test_empty(
 );
 body;
-endmodule // test-empty"
+endmodule // test_empty"
                 (generate-verilog *test-module-empty*)))
 
 (define-test generate-verilog-module-only-inputs ()
-  (assert-equal "module test-inputs(
+  (assert-equal "module test_inputs(
 input type addr,
 input type ready,
 );
 body;
-endmodule // test-inputs"
+endmodule // test_inputs"
                 (generate-verilog *test-module-inputs*)))
 
 (define-test generate-verilog-module-only-outputs ()
-  (assert-equal "module test-outputs(
+  (assert-equal "module test_outputs(
 output type addr,
 output type valid,
 );
 body;
-endmodule // test-outputs"
+endmodule // test_outputs"
                 (generate-verilog *test-module-outputs*)))
 
 (define-test generate-verilog-module-inputs-outputs ()
-  (assert-equal "module test-inputs-outputs(
+  (assert-equal "module test_inputs_outputs(
 input type addr,
 input type valid,
 output type addr,
 output type valid,
 );
 body;
-endmodule // test-inputs-outputs"
+endmodule // test_inputs_outputs"
                 (generate-verilog *test-module-inputs-outputs*)))

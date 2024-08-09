@@ -1,5 +1,5 @@
 (defpackage :chil/backends
-  (:use :cl)
+  (:use :cl :cl-ppcre)
   (:export #:generate
            #:verilog-generator))
 
