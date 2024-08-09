@@ -22,7 +22,7 @@ The two directions supported are the symbols 'input and 'output."
    (format stream "(~&")
    (module-args 'input (chil:module-inputs module))
    (module-args 'output (chil:module-outputs module))
-   (format stream ")~&")
+   (format stream ");~&")
    ;; TODO: Actually write a real body
    ;; TODO: Get indentation working
    (format stream "body;~&")
