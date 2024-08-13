@@ -18,8 +18,11 @@
 of the arguments in the string as well.
 
 The two directions supported are the symbols 'input and 'output."
+           ;; NOTE: We choose to only support the "wire" type in Verilog, for
+           ;; module I/O, the same way Chisel did. Rather, Chisel does not
+           ;; specify the type at all, which typically infers "wire".
            (mapcar (lambda (arg)
-                     (format 'nil "~a type ~a"
+                     (format 'nil "~a ~a"
                              (string-downcase (symbol-name direction))
                              (chil-sym->verilog-sym arg)))
                    args)))
