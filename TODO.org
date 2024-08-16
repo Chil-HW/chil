@@ -139,6 +139,19 @@ Hence, larger projects like Chipyard need a combination of scripts, Makefiles, a
 
 Chisel, Chipyard, Rocket, etc. all moved to using [[https://mill-build.com/mill/Intro_to_Mill.html][Mill]] instead of SBT.
 
+* Usage
+If I intend to support multiple input formats and output formats, there will need to be a series of steps to define actions to take to produce an output.
+This may involve running the Chil compiler, but it might also involve running other tools (like a script to convert a JSON description of memory into a dat format).
+If I also want to have a "workflow" kind of language so that I can provide a design and the desired end target, then I would need this too.
+Effectively, this would become the unified way to work with anything in my Chil language.
+
+  * [[https://docs.calyxir.org/running-calyx/fud2/index.html][fud2]] - A Compiler driver for orchestrating the Calyx ecosystem.
+    It handles building a design (including lowering from Dahlia, their HLS language) and turning it into SystemVerilog, which is then merged with their SystemVerilog standard library.
+    It can interpret the Calyx using their interpreter, Cider.
+    It can also take the final SystemVerilog and run it through Verilator, Icarus, or even FPGA workflows for synthesis.
+    Currently (2024-08-16), fud2 uses a breadth-first search to find a path in the graph of operations from the input to the requested output.
+    However, they are also investigating other methods, like using E-Graphs (Equivalence Graphs) through egglog, or constraint programming through Datalog.
+
 * Optimization
 Within Chil, I would like to have an optimization framework for the higher-level language.
 I am not sure how much optimization is possible in the long-run.
