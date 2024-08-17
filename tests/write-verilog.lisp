@@ -20,8 +20,11 @@
   "CHIL Module for testing that has only outputs, no inputs, and no body.")
 
 (defun generate-verilog (module)
-  "Helper function to generate verilog modules."
-  (chil/backends:generate (make-instance 'chil/backends:verilog-generator) module nil))
+  "Helper function to generate Verilog modules. Returns the generated Verilog as
+a string."
+  (uiop:with-output (str 'nil)
+    (chil/backends:generate
+     (make-instance 'chil/backends:verilog-generator) module str)))
 
 (define-test generate-verilog-empty-module ()
   (assert-equal "module test_empty (
@@ -58,3 +61,23 @@ output type valid
 body;
 endmodule // test_inputs_outputs"
                 (generate-verilog *test-module-inputs-outputs*)))
+
+(define-test generate-verilog-module-parameters ()
+  (assert-equal "module test_parameters #(
+parameter EMPTY,
+parameter IN_WIDTH = 32,
+parameter out_width = 16
+)
+(
+input type addr,
+input type valid,
+output type addr,
+output type valid
+);
+body;
+endmodule // test_parameters"
+                (generate-verilog
+                 (chil:module "test-parameters"
+                        :parameters '(("EMPTY") ("IN_WIDTH" 32) ("out-width" 16))
+                        :inputs '("addr" "valid")
+                        :outputs '("addr" "valid")))))

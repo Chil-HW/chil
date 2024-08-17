@@ -58,10 +58,16 @@
 ;;; notion of a module.
 ;;;
 (defstruct (module
-            (:constructor module (name &key (inputs '()) (outputs '())
+            (:constructor module (name &key (parameters '())
+                                         (inputs '())
+                                         (outputs '())
                                        timescale)))
   (name "" :type string)
   (timescale (timescale) :type timescale)
+  ;; Parameters are the way that we can make a module generic for multiple
+  ;; things. Think the batchSize "parameter" in the VCODE accelerator.
+  ;; FIXME: parameters :type should be list-of-pairs.
+  (parameters '() :type list)
   ;; FIXME: inputs/outputs should be set, not list. We want to prevent people
   ;; from using the same symbol in the input/output collections.
   ;; TODO: But we DO allow the same object to be present in both.

@@ -12,7 +12,7 @@
     (cl-ppcre:regex-replace-all chars-to-replace str "_")))
 
 (defmethod generate ((generator verilog-generator) module stream)
-  "Generate Verilog for the provided MODULE."
+  "Generate Verilog for the provided MODULE, outputting the Verilog to STREAM."
   (flet ((module-io->strings (direction args)
            "Generate Verilog argument string based on ARGS, noting the DIRECTION
 of the arguments in the string as well.
@@ -24,15 +24,30 @@ The two directions supported are the symbols 'input and 'output."
                              (chil-sym->verilog-sym arg)))
                      args)))
 
-  (uiop:strcat
    (format stream "module ~a " (chil-sym->verilog-sym (chil:module-name module)))
+   ;; TODO: Get indentation working
+   ;; Module parameters
+   ;; NOTE: Parameters only output when at least one parameter is provided.
+   (unless (uiop:emptyp (chil:module-parameters module))
+      (format stream "#(")
+      (format stream "~%~{~a~^,~&~}~&"
+              ;; FIXME: Replace this lambda with match-lambda.
+              (mapcar (lambda (param-pair)
+                        (format nil "parameter ~a = ~a"
+                                (chil-sym->verilog-sym (first param-pair))
+                                ;; FIXME: The second part of a parameter can be
+                                ;; an expression that ends up being evaluated at
+                                ;; compile-time!
+                                (second param-pair)))
+                      (chil:module-parameters module)))
+      (format stream ")~&"))
+   ;; Module I/O
    (format stream "(")
    (format stream "~%~{~a~^,~&~}~&" ; ~% FORCES a line break!
            (append (module-io->strings 'input (chil:module-inputs module))
                    (module-io->strings 'output (chil:module-outputs module))))
    (format stream ");~&")
    ;; TODO: Actually write a real body
-   ;; TODO: Get indentation working
    (format stream "body;~&")
    (format stream "endmodule // ~a" (chil-sym->verilog-sym
-                                     (chil:module-name module))))))
+                                     (chil:module-name module)))))

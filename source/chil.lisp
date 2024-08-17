@@ -8,6 +8,7 @@
            #:timescale
            #:module
            #:module-name
+           #:module-parameters
            #:module-inputs
            #:module-outputs
            #:data
