@@ -25,7 +25,7 @@ The two directions supported are the symbols 'input and 'output."
                      args)))
 
   (uiop:strcat
-   (format stream "module ~a" (chil-sym->verilog-sym (chil:module-name module)))
+   (format stream "module ~a " (chil-sym->verilog-sym (chil:module-name module)))
    (format stream "(")
    (format stream "~%~{~a~^,~&~}~&" ; ~% FORCES a line break!
            (append (module-io->strings 'input (chil:module-inputs module))
