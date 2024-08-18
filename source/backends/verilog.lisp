@@ -22,13 +22,13 @@ The two directions supported are the symbols 'input and 'output."
                      (format 'nil "~a type ~a"
                              (string-downcase (symbol-name direction))
                              (chil-sym->verilog-sym arg)))
-                     args)))
+                   args)))
 
-   (format stream "module ~a " (chil-sym->verilog-sym (chil:module-name module)))
-   ;; TODO: Get indentation working
-   ;; Module parameters
-   ;; NOTE: Parameters only output when at least one parameter is provided.
-   (unless (uiop:emptyp (chil:module-parameters module))
+    (format stream "module ~a " (chil-sym->verilog-sym (chil:module-name module)))
+    ;; TODO: Get indentation working
+    ;; Module parameters
+    ;; NOTE: Parameters only output when at least one parameter is provided.
+    (unless (uiop:emptyp (chil:module-parameters module))
       (format stream "#(")
       (format stream "~%~{~a~^,~&~}~&"
               ;; FIXME: Replace this lambda with match-lambda.
@@ -41,13 +41,13 @@ The two directions supported are the symbols 'input and 'output."
                                 (second param-pair)))
                       (chil:module-parameters module)))
       (format stream ")~&"))
-   ;; Module I/O
-   (format stream "(")
-   (format stream "~%~{~a~^,~&~}~&" ; ~% FORCES a line break!
-           (append (module-io->strings 'input (chil:module-inputs module))
-                   (module-io->strings 'output (chil:module-outputs module))))
-   (format stream ");~&")
-   ;; TODO: Actually write a real body
-   (format stream "body;~&")
-   (format stream "endmodule // ~a" (chil-sym->verilog-sym
-                                     (chil:module-name module)))))
+    ;; Module I/O
+    (format stream "(")
+    (format stream "~%~{~a~^,~&~}~&" ; ~% FORCES a line break!
+            (append (module-io->strings 'input (chil:module-inputs module))
+                    (module-io->strings 'output (chil:module-outputs module))))
+    (format stream ");~&")
+    ;; TODO: Actually write a real body
+    (format stream "body;~&")
+    (format stream "endmodule // ~a" (chil-sym->verilog-sym
+                                      (chil:module-name module)))))
