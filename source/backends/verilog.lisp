@@ -31,14 +31,20 @@ The two directions supported are the symbols 'input and 'output."
     (unless (uiop:emptyp (chil:module-parameters module))
       (format stream "#(")
       (format stream "~%~{~a~^,~&~}~&"
-              ;; FIXME: Replace this lambda with match-lambda.
-              (mapcar (lambda (param-pair)
-                        (format nil "parameter ~a = ~a"
-                                (chil-sym->verilog-sym (first param-pair))
-                                ;; FIXME: The second part of a parameter can be
-                                ;; an expression that ends up being evaluated at
-                                ;; compile-time!
-                                (second param-pair)))
+              (mapcar (trivia:lambda-match
+                        ;; Parameter without default value
+                        ((list name)
+                         (format 'nil "parameter ~a"
+                                 (chil-sym->verilog-sym name)))
+                        ;; Parameter with default value
+                        ((list name val)
+                         (format 'nil "parameter ~a = ~a"
+                                 (chil-sym->verilog-sym name)
+                                 val))
+                        ;; TODO: Raise an error if your module uses parameters
+                        ;; incorrectly.
+                        (_
+                         (error "Modules must have 1 or 2 elements in their parameters.")))
                       (chil:module-parameters module)))
       (format stream ")~&"))
     ;; Module I/O

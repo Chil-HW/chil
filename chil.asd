@@ -23,7 +23,7 @@
                 :depends-on ("Utils")
                 :components ((:file "data")
                              (:file "uint"))))
-  :depends-on (:log4cl :cl-ppcre)
+  :depends-on (:log4cl :cl-ppcre :trivia)
   :in-order-to ((test-op (test-op "chil/tests"))))
 
 (defsystem :chil/tests

@@ -68,6 +68,7 @@
           cl-slime-swank
           cl-slynk
           cl-ppcre
+          cl-trivia
           cl-check-it))
    (build-system asdf-build-system/sbcl)
    ;; (build-system asdf-build-system/source) ;; Maybe use this?

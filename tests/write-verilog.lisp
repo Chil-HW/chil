@@ -81,3 +81,11 @@ endmodule // test_parameters"
                         :parameters '(("EMPTY") ("IN_WIDTH" 32) ("out-width" 16))
                         :inputs '("addr" "valid")
                         :outputs '("addr" "valid")))))
+
+(define-test generate-verilog-invalid-parameters ()
+  (assert-error 'simple-error
+    (generate-verilog
+     (chil:module "invalid-parameters"
+                  :parameters '(("IN_WIDTH" 32) ("failing" 16 2))
+                  :inputs '("addr" "valid")
+                  :outputs '("addr" "valid")))))
