@@ -1,6 +1,6 @@
 ;; Per-directory local variables for GNU Emacs 23 and later.
 
-((nil . ((fill-column . 78)
+((nil . ((fill-column . 72)
          (sentence-end-double-space . t)))
  (org-mode . ((org-edit-src-content-indentation 0)))
  (lisp-mode
