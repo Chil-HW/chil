@@ -29,6 +29,23 @@ Make sure ASDF is capable of finding your copy of CHIL.
 If you want to *force* a rebuild, ASDF supports that too.
 ~(asdf:compile-system :chil :force t)~.
 
+*** Known Problems
+When compiling Chil, you will receive the following deprecation warning:
+#+begin_src console
+   DEPRECATED-FUNCTION-STYLE-WARNING: Using deprecated function ASDF/BACKWARD-INTERFACE:SYSTEM-DEFINITION-PATHNAME -- please update your code to use a newer API.
+The docstring for this function says:
+DEPRECATED. This function used to expose ASDF internals with subtle
+differences with respect to user expectations, that have been refactored
+away since. We recommend you use ASDF:SYSTEM-SOURCE-FILE instead for a
+mostly compatible replacement that we're supporting, or even
+ASDF:SYSTEM-SOURCE-DIRECTORY or ASDF:SYSTEM-RELATIVE-PATHNAME
+if that's whay you mean.
+#+end_src
+
+This comes from check-it's ~package.lisp~ file.
+check-it has not received updates in several years, so it uses now-deprecated functions from asdf3.
+The interoperation of check-it with lisp-unit2 is a known pain-point, and those issues along with this deprecation leads me to beleive forking or making my own property-testing library will be a good idea.
+
 ** Testing
 CHIL uses lisp-unit2 for its unit testing system.
 
