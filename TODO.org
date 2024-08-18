@@ -40,6 +40,17 @@ These are some other HDL langauges that I may want to look at.
     - Generate human-readable documentation
     - Generate boilerplate for simulators & compilers & HDLs
 
+* Interesting Common Lisp Libraries
+Many of these libraries are [[https://github.com/CodyReichert/awesome-cl][listed here]].
+  * [[https://github.com/dnaeon/clingon][Clingon]] - Command Line argument parser
+  * [[https://github.com/vindarel/cl-readline][cl-readline]] - Add readline functions to REPL
+  * [[https://common-lisp.net/project/linedit][Linedit]] - Readline-style library
+  * [[https://common-lisp.net/project/bordeaux-threads/][BordeauxThreads]] - Portable threading
+  * [[https://github.com/mdbergmann/cl-gserver][Sento]] - Message passing actors, similar to Erlang
+  * [[https://www.cs.utexas.edu/users/moore/acl2/][ACL2]] - Logic and programming language for modeling & proving
+  * [[https://github.com/pcostanza/closer-mop][closer-mop]] - Compatibility layer for using CLOS's MOP
+  * [[http://marijnhaverbeke.nl/postmodern/][postmodern]] - Interact with PostgreSQL
+
 * Compilation Targets
 A variety of compilation targets should be available, either for debugging or performance.
 To make code "steppable" you must have set ~debug~ to be greater than ~speed~, ~space~, and ~compilation-speed~.
