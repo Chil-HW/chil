@@ -1,0 +1,49 @@
+;; Defining a finite-state machine should return an object which you can
+;; instantiate? It MUST have a "trigger"/"next-state"/"tick" function which can
+;; be called on it to advance to the next state.
+;; Ex: (trigger <fsm-object> 'desired-next-state) ; Go to provuded next state.
+;; Ex: (trigger <fsm-object>) ; Just go to the next state defined in FSM
+(deffsm control-fsm
+  "documentation-string."
+  fetch decode execute memory writeback)
+
+;; TODO: Would it be better for the user to define the proper flow for an FSM
+;; as a graph inside the FSM's definition (deffsm), and you can only "trigger"
+;; it to move between these states? If the user defines the FSM's behavior as a
+;; graph, then trigger only takes along that graph?
+;; This would separate the concerns of "What does the FSM's state graph look
+;; like?" and "What conditions trigger us to move along this FSM graph?"
+(deffsm control-fsm
+  "documentation-string."
+  (idle decode)
+  (decode fetch1)
+  ;; In this case, how would you distinguish where you should go from fetch1?
+  ;; Perhaps you mark one as default? But what happens when the next state is
+  ;; completely dependent on what you get out of decode? Think SELECT vs. ADD vs.
+  ;; NOT in the VCODE accelerator.
+  (fetch1 fetch2)
+  (fetch1 fetch3)
+  (fetch1 execute)
+  (execute memory)
+  (memory writeback)
+  (writeback fetch1)
+  (writeback respond)
+  (respond idle))
+
+;; What a module/component definition should look like.
+(defmodule ideal (PARAM1 (PARAM2 DEFAULT-VALUE))
+  (:inputs ...)
+  (:outputs ...)
+  "documentation-string."
+  (let ((local-wire INITIAL-VALUE-OR-CONNECTION)
+        (local-reg  INITIAL-VALUE-OR-CONNECTION)
+        (module-fsm (make control-fsm)))
+    ;; This wire connection could have been done in the let-binding too.
+    (connect local-wire input-1)
+    ;; TODO: Do we want to support nesting of let-bindings?
+    ;; TODO: What should we do about function objects?
+    (connect output-1 local-reg)
+    ;; Produce the sum (input + 1) delayed by one clock-cycle.
+    (connect local-reg (+ local-wire 1))
+    (when (equal? (mod local-reg 4))
+      (step module-fsm))))
