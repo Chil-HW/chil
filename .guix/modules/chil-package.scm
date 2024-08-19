@@ -106,6 +106,8 @@
     (list cl-alexandria
           cl-slime-swank
           cl-slynk
+          cl-ppcre
+          cl-trivia
           cl-check-it))
    (build-system asdf-build-system/ecl)
    ;; (build-system asdf-build-system/source) ;; Maybe use this?
