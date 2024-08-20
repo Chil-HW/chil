@@ -75,6 +75,7 @@ This can be done with the ~declaim~ function.
        However, check-it expects the lambda predicate to return true or false depending on the result of the value.
      * [[https://github.com/mcandre/cl-quickcheck][cl-quickcheck]] (Last update 2020-05-08) (Seems abandoned.)
      * Write my own in the style of [[https://ngyro.com/software/guile-quickcheck.html][guile-quickcheck]] or [[https://docs.racket-lang.org/quickcheck/index.html][Racket's Quickcheck]].
+       https://stevana.github.io/the_sad_state_of_property-based_testing_libraries.html
   2. Automated generation of test programs for modules requiring simulation.
      Interesting works in software:
      * [[https://dl.acm.org/doi/10.1145/3428264][YARPGen]]
