@@ -218,6 +218,58 @@ Methods to achieve requirements:
   1. [[https://dl.acm.org/doi/10.1145/263699.263712][Proof-Carrying Code]]
   2. Compare/contrast with [[https://symbiyosys.readthedocs.io/en/latest/][SymbiYosis]], Yosys's front-end to formal HW verification flows
 
+* Synthesis
+There are three main parts to synthesizing a design from HDL down to actual circuits.
+There are actually many sub-portions to each of these tasks, but these highlight the major steps when lowering an HDL to circuits.
+  1. Logical Synthesis (Synthesis in Vivado's terms)
+     Turns your HDL into a technology-independent netlist.
+     Many optimizations are done at this level, because the most information is available now.
+     This can be used to do very rough timing analysis, analyze potential critical paths, and most importantly, see what your HDL actually synthesizes into.
+  2. Technology Mapping/Library Binding
+     This is like instruction selection in compilers.
+     You must figure out and optimize the set of gates that the manufacturer has implemented for that technology for what you synthesized into.
+     For example, an AOI3 can have a special circuit mapping.
+  3. Physical Synthesis (Implementation in Vivado's terms)
+     This takes the logical description of physical components and maps them onto the actual hardware.
+     This involves layout compaction, partitioning, floorplanning, placement, and routing.
+
+** Vivado Synthesis Steps
+The information for this section is taken from: [[https://docs.amd.com/r/en-US/ug901-vivado-synthesis][AMD's Vivado Synthesis User Guide (UG901)]], [[https://docs.amd.com/r/en-US/ug904-vivado-implementation][AMD's Vivado Implementation User Guide (UG904)]], and [[https://support.xilinx.com/s/question/0D52E00006iHshoSAC][this Vivado Synthesis question & response]].
+You can look at [[https://docs.amd.com/r/en-US/ug949-vivado-design-methodology][AMD's Vivado Design Suite User & Reference Guides (UG949)]] to get a top-level view of all user-guides.
+
+  1. Synthesis (Logical Synthesis)
+     1. Elaborates the design, resolving parameters, ~generate~ blocks, and other high-level RTL details.
+        At the end of this, there is an instantiated module and connection for everything.
+        Vivado's output from this are "Generic Technology Cells".
+        GTCs are abstract items, like addres, comparators, registers, arbitrarily wide gates, infinite fan-out, etc.
+        This is an abstract netlist.
+     2. Apply constraints.
+        These constraints are specified in the XDC format, Xilinx's extension to the standard SDC format.
+        XDC = Xilinx Design Constraints, SDC = Synopsys Design Constraints.
+     3. Perform high-level optimizations.
+        These optimizations take advantage of the constraints that we placed on the netlist.
+        They can condense multi-level combinational logic, add abstract buffers for timing, and anything else that does not rely on implementation specific information.
+        In particular, the following optimizations *cannot* happen yet:
+        * Implementation device selection (mapping an abstract adder to a DSP slice for instance.)
+        * Implementation timing latencies (BRAM vs. LUT for large logic storage)
+        * Implementation power profiles (BRAM vs. LUT for large logic storage)
+     4. Perform technology mapping.
+        Vivado needs to know what you are targeting, and attempts to map multiple levels of logic to components on the physical device.
+        At this point, the device's features are the limiting factor; routing, power consumption, and latency/timing do not play a major factor here.
+     5. Perform lower-level optimizations to *logic* design.
+        Optimizations at this point can take advantage of the fact that particular portions of the circuit have been mapped to specific pieces of the device.
+  2. Implementation (Physical Synthesis)
+     1. Opt Design: Optimizes the logical design to make it easier to fit onto the target AMD device.
+     2. Power Opt Design (Optional): Optimize physical design to reduce power demands
+     3. Place Design: Place the abstract physical design onto the target device.
+        Fan-out replication is performed here.
+     4. Post-place Power Optimization (Optional): Use placement knowledge to reduce power.
+     5. Post-place Physical Optimization Design (Optional): Use placement knowledge to improve timing.
+     6. Route Design: Route the design on the target device.
+     7. Post-Route Physical Optimization (Optional): Optimize the design using the placement and routing knowledge.
+        This optimization step can take advantage of the highly-accurate and device-specific timing information present on the final device.
+     8. Write Bitstream: Generate the design bitstream for flashing.
+
 * Examples
   1. Simple counter
   2. ALU
