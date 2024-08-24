@@ -285,6 +285,7 @@ You can look at [[https://docs.amd.com/r/en-US/ug949-vivado-design-methodology][
      4. Division
      5. Pipelined
   7. Communications protocol (AXII, AHB-to-APB bridge)
+     1. [[https://github.com/OSVVM/AXI4][AXI4 Implementation]] for AXI4, AXI4 Lite, and AXI4 Stream.
   8. RISC-V core (Should support RISC-V GC, to boot Linux)
      Getting many of these built will make my stuff equivalent to [[https://github.com/ucb-bar/riscv-sodor][Berkeley's RISC-V SODOR]].
      1. Hardware support for single-, double-, and quad-precision floating point.
