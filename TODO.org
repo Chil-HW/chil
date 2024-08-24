@@ -164,6 +164,9 @@ Effectively, this would become the unified way to work with anything in my Chil 
     Currently (2024-08-16), fud2 uses a breadth-first search to find a path in the graph of operations from the input to the requested output.
     However, they are also investigating other methods, like using E-Graphs (Equivalence Graphs) through egglog, or constraint programming through Datalog.
 
+Common Lisp has an implementation of Datalog as a DSL [[https://github.com/thephoeron/cl-datalog][on GitHub]] called [[https://github.com/thephoeron/cl-datalog][cl-datalog]].
+Datalog was originally implemented in Clojure, with this [[https://clojure.github.io/clojure-contrib/doc/datalog.html][Overview of Datalog]]?
+
 * Optimization
 Within Chil, I would like to have an optimization framework for the higher-level language.
 I am not sure how much optimization is possible in the long-run.
