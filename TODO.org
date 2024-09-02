@@ -50,6 +50,8 @@ Many of these libraries are [[https://github.com/CodyReichert/awesome-cl][listed
   * [[https://www.cs.utexas.edu/users/moore/acl2/][ACL2]] - Logic and programming language for modeling & proving
   * [[https://github.com/pcostanza/closer-mop][closer-mop]] - Compatibility layer for using CLOS's MOP
   * [[http://marijnhaverbeke.nl/postmodern/][postmodern]] - Interact with PostgreSQL
+  * [[https://github.com/Shinmera/binary-structures][binary-structures]] - Make parsing & interacting with binary files/structures easier
+  * [[https://github.com/Shinmera/parachute][Parachute]] - Testing framework that Kandria uses
 
 * Compilation Targets
 A variety of compilation targets should be available, either for debugging or performance.
