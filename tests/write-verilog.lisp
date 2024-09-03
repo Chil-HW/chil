@@ -23,15 +23,17 @@
   "Helper function to generate verilog modules."
   (chil/backends:generate (make-instance 'chil/backends:verilog-generator) module nil))
 
-(define-test generate-verilog-empty-module ()
-  (assert-equal "module test-empty(
+(define-test generate-verilog-empty-module
+  (parachute:is #'string-equal
+                "module test-empty(
 )
 body;
 endmodule // test-empty"
                 (generate-verilog *test-module-empty*)))
 
-(define-test generate-verilog-module-only-inputs ()
-  (assert-equal "module test-inputs(
+(define-test generate-verilog-module-only-inputs
+  (parachute:is #'string-equal
+                "module test-inputs(
 input type addr,
 input type ready,
 )
@@ -39,8 +41,9 @@ body;
 endmodule // test-inputs"
                 (generate-verilog *test-module-inputs*)))
 
-(define-test generate-verilog-module-only-outputs ()
-  (assert-equal "module test-outputs(
+(define-test generate-verilog-module-only-outputs
+  (parachute:is #'string-equal
+                "module test-outputs(
 output type addr,
 output type valid,
 )
@@ -48,8 +51,9 @@ body;
 endmodule // test-outputs"
                 (generate-verilog *test-module-outputs*)))
 
-(define-test generate-verilog-module-inputs-outputs ()
-  (assert-equal "module test-inputs-outputs(
+(define-test generate-verilog-module-inputs-outputs
+  (parachute:is #'string-equal
+                "module test-inputs-outputs(
 input type addr,
 input type valid,
 output type addr,
