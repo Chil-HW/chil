@@ -84,6 +84,17 @@ This can be done with the ~declaim~ function.
   3. Generated output (Verilog, VHDL) should be checked against simulators for linting.
      For Verilog, use Verilator & Icarus.
      For VHDL, use GHDL.
+  4. There should be an interpreter/simulator for the top-level language that is used (Host language simulation).
+     See the [[*Simulator][Simulator]] Section.
+     This solves the problem where only the emitted language can be verified, and not the host language.
+  5. Any unit tests for modules (whether in the standard library or written by the designer) *must* be synthesizable.
+     Down to the low-level language.
+  6. Need the ability to collect *host-language* coverage information out of tests.
+     The more semantic information available should mean tracking coverage and finding cases where there is no test-case coverage should be eaiser.
+     For example, the higher-level language knows what is an FSM, and should be able to test all possible cases for it.
+     The lower-level generated language may not understand that information and just blindly test.
+  7. *AFTER EVERYTHING ELSE DONE*: EDA tooling for Chil.
+     Design Verification workflows & debug should be able to be performed on Chil, rather than its outputs.
 
 ** Formal Methods
 Hardware is extensively validated and verified with formal methods.
@@ -101,6 +112,9 @@ It remains to be seen which is better, but initial development will start here I
 If it seems better to factor these formal methods tools out to a separate repository, then we will tackle that problem later.
 
 Many of the concepts discussed in this section come from [[https://jakob.space/blog/what-ive-learned-about-formal-methods.html][Jakob Kreuze]]'s blog post about their expeirence with formal methods in courses.
+
+   * Need the ability to embed arbitrary property assertions, without having to shell out to other languages/tools.
+     For example, temporal assertions (TLA-style) should be native to the language, and *not* an afterthought requiring inlining another language in the host language.
 
 * Higher-level Hardware
   1. Create higher-level versions of ~chil:module~ that is less painful to use, but can be converted into low-level Verilog-like format currently being used.
@@ -123,6 +137,11 @@ Many of the concepts discussed in this section come from [[https://jakob.space/b
      Special-case this because complicated FSMs typically have cycles in their control flow (looping).
   4. The equivalent to Chisel's ~Flipped~ constructor could be a macro that just switches all ~(inputs ...)~ to ~(outputs ...)~.
      ~(defmacro ... `(,module (inputs ,(module-outputs)) (outputs ,(module-inputs)) rest is same?)~
+  5. Need to provide a way to disable any implicit signals installed (clock, reset, etc.).
+     Implicit clocks make it harder to specify clock domains & gating logic when interfacing with non-Chil hardware.
+     (Perhaps this is obviated by the fact that Chil will read Verilog & add it to the final IR?)
+     Implicit resets make it harder to pipeline reset logic & add balanced flop trees.
+  6. Need a way to control naming.
 
 * Building/Elaborating
 For any realistic Chil project, a build system will be needed to automate the work of taking a Chil description and lowering it to another format.
@@ -199,6 +218,9 @@ Requirements:
   * Should be multi-threaded, to improve execution speed, if possible.
   * If a "core" assertion in the simulation testbench fails, then a Lisp core image should be saved (~sb-ext:save-lisp-and-die~).
   * This core image should allow for "rewinding" the world to see the sequence of events that caused an assertion violation.
+  * We should support both 2-state and 4-state simulation.
+    This helps reveal initialization errors that propagate through the circuit.
+    As a reminder, 2-state only allows ~0~ and ~1~, with nets initialized to ~0~; 4-state allows ~0~, ~1~, ~X~ (unknown), ~Z~ (competing drivers, floating, high-impedance).
 
 Methods to achieve requirements:
   1. Simulator should use transactional memory?
