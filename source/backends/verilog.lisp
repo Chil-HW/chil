@@ -18,6 +18,7 @@
 of the arguments in the string as well.
 
 The two directions supported are the symbols 'input and 'output."
+           (assert (member direction '(input output)))
            ;; NOTE: We choose to only support the "wire" type in Verilog, for
            ;; module I/O, the same way Chisel did. Rather, Chisel does not
            ;; specify the type at all, which typically infers "wire".
