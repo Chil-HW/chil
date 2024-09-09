@@ -69,10 +69,10 @@ parameter IN_WIDTH = 32,
 parameter out_width = 16
 )
 (
-input type addr,
-input type valid,
-output type addr,
-output type valid
+input addr,
+input valid,
+output addr,
+output valid
 );
 body;
 endmodule // test_parameters"
