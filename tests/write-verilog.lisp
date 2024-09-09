@@ -27,14 +27,14 @@ a string."
      (make-instance 'chil/backends:verilog-generator) module str)))
 
 (define-test generate-verilog-empty-module ()
-  (assert-equal "module test_empty (
+  (assert-string-equal "module test_empty (
 );
 body;
 endmodule // test_empty"
                 (generate-verilog *test-module-empty*)))
 
 (define-test generate-verilog-module-only-inputs ()
-  (assert-equal "module test_inputs (
+  (assert-string-equal "module test_inputs (
 input addr,
 input ready
 );
@@ -43,7 +43,7 @@ endmodule // test_inputs"
                 (generate-verilog *test-module-inputs*)))
 
 (define-test generate-verilog-module-only-outputs ()
-  (assert-equal "module test_outputs (
+  (assert-string-equal "module test_outputs (
 output addr,
 output valid
 );
@@ -52,7 +52,7 @@ endmodule // test_outputs"
                 (generate-verilog *test-module-outputs*)))
 
 (define-test generate-verilog-module-inputs-outputs ()
-  (assert-equal "module test_inputs_outputs (
+  (assert-string-equal "module test_inputs_outputs (
 input addr,
 input valid,
 output addr,
@@ -63,7 +63,7 @@ endmodule // test_inputs_outputs"
                 (generate-verilog *test-module-inputs-outputs*)))
 
 (define-test generate-verilog-module-parameters ()
-  (assert-equal "module test_parameters #(
+  (assert-string-equal "module test_parameters #(
 parameter EMPTY,
 parameter IN_WIDTH = 32,
 parameter out_width = 16
