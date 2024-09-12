@@ -160,6 +160,9 @@ Something that SBT does that I think is really nice is that you can add a ~~~ to
 This means that if you update a dependency for the command, the command is automatically re-run.
 For example, after saving edits to a file, the unit tests for that file run again *automatically*, with the necessary builds done in between.
 
+[[https://dl.acm.org/doi/10.1145/291252.288284][Montana]] offered to use a database behind-the-scenes to manage compilation, which allowed tool-writers to hook into the compilation flow itself.
+This provided features similar to LSPs and high-quality IR semantic analyzers today, before those were widely available for languages like C++.
+
 ** Notes after reading Build Systems à la Carte
 We want a suspending scheduler for the build system, where each thread/process building the project can be paused until its inputs are ready.
 But given Common Lisp's restart system, a restarting scheduler could be far more feasible.

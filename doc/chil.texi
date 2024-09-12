@@ -200,6 +200,23 @@ only in the first steps of Chisel elaboration.  As soon as a Chisel
 design is fully elaborated into FIRRTL, it gets converted to CIRCT, and
 most passes against that now.
 
+@node Build Artifacts
+@chapter Build Artifacts
+
+Starting as a test idea, Chil will also use a persistent database to
+store both intermediate and final build artifacts, indexed by some
+features of the code being manipulated.  I have taken this idea from
+@uref{https://dl.acm.org/doi/10.1145/291252.288284, Montana}, a compiler
+for IBM's customized version of C++.  This compilation model allowed for
+complex analyses to be run cheaply over the @emph{syntax tree} of a
+translation unit, rather than its IR.  In addition, it offered a way to
+introduce interactive and responsive tools before the era of LSPs.
+There may be something to leverage here.  This would pair well with the
+discussions from
+@uref{https://www.microsoft.com/en-us/research/uploads/prod/2018/03/build-systems.pdf,
+Build Systems @`{a} la Carte} about intermediate build targets and
+determining if something needs to be built.
+
 @node Simulation
 @chapter Simulation
 
