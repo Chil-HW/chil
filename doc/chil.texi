@@ -173,19 +173,22 @@ elsewhere, if you choose.
 @node Verilog
 @section Verilog
 
-Chisel has targeted Verilog, because it is easier to generate correct
-Verilog than VHDL or SystemVerilog.
+Chisel has targeted Verilog/SystemVerilog, because it is easier to
+generate syntactically correct SystemVerilog than VHDL.
 
 @node CIRCT
 @section CIRCT
 
-CIRCT is an intermediate representation backed by LLVM and its
+CIRCT is an intermediate representation backed by LLVM's MLIR and its
 framework.
 
 @node FIRRTL
 @section FIRRTL
 
-FIRRTL is an intermediate representation used by Chisel.
+FIRRTL is an intermediate representation used by Chisel that is used
+only in the first steps of Chisel elaboration.  As soon as a Chisel
+design is fully elaborated into FIRRTL, it gets converted to CIRCT, and
+most passes against that now.
 
 @node Simulation
 @chapter Simulation
@@ -358,7 +361,7 @@ Chil system.
 @url{https://spade-lang.org/}@*
 @url{https://zenodo.org/records/10149647}
 
-@item Calyx@tie{}(an HDL IR)
+@item Calyx@tie{}(an HDL IL)
 @url{https://github.com/cucapra/calyx}@*
 @url{https://rachit.pl/files/pubs/calyx.pdf}
 
