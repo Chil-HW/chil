@@ -157,6 +157,16 @@ sections.
 
 This first pass does something.
 
+@node Future Passes
+@section Future Passes
+
+From a collection of sources, I have started a list of passes that may be interesting to add in the future.
+
+@table @samp
+@item Application Accelerator Language (Ideas for Passes)
+@url{https://youtu.be/breMdZl47Ns?si=3j5mBlpfKO8Cfjtq}
+@end table
+
 @node Code Generation
 @chapter Code Generation
 
