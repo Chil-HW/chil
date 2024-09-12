@@ -313,17 +313,22 @@ value specified somewhere by the user.
 @section Property-Based Testing
 
 @c Need reference for prop-based testing.
-Another method of verification is the use of property-based testing.
-This is similar to formal verification, where the user provides a
-specification of the behavior in the form of a test/assertion. Then the
-computer will generate random inputs and attempt to find an example that
-breaks your assertion.  A good property-based tester also refines its
-counterexamples until it finds a minimally-reproducible input that
-violates your assertion.  This is, essentially, automated test-driven
-development.  NOTE: This is @b{not} formal verification!  Formal
-verification is a process where the semantics of your hardware are
-proven against a @emph{mathematical} model.  Property-based testing is
-only testing, not proving.
+Another method of validation is the use of property-based testing.  This
+is similar to formal verification, where the user provides a
+specification of the behavior, but does so in the form of a
+test/assertion. Then the computer will generate random inputs and
+attempt to find an example that breaks your assertion.  A good
+property-based tester also refines its counterexamples until it finds a
+minimally-reproducible input that violates your assertion.  This is,
+essentially, automated test-driven development.
+
+@quotation NOTE
+This is @b{not} formal verification!  Formal verification is a process
+where the semantics of your hardware are proven against a
+@emph{mathematical} model.
+
+@b{Property-based testing is only testing, not proving.}
+@end quotation
 
 Ideally, the property-based tester and the simulator play together to
 automatically run tests, kill the simulation, etc.  The simulator only
