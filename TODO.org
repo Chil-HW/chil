@@ -175,6 +175,35 @@ Hence, larger projects like Chipyard need a combination of scripts, Makefiles, a
 
 Chisel, Chipyard, Rocket, etc. all moved to using [[https://mill-build.com/mill/Intro_to_Mill.html][Mill]] instead of SBT.
 
+* Documentation
+Language documentation should be clear and easy to read.
+When possible, it should be concise, but should not limit itself when deeper explanation is necessary.
+The entire public-facing interface for the language should be documented, and hopefully all the internals too.
+
+The list below is taken from the blog post [[https://walnut356.github.io/posts/language-documentation/][Why is language documentation still so terrible?]]:
+  * A canonical language documentation written for real human beings
+  * Docs themselves should be versioned, so you do not have to sift through information that doesn't apply to the version you care about
+  * A reference/appendix section that contains the language specification (syntax, operator precedence, keywords, etc.)
+  * An individual page for each standard library class or built in type
+    - Class and method descriptions should answer at least the first 2, but preferably all 3 of the following questions:
+      1. What does this do (effect)?
+      2. How does it do it (internal implementation)?
+      3. Why would I want it to (use-case, comparison to similar methods, etc.)?
+    - Link directly to the source code of the internal implementation.
+    - That page must be as uncluttered as possible
+    - That page must /contain/ (not link to) every method, and the descriptions of those methods, that can be called by that class, preferably including all inherited functions.
+      + Most methods should have at least 1 example
+      + There should be a sidebar or equivalent that contains all the method names in /alphabetical order/ for easy searching and jumping
+    - Code examples should be at least lightly syntax highlighted
+    - examples, descriptions, and function signatures should link internally as much as possible
+    - non-cryptic names, or at least like... tell me what your [[https://stackoverflow.com/questions/7448262/why-are-c-names-shortened][8 byte contraction]] expands to
+  * Preferably on a publicly accessible website, styled in a way that doesn't make my eyes bleed (dark mode option), and that responds appropriately to at least both full screen (16:9) and half screen (8:9) sizes
+  * A search function that isn't just [[https://letmegooglethat.com/?q=lmgtfy][lmgtfy]]??????
+    Are we for real???
+
+The language documentation the author believes satisfied all of these criteria was [[https://doc.rust-lang.org/std/index.html][Rust's standard library documentation]] system.
+The author further pointed out that even 3rd party crates get a similar documentation website generated for them, just by using the doc-comments in the files, and publicly-exported tools.
+
 * Toolchain Driver
 If I intend to support multiple input formats and output formats, there will need to be a series of steps to define actions to take to produce an output.
 This may involve running the Chil compiler, but it might also involve running other tools (like a script to convert a JSON description of memory into a dat format).
