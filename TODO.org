@@ -163,6 +163,8 @@ For example, after saving edits to a file, the unit tests for that file run agai
 [[https://dl.acm.org/doi/10.1145/291252.288284][Montana]] offered to use a database behind-the-scenes to manage compilation, which allowed tool-writers to hook into the compilation flow itself.
 This provided features similar to LSPs and high-quality IR semantic analyzers today, before those were widely available for languages like C++.
 
+Scala's [[https://mill-build.org/mill/0.12.1/index.html][Mill]] is kind of what I am aiming for.
+
 ** Notes after reading Build Systems à la Carte
 We want a suspending scheduler for the build system, where each thread/process building the project can be paused until its inputs are ready.
 But given Common Lisp's restart system, a restarting scheduler could be far more feasible.
