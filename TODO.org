@@ -262,6 +262,17 @@ Hence, larger projects like Chipyard need a combination of scripts, Makefiles, a
 
 Chisel, Chipyard, Rocket, etc. all moved to using [[https://mill-build.com/mill/Intro_to_Mill.html][Mill]] instead of SBT.
 
+** Non-Compilation Passes
+In addition to lowering passes needed to compile a high-level circuit construction to the final circuit, we also need to provide passes that do *not* alter the circuit.
+These passes can provide information or feedback about your circuit at points in its life.
+The Nanopass framework supports this with transforms that take a language in and do not produce an output language.
+
+Some ideas for these passes include:
+  * [[https://youtu.be/FktjrjRVBoY?si=kkuIFcenLX4fy3Ij][FIRRTL Pass for Area and Timing]]
+  * Generating target-device-specific configuration files.
+    For example, an accelerator may need an XML file to describe the hardware that is being added.
+    A pass could take in the IR, figure out what is being asked, and return an XML file describing the written circuit.
+
 * Documentation
 Language documentation should be clear and easy to read.
 When possible, it should be concise, but should not limit itself when deeper explanation is necessary.
