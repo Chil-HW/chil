@@ -262,6 +262,16 @@ Hence, larger projects like Chipyard need a combination of scripts, Makefiles, a
 
 Chisel, Chipyard, Rocket, etc. all moved to using [[https://mill-build.com/mill/Intro_to_Mill.html][Mill]] instead of SBT.
 
+** Annotations
+My thoughts about [[https://youtu.be/4YGIdjMNI6Q?si=ERVxSi724g9hC6wU][Annotations and Hardware Construction Languages]] and how they can be used in Chil:
+  * Annotations should not be an after-thought.
+  * They are a key way to pass circuit metadata down through the compiler's phases.
+  * Should annotations be allowed in the circuit description itself?
+    Or in another file altogether?
+  * Annotations indirectly refer to parts of the circuit.
+    Just use the name, rather than a pointer or another structure.
+    This naming indirection allows passes to rename components in the actual circuit without needing to do massive cross-cutting modifications.
+
 ** Non-Compilation Passes
 In addition to lowering passes needed to compile a high-level circuit construction to the final circuit, we also need to provide passes that do *not* alter the circuit.
 These passes can provide information or feedback about your circuit at points in its life.
