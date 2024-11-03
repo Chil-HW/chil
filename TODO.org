@@ -143,6 +143,91 @@ Many of the concepts discussed in this section come from [[https://jakob.space/b
      Implicit resets make it harder to pipeline reset logic & add balanced flop trees.
   6. Need a way to control naming.
 
+** Diplomacy-like System for Delayed Hardware Design
+Chisel has a tool called [[https://www2.eecs.berkeley.edu/Pubs/TechRpts/2016/EECS-2016-89.pdf][Diplomacy]], which is a way to delay hardware generation until parameters are fully known.
+Some parameters in a hardware design are not known by the programmer at the time they write the HDL.
+For example, how many address bits do you need in a cross-bar?
+That depends on the number of devices attached to the cross-bar.
+What if you want to make the cross-bar implementation a library, to reuse the cross-bar everywhere?
+How can you get the number of devices without having the whole design?
+
+Diplomacy solves these problems by introducing a new phase before Chisel hardware generation.
+You (as the designer) mark Chisel modules as "diplomatic" by introducing Diplomacy parameters to the module.
+Then, when compiling, the Diplomacy framework goes over a design, passing these parameters around to all the diplomatic modules in the design.
+The parameters are then concretized into the Chisel code before the Chisel compiler is run.
+
+Modules in this setup need to be marked as ~lazy~, so that the Chisel compiler will accept the symbol's definition as being valid, without having an actual definition yet.
+(~lazy~ is a lazy evaluation in this case).
+This ~lazy~ marker is required to make sure the compiler does not complain when a module has an implementation that depends on resolved diplomatic parameters.
+
+I wonder what would happen if we flip the script and make *everything* diplomatic, rather than having to explicitly opt-in.
+If modules do not need diplomatic parameters, the outer wrapper can be silently unwrapped.
+With Lisp's code-staging through symbol recognition (gexps in Guix are just symbols that are a "specially-named quote" in this metaphor), the notion of ~lazy~ may not be needed anymore.
+
+*** Network-on-Chip Extension
+This section is taken from [[https://doi.org/10.1109/NoCArc57472.2022.9911299][Jerry Zhou's Constellation NoC generator]].
+Can a Diplomacy-like framework in *Chil* allow for expression of NoCs?
+Chisel's Diplomacy cannot do this because Diplomacy can only describe acyclic networks.
+UC-Berkeley has implemented Constellation's cyclic descriptions into Diplomacy-generated acyclic ones by providing translators.
+
+Would a general cyclic NoC language be able to express any acyclic interconnect system too?
+Are there problems there?
+Can you prove the acyclic interconnect out of a potentially cyclic description and then change tactics (for example, more aggressive optimization)?
+
+Such an expression language must include:
+  * A specification language that includes the topology, routing, protocol, and coherence.
+    - Logical specification: Flows & endpoints.
+      How many nodes (endpoints) are there?
+      How are they logically connected?
+      What are the logical flows the NoC must handle?
+      What are the conditions for deadlock-free execution (conditions to always make forward progress) in the NoC?
+      As part of the flow specification, we can limit what design points we generate HW for, because not all flows are possible given allthe other constraints in the specification.
+    - Physical specification: Topology, microarch, and channels.
+      What are the physical properties of this network?
+      How wide is a channel?
+      What is the topology of nodes in the network?
+      What is the specific implementation details of the nodes?
+      How many buffer entries are in the network?
+    - Routing specification: Routing policy, allocation, and arbitration.
+      How do packets/flits reach one end of the network from the other?
+      What resources are allocated as a packet/flit traverse the network?
+      What is the arbitration scheme to determine what resources get allocated?
+      "Marries logical spec to physical" ([[https://youtu.be/8FGnu0Tq3Qk?si=_UsyfUg-WzUlG7eA&t=658][Zhou, 2023]]).
+      The routing table will be generated for each router node:
+      1. Compute all possible paths for all possiblef lows.
+      2. For each router, compute precisely which flows might arrive.
+      3. Construct an abstract truth table for routing.
+         1. Input is flow, currently occupied Virtual Channel
+         2. Output is a Boolean for each output Virtual Channel
+      4. Use logic minimization to generate HW implementation of routing table.
+         Espesso will often be better here because the routing table is likely to be quite large and exact minimization algorithms (Quine-McCluskey) will take inordinate amounts of time.
+  * A specification translator that can generate behavioral and transactional simulators.
+    These will be used to verify correctness of implementations of this specification.
+  * A language for implementing the behaviors of the network itself.
+  * Multi-protocol networks, where multiple protocols either interface through endpoints/adapters, or work on the exact same physical specification.
+  * Multi-network systems:
+    - Separate performance-critical traffic from control traffic.
+      The performance network can be high-bandwidth, high-power, and low-latency, while control can be lower-bandwidth.
+
+This NoC framework *must* validate (and preferably *prove*):
+  * The network is actually routable.
+  * There is no deadlock in the protocol's specification
+  * There is no deadlock in the protocol's implementation.
+
+Basic notes about NoCs:
+  * Packets are used
+  * Packets may be bigger than what the network can actually transmit.
+    In this case, packets are further decomposed into flits.
+    There is a header/tailer flit to encode the start/end of a packet stream.
+  * Wormhole routing is a fairly standard way to implement a routing policy.
+    In this case, flits move through the network, one at a time.
+    The header flit starts the process and subsequent flits exactly trail the header as it moves through the network.
+    This makes the sequence of flits look like a worm moving through the network.
+    Such a routing policy means wormhole routing is just a resource-allocation policy.
+
+All of this can be done with normal Lisp code, without needing to drop to Chil, because no hardware has been generated yet.
+Only once the spec and its implementation have been shown to not cause problems is hardware actually generated.
+
 * Building/Elaborating
 For any realistic Chil project, a build system will be needed to automate the work of taking a Chil description and lowering it to another format.
 Look through [[https://www.microsoft.com/en-us/research/uploads/prod/2018/03/build-systems.pdf][Build Systems à la Carte]] for more information about this topic.
