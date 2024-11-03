@@ -360,6 +360,13 @@ Methods to achieve requirements:
        If a database is needed, that might make more sense.
   3. [[https://dspace.mit.edu/bitstream/handle/1721.1/44215/MIT-CSAIL-TR-2009-002.pdf?sequence=1&isAllowed=y][Propagators]]?
 
+** [[https://github.com/shioyadan/Konata][Kanata Logs]]
+Konata is a tool to interactively view how instructions flow through a pipeline.
+It also supports Out-of-order execution information.
+
+Konata uses a log format called Kanata.
+The log file is a text file format whose format is described [[https://github.com/shioyadan/Konata/blob/master/docs/kanata-log-format.md][here]].
+
 * Verification
   1. [[https://dl.acm.org/doi/10.1145/263699.263712][Proof-Carrying Code]]
   2. Compare/contrast with [[https://symbiyosys.readthedocs.io/en/latest/][SymbiYosis]], Yosys's front-end to formal HW verification flows
