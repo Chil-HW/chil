@@ -5,6 +5,7 @@
     :accessor width
     :initarg :width
     :initform 0
+    :type integer
     :documentation "The bit-width of the data."))
   (:documentation "The base of the type hierarchy for wire objects/data types.
 The data value must be representable as some number (need not be known at Chisel

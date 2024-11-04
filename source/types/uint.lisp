@@ -5,6 +5,7 @@
     :accessor value
     :initarg :value
     :initform 0
+    :type integer
     :documentation "The value of the bit pattern, as an unsigned integer."))
   (:documentation "Data type representing unsigned integral values."))
 

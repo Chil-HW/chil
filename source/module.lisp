@@ -20,12 +20,14 @@
     :accessor amount
     :initarg :amount
     :initform 1
+    :type integer
     :documentation "\"Width\" of the specification, how many time-units pass
 each \"tick\".")
    (units
     :accessor units
     :initarg :units
     :initform ps
+    :type symbol
     :documentation "Unit of time-step intervals.")))
 
 (defun make-time-spec (amount units)
