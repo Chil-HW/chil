@@ -17,13 +17,13 @@
 
 (defclass time-spec ()
   ((amount
+    :accessor amount
     :initarg :amount
-    :initform 1
-    :accessor amount)
+    :initform 1)
    (units
+    :accessor units
     :initarg :units
-    :initform ps
-    :accessor units)))
+    :initform ps)))
 
 (defun make-time-spec (amount units)
   "Create a time-spec object with the provided AMOUNT and UNITS."
