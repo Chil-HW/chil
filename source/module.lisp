@@ -19,11 +19,14 @@
   ((amount
     :accessor amount
     :initarg :amount
-    :initform 1)
+    :initform 1
+    :documentation "\"Width\" of the specification, how many time-units pass
+each \"tick\".")
    (units
     :accessor units
     :initarg :units
-    :initform ps)))
+    :initform ps
+    :documentation "Unit of time-step intervals.")))
 
 (defun make-time-spec (amount units)
   "Create a time-spec object with the provided AMOUNT and UNITS."
