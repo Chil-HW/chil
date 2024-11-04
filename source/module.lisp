@@ -29,7 +29,8 @@ each \"tick\".")
     :initform ps
     :type symbol
     :documentation "Unit of time-step intervals."))
-  (:default-initargs :amount 1 :units 'ps))
+  (:default-initargs :amount 1 :units 'ps)
+  (:documentation "A time-specification for delays and simulation."))
 
 (defun make-time-spec (amount units)
   "Create a time-spec object with the provided AMOUNT and UNITS."
