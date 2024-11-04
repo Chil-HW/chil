@@ -7,6 +7,7 @@
     :initform 0
     :type integer
     :documentation "The value of the bit pattern, as an unsigned integer."))
+  (:default-initargs :value 0)
   (:documentation "Data type representing unsigned integral values."))
 
 (defun uint (val)

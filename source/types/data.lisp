@@ -7,6 +7,7 @@
     :initform 0
     :type integer
     :documentation "The bit-width of the data."))
+  (:default-initargs :width 0)
   (:documentation "The base of the type hierarchy for wire objects/data types.
 The data value must be representable as some number (need not be known at Chisel
 compile-time) of bits, and must have methods to pack/unpack structured data
