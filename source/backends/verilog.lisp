@@ -2,6 +2,7 @@
 
 ;;; Verilog Generator
 (defclass verilog-generator (hdl-generator)
+  ()
   (:documentation "An HDL back-end for generating Verilog."))
 
 (defun chil-sym->verilog-sym (str)
