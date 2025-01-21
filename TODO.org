@@ -156,6 +156,13 @@ Many of the concepts discussed in this section come from [[https://jakob.space/b
      Implicit resets make it harder to pipeline reset logic & add balanced flop trees.
   6. Need a way to control naming.
 
+** Language for Writing Encode/Decode Tables
+Rocket had to write a decode table class for their instruction decoder.
+They used Quine-McCluskey minimization, but also support Espresso.
+
+The problem is, the error messages for their decode table implementation do not explain why things are going wrong.
+It would be nice to *have* to cover all patterns somehow.
+
 ** Diplomacy-like System for Delayed Hardware Design
 Chisel has a tool called [[https://www2.eecs.berkeley.edu/Pubs/TechRpts/2016/EECS-2016-89.pdf][Diplomacy]], which is a way to delay hardware generation until parameters are fully known.
 Some parameters in a hardware design are not known by the programmer at the time they write the HDL.
