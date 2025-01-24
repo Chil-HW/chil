@@ -154,7 +154,23 @@ Many of the concepts discussed in this section come from [[https://jakob.space/b
      Specialization of an enum that only allows you to traverse in one direction.
      ~(next oneway-enum signal)~ moves you to next state when signal goes high.
      Special-case this because complicated FSMs typically have cycles in their control flow (looping).
-  4. The equivalent to Chisel's ~Flipped~ constructor could be a macro that just switches all ~(inputs ...)~ to ~(outputs ...)~.
+  4. Like Chisel have ~Valid~ and ~Decoupled~ wrapper modules, but *prevent* data use/writing without first entering an environment/scope where the ~valid~/~ready~ signal is first checked.
+     Something like
+     #+begin_src common-lisp
+;; This should work
+(with-valid wrapper-bundle (assign local-wire underlying-bits))
+;; This should fail, since we are not in an environment/scope where valid has been checked.
+(assign local-wire (bits wrapper-bundle))
+
+;; These should probably desugar to a cond/Mux.
+(defmacro with-valid (wrapper-bundle @body b)
+  (cond (valid wrapper-bundle)
+    (t b)
+    (else do-nothing)))
+
+(with-ready wrapper-bundle (assign underlying-bits 3) (assert-valid))
+     #+end_src
+     This would prevent use-without-valid and signal asynchrony errors as identified by "Debugging in the Brave New World of Reconfigurable Hardware".
      ~(defmacro ... `(,module (inputs ,(module-outputs)) (outputs ,(module-inputs)) rest is same?)~
   5. Need to provide a way to disable any implicit signals installed (clock, reset, etc.).
      Implicit clocks make it harder to specify clock domains & gating logic when interfacing with non-Chil hardware.
