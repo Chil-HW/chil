@@ -171,12 +171,15 @@ Many of the concepts discussed in this section come from [[https://jakob.space/b
 (with-ready wrapper-bundle (assign underlying-bits 3) (assert-valid))
      #+end_src
      This would prevent use-without-valid and signal asynchrony errors as identified by "Debugging in the Brave New World of Reconfigurable Hardware".
+  5. I want a way to mark implementations that are *deliberately* incomplete.
+     This is like Rust's [[https://doc.rust-lang.org/std/macro.todo.html][~todo!()~]] and [[https://doc.rust-lang.org/std/macro.unimplemented.html][~unimplemented!()~]] macros or Scala's ~Predef.???~ operator.
+  6. The equivalent to Chisel's ~Flipped~ constructor could be a macro that just switches all ~(inputs ...)~ to ~(outputs ...)~.
      ~(defmacro ... `(,module (inputs ,(module-outputs)) (outputs ,(module-inputs)) rest is same?)~
-  5. Need to provide a way to disable any implicit signals installed (clock, reset, etc.).
+  7. Need to provide a way to disable any implicit signals installed (clock, reset, etc.).
      Implicit clocks make it harder to specify clock domains & gating logic when interfacing with non-Chil hardware.
      (Perhaps this is obviated by the fact that Chil will read Verilog & add it to the final IR?)
      Implicit resets make it harder to pipeline reset logic & add balanced flop trees.
-  6. Need a way to control naming.
+  8. Need a way to control naming.
 
 ** Language for Writing Encode/Decode Tables
 Rocket had to write a decode table class for their instruction decoder.
