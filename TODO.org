@@ -151,7 +151,7 @@ Many of the concepts discussed in this section come from [[https://jakob.space/b
      * Investigate how [[https://github.com/Shirakumo/kandria][Kandria]] did mixins for their simulator.
        https://github.com/Shinmera/talks/tree/master
   3. One-way enum for FSM
-     Specialization of an enum that only allows you to traverse in one direction.
+     Specialization of an enum/FSM that only allows you to traverse in one direction.
      ~(next oneway-enum signal)~ moves you to next state when signal goes high.
      Special-case this because complicated FSMs typically have cycles in their control flow (looping).
   4. Like Chisel have ~Valid~ and ~Decoupled~ wrapper modules, but *prevent* data use/writing without first entering an environment/scope where the ~valid~/~ready~ signal is first checked.
@@ -180,6 +180,22 @@ Many of the concepts discussed in this section come from [[https://jakob.space/b
      (Perhaps this is obviated by the fact that Chil will read Verilog & add it to the final IR?)
      Implicit resets make it harder to pipeline reset logic & add balanced flop trees.
   8. Need a way to control naming.
+
+** Separating FSM Definition from Their Usage
+Hardware is controlled (almost) completely by finite state machines.
+Traditional hardware languages (Verilog/SystemVerilog and VHDL) and even modern HDLs (Chisel, SpinalHDL, etc.) do not let you define a finite state machine and its transitions separately from the FSMs use.
+In other languages, /defining/ an FSM would be a completely different step compared to using it.
+
+#+begin_src racket
+;; Syntax taken from "Sham: A DSL for Fast DSLs".
+(define-fsa M init (end)
+  [init ([c more])]
+  [more ([a more] [d more] [r end])]
+  [end ()])
+
+;; (define-fsa name start (final ...)
+;;   [state ([input next] ...)] ...)
+#+end_src
 
 ** Language for Writing Encode/Decode Tables
 Rocket had to write a decode table class for their instruction decoder.
