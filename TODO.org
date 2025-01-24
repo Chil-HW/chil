@@ -39,6 +39,7 @@ These are some other HDL langauges that I may want to look at.
     - Mechanically checked
     - Generate human-readable documentation
     - Generate boilerplate for simulators & compilers & HDLs
+  * [[https://github.com/domus123/vhdlisp][VHDLisp]]
 
 * Interesting Common Lisp Libraries
 Many of these libraries are [[https://github.com/CodyReichert/awesome-cl][listed here]].
