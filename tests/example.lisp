@@ -1,6 +1,3 @@
-(defpackage :chil/tests
-  (:use :cl :lisp-unit2 :check-it))
-
 (in-package :chil/tests)
 
 (define-test example ()

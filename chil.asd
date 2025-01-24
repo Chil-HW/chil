@@ -29,7 +29,8 @@
 (defsystem :chil/tests
   :depends-on (:chil :alexandria :lisp-unit2 :check-it)
   :pathname #p"tests/"
-  :components ((:file "example")
+  :components ((:file "base")
+               (:file "example")
                (:file "write-verilog")
                (:file "utils")))
 
