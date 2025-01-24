@@ -78,7 +78,12 @@ This can be done with the ~declaim~ function.
        However, check-it expects the lambda predicate to return true or false depending on the result of the value.
      * [[https://github.com/mcandre/cl-quickcheck][cl-quickcheck]] (Last update 2020-05-08) (Seems abandoned.)
      * Write my own in the style of [[https://ngyro.com/software/guile-quickcheck.html][guile-quickcheck]] or [[https://docs.racket-lang.org/quickcheck/index.html][Racket's Quickcheck]].
-       https://stevana.github.io/the_sad_state_of_property-based_testing_libraries.html
+       - Another QuickCheck-like implementation direction is the one used by Rust's [[https://crates.io/crates/proptest][Proptest]].
+         Proptest generates and shrinks based on a ~Strategy~ object, rather than the types alone.
+         See [[https://proptest-rs.github.io/proptest/intro.html][Proptest's manual]] for how it works and [[https://github.com/proptest-rs/proptest?tab=readme-ov-file#differences-between-quickcheck-and-proptest][its README]] for a brief comparison between Proptest and Quickcheck-like systems.
+         If I write my own, we should read [[https://www.cs.cornell.edu/~asampson/blog/autoreduction.html][Adrian Sampson's "Automated Test-Case Reduction" blog post]].
+       - [[https://stevana.github.io/the_sad_state_of_property-based_testing_libraries.html]]
+       - [[https://www.well-typed.com/blog/2019/01/qsm-in-depth/]]
   2. Property-based testing of single modules.
      Module is written like normal.
      Asserts are present in module.
