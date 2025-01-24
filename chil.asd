@@ -32,6 +32,7 @@
   :components ((:file "base")
                (:file "example")
                (:file "write-verilog")
+               (:file "write-vhdl")
                (:file "utils")))
 
 (defmethod asdf:perform ((o asdf:test-op) (c (eql (find-system :chil/tests))))
