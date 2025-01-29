@@ -311,6 +311,8 @@ This provided features similar to LSPs and high-quality IR semantic analyzers to
 
 Scala's [[https://mill-build.org/mill/0.12.1/index.html][Mill]] is kind of what I am aiming for.
 
+Compilation of modules should be thread-safe, so two separate functions can be generated and compiled at the same time.
+
 ** Notes after reading Build Systems à la Carte
 We want a suspending scheduler for the build system, where each thread/process building the project can be paused until its inputs are ready.
 But given Common Lisp's restart system, a restarting scheduler could be far more feasible.
