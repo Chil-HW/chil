@@ -512,18 +512,20 @@ You can look at [[https://docs.amd.com/r/en-US/ug949-vivado-design-methodology][
   2. ALU
   3. Single-Error Correct, Double-Error Detect ECC Unit
   4. N-point FFT
-  5. Cryptographic cores/accelerators
+  5. Branchless UTF-8 Encoder
+     [[https://cceckman.com/writing/branchless-utf8-encoding/]]
+  6. Cryptographic cores/accelerators
      1. AES-256
      2. SHA-256
-  6. IEEE 754 compliant Floaing-point unit (Similar to Berkeley's hardfloat)
+  7. IEEE 754 compliant Floaing-point unit (Similar to Berkeley's hardfloat)
      1. Addition
      2. Subtraction
      3. Multiplication
      4. Division
      5. Pipelined
-  7. Communications protocol (AXII, AHB-to-APB bridge)
+  8. Communications protocol (AXII, AHB-to-APB bridge)
      1. [[https://github.com/OSVVM/AXI4][AXI4 Implementation]] for AXI4, AXI4 Lite, and AXI4 Stream.
-  8. RISC-V core (Should support RISC-V GC, to boot Linux)
+  9. RISC-V core (Should support RISC-V GC, to boot Linux)
      Getting many of these built will make my stuff equivalent to [[https://github.com/ucb-bar/riscv-sodor][Berkeley's RISC-V SODOR]].
      1. Hardware support for single-, double-, and quad-precision floating point.
         See [[https://github.com/ucb-bar/berkeley-hardfloat][Berkeley's HardFloat]].
@@ -534,12 +536,12 @@ You can look at [[https://docs.amd.com/r/en-US/ug949-vivado-design-methodology][
      5. Multi-issue in-order pipelined
      6. Single-issue out-of-order
      7. Multi-issue out-of-order
-  9. [[https://github.com/adam-maj/tiny-gpu][tiny-gpu]]: A minimal GPU that executes a single kernel at a time with many threads per core.
-     This architecture also includes a small amount of possible configuration too.
-  10. [[https://github.com/turbo9team/turbo9][turbo9]]: Pipelined Motorola 6809 design
-  11. [[https://gitlab.com/zephray/caster][Caster]]: Electrophoretics Display (eInk) Controller.
+  10. [[https://github.com/adam-maj/tiny-gpu][tiny-gpu]]: A minimal GPU that executes a single kernel at a time with many threads per core.
+      This architecture also includes a small amount of possible configuration too.
+  11. [[https://github.com/turbo9team/turbo9][turbo9]]: Pipelined Motorola 6809 design
+  12. [[https://gitlab.com/zephray/caster][Caster]]: Electrophoretics Display (eInk) Controller.
       Used by [[https://github.com/Modos-Labs/Glider][Glider]].
-  12. [[https://www.cl.cam.ac.uk/research/security/ctsrd/cheri/][CHERI]] in Hardware
+  13. [[https://www.cl.cam.ac.uk/research/security/ctsrd/cheri/][CHERI]] in Hardware
       This has already been done with ARM, MIPS, and recently RISC-V.
       But I want to implement on this.
-  13. Custom architecture
+  14. Custom architecture
