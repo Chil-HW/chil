@@ -150,6 +150,9 @@ Many of the concepts discussed in this section come from [[https://jakob.space/b
      * Reference the [[https://lispcookbook.github.io/cl-cookbook][Common Lisp Cookbook]]
      * Investigate how [[https://github.com/Shirakumo/kandria][Kandria]] did mixins for their simulator.
        https://github.com/Shinmera/talks/tree/master
+     * *I THINK* mixins would be most useful for RISC-V CSRs.
+       This way you can define the CSR and say it is WARL/WPRI/whatever without having to write the specific ~Reg~ & ~when~ logic.
+       This would also make it easier to figure out exactly what is going on with a CSR without needing to actually read its implementation.
   3. One-way enum for FSM
      Specialization of an enum/FSM that only allows you to traverse in one direction.
      ~(next oneway-enum signal)~ moves you to next state when signal goes high.
