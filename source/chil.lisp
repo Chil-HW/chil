@@ -11,6 +11,7 @@
            #:module-parameters
            #:module-inputs
            #:module-outputs
+           #:module-body
            #:data
            #:pack
            #:unpack
