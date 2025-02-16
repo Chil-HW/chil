@@ -92,3 +92,20 @@ endmodule // test_parameters"
                   :parameters '(("IN_WIDTH" 32) ("failing" 16 2))
                   :inputs '("addr" "valid")
                   :outputs '("addr" "valid")))))
+
+(defparameter *test-module-body*
+  (chil:module "test-body"
+               :inputs '("a" "b")
+               :outputs '("f")
+               :body '((assign f (and a b))))
+  "CHIL Module for testing that is a complete module, but unparameterized.")
+
+(define-test generate-verilog-body ()
+  (assert-string-equal "module test_body (
+input a,
+input b,
+output f
+);
+assign F = A & B;
+endmodule // test_body"
+                (generate-verilog *test-module-body*)))
