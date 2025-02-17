@@ -150,6 +150,7 @@ sections.
 
 @menu
 * Pass 1::                      The first pass to run.
+* Future Passes::               Passes to add in future versions.
 @end menu
 
 @node Pass 1
