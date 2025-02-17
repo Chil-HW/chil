@@ -6,6 +6,19 @@
 
 (in-package :chil/backends)
 
+;;; Abstract HDL backend class
+;; TODO: Make this a metaclass with MOP?
+(defclass backend-hdl ()
+  ()
+  (:documentation "Generic HDL back-end class. Do NOT initialize this class!
+
+This is intended to be a way to retarget `Chil' modules to a particular
+target."))
+
+(defgeneric generate (backend-module stream)
+  (:documentation "Abstract method to generate the provided backend MODULE to
+STREAM"))
+
 ;;; Abstract HDL generator class
 ;; TODO: Make this a metaclass with MOP?
 (defclass hdl-generator ()
