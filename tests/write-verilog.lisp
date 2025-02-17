@@ -21,7 +21,10 @@
 
 (defun generate-verilog (module)
   "Helper function to generate Verilog modules. Returns the generated Verilog as
-a string."
+a string.
+
+This creates a fresh Verilog generator on every invocation. This allows each
+unit test to potentially modify the generator without polluting other tests."
   (uiop:with-output (str 'nil)
     (chil/backends:generate
      (make-instance 'chil/backends:verilog-generator) module str)))
