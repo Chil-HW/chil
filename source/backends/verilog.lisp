@@ -94,8 +94,8 @@ The two directions supported are the symbols 'input and 'output."
                     (module-io->strings 'output (outputs verilog-module))))
     (format stream ");~&")
     (codegen (body verilog-module) stream)
-    ;; (format stream "~a~&" )
-    (format stream "endmodule // ~a" (name verilog-module))))
+    ;; FIXME: This manual forced newline should not be here.
+    (format stream "~%endmodule // ~a" (name verilog-module))))
 
 (defclass verilog-net (verilog-module)
   ((name
