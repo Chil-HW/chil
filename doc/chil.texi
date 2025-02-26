@@ -151,6 +151,7 @@ sections.
 @menu
 * Pass 1::                      The first pass to run.
 * Backend Conversion Pass::     Converting to a backend modules.
+* Backend Generation Pass::     Generating Backend code from modules.
 * Future Passes::               Passes to add in future versions.
 @end menu
 
@@ -174,6 +175,17 @@ organized this way.
 
 Part of the thinking behind this decision was that the separation of
 steps may mean that building a task graph will be easier.
+
+@node Backend Generation Pass
+@section Backend Generation Pass
+
+The last step that Chil can take is to generate the backend code from
+the converted backend design.  The only thing this pass does is generate
+a string representation in the backend language of choice, potentially
+writing that string to a file.
+
+At this point, if you want Chil to recognize the module again, you will
+need to parse it using the appropriate front-end!
 
 @node Future Passes
 @section Future Passes
