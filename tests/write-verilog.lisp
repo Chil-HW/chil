@@ -1,4 +1,8 @@
-(in-package :chil/tests)
+(defpackage :chil/tests/verilog
+  (:use :cl :lisp-unit2 :check-it
+        :chil/backends :chil/backends/verilog))
+
+(in-package :chil/tests/verilog)
 
 (defparameter *test-module-empty* (chil:module "test-empty")
   "CHIL Module for testing that has no inputs, no outputs, and no body.")
