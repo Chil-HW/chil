@@ -111,12 +111,8 @@ wire or a very large combinational net."))
 (defmethod codegen ((net verilog-net) stream)
   (format stream "~a" (name net)))
 
-;; TODO: This is how to define a type that can be used in :type, declare, and
-;; everywhere else that expects a "type" object.
-;; (deftype verilog-binops ()
-;;   '(member + - * / % bit-and bit-or))
 (defparameter *verilog-binops*
-  '(+ - * / % bit-and bit-or))
+  '(+ - * / % bit-and bit-or bit-xor))
 (trivia:defun-ematch binops->verilog (op)
   ('+ "+")
   ('- "-")
@@ -124,7 +120,11 @@ wire or a very large combinational net."))
   ('/ "/")
   ('% "%")
   ('bit-and "&")
-  ('bit-or "|"))
+  ('bit-or "|")
+  ('bit-xor "^"))
+
+(deftype verilog-binops ()
+  `(member ,@*verilog-binops*))
 
 ;; FIXME: Should this subclass something else (like verilog-net)?
 ;; Then anything that can drive a combinational net could be used here. However,
@@ -135,7 +135,7 @@ wire or a very large combinational net."))
   ((op
     :reader op
     :initarg :op
-    ;; :type verilog-binops
+    :type verilog-binops
     :documentation "Operation to perform")
    (lhs
     :reader lhs
