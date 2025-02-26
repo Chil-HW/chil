@@ -7,7 +7,8 @@
 (in-package :chil/backends)
 
 ;;; Abstract HDL backend class
-;; TODO: Make this a metaclass with MOP?
+;; TODO: Make this a metaclass with MOP rather than just an "abstract base
+;; class"?
 (defclass backend-hdl ()
   ()
   (:documentation "Generic HDL back-end class. Do NOT initialize this class!
