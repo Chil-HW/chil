@@ -44,6 +44,7 @@ simulators.
 * Hardware Language::           Chil, the language.
 * Optimization::                Optimizing and lowering Chil.
 * Code Generation::             Generating other HDLs and IR HDLs.
+* Build Artifacts::             Managing & interacting with build artifacts.
 * Simulation::                  Simulating Chil.
 * Verification::                Verifying Chil.
 * Synthesis::                   Synthesizing Chil to hardware.
