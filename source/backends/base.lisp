@@ -1,8 +1,7 @@
 (defpackage :chil/backends
-  (:use :cl :cl-ppcre)
-  (:export #:generate
-           #:verilog-generator
-           #:vhdl-generator))
+  (:use :cl)
+  (:export #:backend-hdl
+           #:codegen))
 
 (in-package :chil/backends)
 
