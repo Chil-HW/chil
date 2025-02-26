@@ -150,6 +150,7 @@ sections.
 
 @menu
 * Pass 1::                      The first pass to run.
+* Backend Conversion Pass::     Converting to a backend modules.
 * Future Passes::               Passes to add in future versions.
 @end menu
 
@@ -157,6 +158,22 @@ sections.
 @section Pass 1
 
 This first pass does something.
+
+@node Backend Conversion Pass
+@section Backend Conversion Pass
+
+The backend conversion pass is the logical connector between a Chil
+module and another language that other tools can accept.  This pass is
+repsonsible for converting a single Chil design (a @acronym{DAG,
+Directed Acyclic Graph} of modules) to a @acronym{DAG} in a backend
+language.
+
+The split of phases between conversion and generation is an arbitrary
+choice right now.  There is no particular reason that the phases are
+organized this way.
+
+Part of the thinking behind this decision was that the separation of
+steps may mean that building a task graph will be easier.
 
 @node Future Passes
 @section Future Passes
