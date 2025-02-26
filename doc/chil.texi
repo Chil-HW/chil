@@ -207,6 +207,7 @@ elsewhere, if you choose.
 @menu
 * Lowering to a Backend::       Generating Backend Modules from Chil.
 * Verilog::                     Chil generating Verilog.
+* VHDL::                        Chil generating VHDL.
 * CIRCT::                       Chil generating LLVM CIRCT.
 * FIRRTL::                      Chil generating Chisel FIRRTL.
 @end menu
@@ -228,6 +229,11 @@ Input -> Chil -> Optimize -> Chil -> Backend-Specific -> Output Format
 
 Chisel has targeted Verilog/SystemVerilog, because it is easier to
 generate syntactically correct SystemVerilog than VHDL.
+
+@node VHDL
+@section VHDL
+
+VHDL is another IEEE standardized hardware description language.
 
 @node CIRCT
 @section CIRCT
