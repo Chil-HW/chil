@@ -23,15 +23,14 @@
                :outputs '("addr" "valid"))
   "CHIL Module for testing that has only outputs, no inputs, and no body.")
 
-(defun generate-verilog (module)
+(defun generate-verilog (vmodule)
   "Helper function to generate Verilog modules. Returns the generated Verilog as
 a string.
 
 This creates a fresh Verilog generator on every invocation. This allows each
 unit test to potentially modify the generator without polluting other tests."
   (uiop:with-output (str 'nil)
-    (chil/backends:generate
-     (make-instance 'chil/backends:verilog-generator) module str)))
+    (chil/backends/verilog:codegen vmodule str)))
 
 (define-test generate-verilog-empty-module ()
   (assert-string-equal "module test_empty (
