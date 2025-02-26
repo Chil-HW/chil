@@ -112,3 +112,69 @@ output f
 assign F = A & B;
 endmodule // test_body"
                 (generate-verilog *test-module-body*)))
+
+;; TODO: This new output format provides us a way to generate VERILOG modules of
+;; arbitrary complexity. This is quite helpful for our dreams of property-based
+;; test generation. We will need to couple the Verilog output generation to a
+;; Verilog linter to make sure what we generate is actually valid Verilog.
+(uiop:with-output (str 'nil)
+  (chil/backends/verilog:codegen
+   (make-instance 'verilog-assign
+                  :target (make-instance 'verilog-net :name "DEV")
+                  :body (make-instance
+                         ;; TODO: :op is a chance for property-checking test
+                         ;; generation.
+                         'verilog-binop :op 'bit-or
+                         :lhs (make-instance 'verilog-net :name "foo")
+                         :rhs (make-instance 'verilog-net :name "BAR")))
+   str))
+
+(uiop:with-output (str 'nil)
+  (let ((inputs (list (make-instance 'verilog-net :name "valid")
+                      (make-instance 'verilog-net :name "addr")))
+        (outputs (list (make-instance 'verilog-net :name "valid")
+                       (make-instance 'verilog-net :name "data"))))
+    (chil/backends/verilog:codegen
+     (make-instance 'chil/backends/verilog:verilog-module
+                    :name "foo"
+                    :inputs inputs
+                    :outputs outputs
+                    :body (make-instance 'verilog-assign :target (second outputs)
+                                                         :body (second inputs)))
+     str)))
+
+(uiop:with-output (str 'nil)
+  (let* ((inputs (list (make-instance 'verilog-net :name "x")
+                       (make-instance 'verilog-net :name "y")))
+         (binop (make-instance 'verilog-binop :op 'bit-and
+                                              :lhs (first inputs)
+                                              :rhs (second inputs)))
+         (outputs (list (make-instance 'verilog-net :name "f"))))
+    (chil/backends/verilog:codegen
+     (make-instance 'chil/backends/verilog:verilog-module
+                    :name "foo"
+                    :inputs inputs
+                    :outputs outputs
+                    :body (make-instance 'verilog-assign
+                                         :target (first outputs)
+                                         :body binop))
+     str)))
+
+(uiop:with-output (str 'nil)
+  (let* ((inputs (list (make-instance 'verilog-net :name "x")
+                       (make-instance 'verilog-net :name "y")))
+         (outputs (list (make-instance 'verilog-net :name "f")))
+         (binop (make-instance 'verilog-binop :op 'bit-and
+                                              :lhs (first inputs)
+                                              :rhs (second inputs)))
+         (params '(("EMPTY") ("WIDTH" 32))))
+    (chil/backends/verilog:codegen
+     (make-instance 'chil/backends/verilog:verilog-module
+                    :name "foo"
+                    :parameters params
+                    :inputs inputs
+                    :outputs outputs
+                    :body (make-instance 'verilog-assign
+                                         :target (first outputs)
+                                         :body binop))
+     str)))
