@@ -109,7 +109,7 @@ A Verilog net is a combinational hardware circuit. They can be just a single
 wire or a very large combinational net."))
 
 (defmethod codegen ((net verilog-net) stream)
-  (format 'nil "~a" (name net)))
+  (format stream "~a" (name net)))
 
 ;; TODO: This is how to define a type that can be used in :type, declare, and
 ;; everywhere else that expects a "type" object.
@@ -150,10 +150,9 @@ wire or a very large combinational net."))
   (:documentation "Verilog's binary operations."))
 
 (defmethod codegen ((binop verilog-binop) stream)
-  (format 'nil "~a ~a ~a"
-          (codegen (lhs binop) stream)
-          (binops->verilog (op binop))
-          (codegen (rhs binop) stream)))
+  (codegen (lhs binop) stream)
+  (binops->verilog (op binop))
+  (codegen (rhs binop) stream))
 
 (defclass verilog-assign (verilog-net)
   ((target
@@ -169,10 +168,10 @@ wire or a very large combinational net."))
   (:documentation "Implementation of Verilog's \"assign\" statement."))
 
 (defmethod codegen ((component verilog-assign) stream)
-  ;; FIXME: verilog-assign codegen should NOT need to include a newline!
-  (format stream "assign ~a = ~a;~%"
-          (codegen (target component) stream)
-          (codegen (body component) stream)))
+  (format stream "assign ")
+  (codegen (target component) stream)
+  (format stream " = ")
+  (codegen (body component) stream))
 
 
 ;;;
