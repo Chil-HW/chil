@@ -1,9 +1,5 @@
 (in-package :chil/backends)
 
-;;; Verilog Generator
-(defclass verilog-generator (hdl-generator)
-  ()
-  (:documentation "An HDL back-end for generating Verilog."))
 
 (defun chil-sym->verilog-sym (str)
   "Replace characters in STR that are invalid for Verilog symbols."
