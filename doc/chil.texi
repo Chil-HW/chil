@@ -205,10 +205,23 @@ backends are supported, allowing you to take your Chil designs
 elsewhere, if you choose.
 
 @menu
+* Lowering to a Backend::       Generating Backend Modules from Chil.
 * Verilog::                     Chil generating Verilog.
 * CIRCT::                       Chil generating LLVM CIRCT.
 * FIRRTL::                      Chil generating Chisel FIRRTL.
 @end menu
+
+@node Lowering to a Backend
+@section Lowering to a Backend
+
+Chil expects to do all of its work on its own intermediate representation.
+When producing a different output format, Chil converts its representation of a module to a backend-specific representation.
+This backend-specific representation is then used to generate the desired output.
+
+The general flow is:
+@example
+Input -> Chil -> Optimize -> Chil -> Backend-Specific -> Output Format
+@end example
 
 @node Verilog
 @section Verilog
