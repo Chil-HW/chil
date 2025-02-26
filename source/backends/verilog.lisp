@@ -1,5 +1,14 @@
-(in-package :chil/backends)
+(defpackage :chil/backends/verilog
+  (:use :cl :cl-ppcre :chil/backends)
+  (:export #:verilog-module
+           #:verilog-net
+           #:*verilog-binops*
+           #:+ #:- #:* #:/ #:% #:bit-and #:bit-or
+           #:verilog-binop
+           #:verilog-assign
+           #:codegen))
 
+(in-package :chil/backends/verilog)
 
 (defun chil-sym->verilog-sym (str)
   "Replace characters in STR that are invalid for Verilog symbols."
