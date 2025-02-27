@@ -4,21 +4,22 @@
 
 (in-package :chil/tests/verilog)
 
-(defparameter *test-module-empty* (chil:module "test-empty")
+(defparameter *test-module-empty*
+  (chil/backends/verilog:verilog-module "test-empty")
   "CHIL Module for testing that has no inputs, no outputs, and no body.")
 
 (defparameter *test-module-inputs*
-  (chil:module "test-inputs"
+  (chil/backends/verilog:verilog-module "test-inputs"
                :inputs '("addr" "ready"))
   "CHIL Module for testing that has only inputs, no outputs, and no body.")
 
 (defparameter *test-module-outputs*
-  (chil:module "test-outputs"
+  (chil/backends/verilog:verilog-module "test-outputs"
                :outputs '("addr" "valid"))
   "CHIL Module for testing that has only outputs, no inputs, and no body.")
 
 (defparameter *test-module-inputs-outputs*
-  (chil:module "test-inputs-outputs"
+  (chil/backends/verilog:verilog-module "test-inputs-outputs"
                :inputs '("addr" "valid")
                :outputs '("addr" "valid"))
   "CHIL Module for testing that has only outputs, no inputs, and no body.")
