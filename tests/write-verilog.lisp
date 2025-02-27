@@ -179,3 +179,16 @@ endmodule // test_body"
                                          :target (first outputs)
                                          :body binop))
      str)))
+(define-test generate-verilog-assign ()
+  (assert-string-equal
+   "assign DEV = foo | BAR;"
+   (generate-verilog
+    (make-instance 'verilog-assign
+                   :target (make-instance 'verilog-net :name "DEV")
+                   :body (make-instance
+                          ;; TODO: :op is a chance for property-checking test
+                          ;; generation.
+                          'verilog-binop :op 'bit-or
+                          :lhs (make-instance 'verilog-net :name "foo")
+                          :rhs (make-instance 'verilog-net :name "BAR"))))))
+
