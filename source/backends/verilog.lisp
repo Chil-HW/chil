@@ -172,7 +172,7 @@ wire or a very large combinational net."))
 
 (defmethod codegen ((binop verilog-binop) stream)
   (codegen (lhs binop) stream)
-  (binops->verilog (op binop))
+  (format stream " ~a " (binops->verilog (op binop)))
   (codegen (rhs binop) stream))
 
 (defclass verilog-assign (verilog-net)
