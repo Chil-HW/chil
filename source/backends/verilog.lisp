@@ -192,5 +192,5 @@ wire or a very large combinational net."))
   (format stream "assign ")
   (codegen (target component) stream)
   (format stream " = ")
-  (codegen (body component) stream))
-
+  (codegen (body component) stream)
+  (format stream ";"))
