@@ -85,43 +85,57 @@ parameter IN_WIDTH = 32,
 parameter out_width = 16
 )
 (
-input addr,
 input valid,
-output addr,
-output valid
+input addr,
+output ready,
+output data
 );
 body;
 endmodule // test_parameters"
-                (generate-verilog
-                 (chil:module "test-parameters"
-                        :parameters '(("EMPTY") ("IN_WIDTH" 32) ("out-width" 16))
-                        :inputs '("addr" "valid")
-                        :outputs '("addr" "valid")))))
+                       (let ((inputs (list (make-instance 'verilog-net :name "valid")
+                                           (make-instance 'verilog-net :name "addr")))
+                             (outputs (list (make-instance 'verilog-net :name "ready")
+                                            (make-instance 'verilog-net :name "data"))))
+
+                         (generate-verilog
+                          (make-instance 'verilog-module
+                                         :name (chil-sym->verilog-sym "test-parameters")
+                                         :parameters '(("EMPTY") ("IN_WIDTH" 32) ("out-width" 16))
+                                         :inputs inputs
+                                         :outputs outputs)))))
 
 (define-test generate-verilog-invalid-parameters ()
   (assert-error 'simple-error
-    (generate-verilog
-     (chil:module "invalid-parameters"
-                  :parameters '(("IN_WIDTH" 32) ("failing" 16 2))
-                  :inputs '("addr" "valid")
-                  :outputs '("addr" "valid")))))
+                (let ((inputs (list (make-instance 'verilog-net :name "valid")
+                                    (make-instance 'verilog-net :name "addr")))
+                      (outputs (list (make-instance 'verilog-net :name "ready")
+                                     (make-instance 'verilog-net :name "data"))))
+                  (generate-verilog
+                   (make-instance 'verilog-module
+                                  :name (chil-sym->verilog-sym "invalid-parameters")
+                                  :parameters '(("IN_WIDTH" 32) ("failing" 16 2))
+                                  :inputs inputs
+                                  :outputs outputs)))))
 
 (defparameter *test-module-body*
-  (chil:module "test-body"
-               :inputs '("a" "b")
-               :outputs '("f")
-               :body '((assign f (and a b))))
+  (let ((inputs (list (make-instance 'verilog-net :name "a")))
+        (outputs (list (make-instance 'verilog-net :name "F"))))
+    (make-instance 'verilog-module
+                   :name (chil-sym->verilog-sym "test-body")
+                   :inputs inputs
+                   :outputs outputs
+                   :body (make-instance 'verilog-assign :target (first outputs)
+                                                        :body (first inputs))))
   "CHIL Module for testing that is a complete module, but unparameterized.")
 
 (define-test generate-verilog-body ()
   (assert-string-equal "module test_body (
 input a,
-input b,
-output f
+output F
 );
-assign F = A & B;
+assign F = a;
 endmodule // test_body"
-                (generate-verilog *test-module-body*)))
+                       (generate-verilog *test-module-body*)))
 
 ;; TODO: This new output format provides us a way to generate VERILOG modules of
 ;; arbitrary complexity. This is quite helpful for our dreams of property-based
