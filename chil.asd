@@ -42,10 +42,11 @@
 
 (defmethod asdf:perform ((o asdf:test-op) (c (eql (find-system :chil/tests))))
   ;; Binding `*package*' to package-under-test makes for more reproducible tests.
-  (let ((*package* (find-package :chil/tests)))
+  (let ((*packages* (list (find-package :chil/tests)
+                          (find-package :chil/tests/verilog))))
     (uiop:symbol-call
      :lisp-unit2 :run-tests
-     :package *package*
+     :package *packages*
      :name :chil
      :run-contexts (find-symbol "WITH-SUMMARY-CONTEXT" :lisp-unit2))))
 
