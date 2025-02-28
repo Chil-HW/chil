@@ -33,11 +33,10 @@
   :pathname #p"tests/"
   :components ((:file "base")
                (:file "example")
-               (:module "Verilog"
+               (:module "Verilog-tests"
                 :pathname #p""
-                :depends-on ()
+                :depends-on ("base")
                 :components ((:file "write-verilog")))
-               (:file "write-verilog")
                (:file "write-vhdl")
                (:file "utils")))
 
