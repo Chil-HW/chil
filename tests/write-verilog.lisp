@@ -137,10 +137,31 @@ assign F = a;
 endmodule // test_body"
                        (generate-verilog *test-module-body*)))
 
+(define-test generate-verilog-assign ()
+  (assert-string-equal
+   "assign DEV = foo;"
+   (generate-verilog
+    (make-instance 'verilog-assign
+                   :target (make-instance 'verilog-net :name "DEV")
+                   :body (make-instance 'verilog-net :name "foo")))))
+
 ;; TODO: This new output format provides us a way to generate VERILOG modules of
 ;; arbitrary complexity. This is quite helpful for our dreams of property-based
 ;; test generation. We will need to couple the Verilog output generation to a
 ;; Verilog linter to make sure what we generate is actually valid Verilog.
+(define-test generate-verilog-assign ()
+  (assert-string-equal
+   "assign DEV = foo | BAR;"
+   (generate-verilog
+    (make-instance 'verilog-assign
+                   :target (make-instance 'verilog-net :name "DEV")
+                   :body (make-instance
+                          ;; TODO: :op is a chance for property-checking test
+                          ;; generation.
+                          'verilog-binop :op 'bit-or
+                          :lhs (make-instance 'verilog-net :name "foo")
+                          :rhs (make-instance 'verilog-net :name "BAR"))))))
+
 (uiop:with-output (str 'nil)
   (chil/backends/verilog:codegen
    (make-instance 'verilog-assign
@@ -202,16 +223,3 @@ endmodule // test_body"
                                          :target (first outputs)
                                          :body binop))
      str)))
-(define-test generate-verilog-assign ()
-  (assert-string-equal
-   "assign DEV = foo | BAR;"
-   (generate-verilog
-    (make-instance 'verilog-assign
-                   :target (make-instance 'verilog-net :name "DEV")
-                   :body (make-instance
-                          ;; TODO: :op is a chance for property-checking test
-                          ;; generation.
-                          'verilog-binop :op 'bit-or
-                          :lhs (make-instance 'verilog-net :name "foo")
-                          :rhs (make-instance 'verilog-net :name "BAR"))))))
-
