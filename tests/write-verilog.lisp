@@ -4,6 +4,22 @@
 
 (in-package :chil/tests/verilog)
 
+
+;;;
+;;; Helpers for Verilog unit tests
+;;;
+
+(defun generate-verilog (vmodule)
+  "Helper function to generate Verilog modules. Returns the generated Verilog as
+a string."
+  (uiop:with-output (str 'nil)
+    (chil/backends/verilog:codegen vmodule str)))
+
+
+;;;
+;;; Begin Verilog codegen unit tests
+;;;
+
 (defparameter *test-module-empty*
   (make-instance 'verilog-module
                  :name (chil-sym->verilog-sym "test-empty"))
@@ -35,12 +51,6 @@
                    :inputs inputs
                    :outputs outputs))
   "CHIL Module for testing that has only outputs, no inputs, and no body.")
-
-(defun generate-verilog (vmodule)
-  "Helper function to generate Verilog modules. Returns the generated Verilog as
-a string."
-  (uiop:with-output (str 'nil)
-    (chil/backends/verilog:codegen vmodule str)))
 
 (define-test generate-verilog-empty-module ()
   (assert-string-equal "module test_empty (
