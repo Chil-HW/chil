@@ -54,11 +54,13 @@
    (inputs
     :reader inputs
     :initarg :inputs
+    :initform '()
     ;; :type list-of-verilog-net
     :documentation "Input wires to this Verilog module.")
    (outputs
     :reader outputs
     :initarg :outputs
+    :initform '()
     ;; :type list-of-verilog-net
     :documentation "Output wires from this Verilog module.")
    (body
