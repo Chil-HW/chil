@@ -1,6 +1,7 @@
 (defpackage :chil/backends/verilog
   (:use :cl :cl-ppcre :chil/backends)
-  (:export #:verilog-module
+  (:export #:chil-sym->verilog-sym
+           #:verilog-module
            #:verilog-net
            #:*verilog-binops*
            #:+ #:- #:* #:/ #:% #:bit-and #:bit-or
@@ -9,6 +10,26 @@
            #:codegen))
 
 (in-package :chil/backends/verilog)
+
+
+;;;
+;;; Helpers for converting from Chil to Verilog
+;;;
+
+;; Symbol/string conversion should be done at the Chil -> Backend instantiation
+;; time. Using this function after the instantiation of a backend Verilog module
+;; is effectively a no-op.
+(defun chil-sym->verilog-sym (str)
+  "Replace characters in STR that are invalid for Verilog symbols."
+  ;; TODO: Need a better way to map characters to replace to known-good
+  ;; characters for that particular HDL.
+  (let ((chars-to-replace (cl-ppcre:create-scanner "-")))
+    (cl-ppcre:regex-replace-all chars-to-replace str "_")))
+
+;; TODO: deftype a string type for Verilog symbols when strings?
+;; (deftype verilog-symbol (chil-str)
+;;   `(something ,chil-str))
+;; TODO: Need to subtype verilog-symbol under string
 
 
 ;;;
@@ -173,15 +194,3 @@ wire or a very large combinational net."))
   (format stream " = ")
   (codegen (body component) stream))
 
-
-;;;
-;;; Helpers for converting from Chil to Verilog
-;;;
-
-;; TODO: This should be done at the Chil -> Backend instantiation time.
-(defun chil-sym->verilog-sym (str)
-  "Replace characters in STR that are invalid for Verilog symbols."
-  ;; TODO: Need a better way to map characters to replace to known-good
-  ;; characters for that particular HDL.
-  (let ((chars-to-replace (cl-ppcre:create-scanner "-")))
-    (cl-ppcre:regex-replace-all chars-to-replace str "_")))
