@@ -66,6 +66,9 @@
    (body
     :reader body
     :initarg :body
+    ;; TODO: Is it legal to have an empty body in a generated Verilog module?
+    ;; This may be useful if I want to support arbitrary blackboxes.
+    :initform '()
     :type verilog-net
     :documentation "The body of this Verilog module."))
   (:documentation "Verilog-specific backend module."))
@@ -116,7 +119,9 @@ The two directions supported are the symbols 'input and 'output."
             (append (module-io->strings 'input (inputs verilog-module))
                     (module-io->strings 'output (outputs verilog-module))))
     (format stream ");~&")
-    (codegen (body verilog-module) stream)
+    (if (body verilog-module)
+        (codegen (body verilog-module) stream)
+        (format stream "body;"))
     ;; FIXME: This manual forced newline should not be here.
     (format stream "~%endmodule // ~a" (name verilog-module))))
 
