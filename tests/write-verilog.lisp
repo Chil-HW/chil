@@ -5,23 +5,35 @@
 (in-package :chil/tests/verilog)
 
 (defparameter *test-module-empty*
-  (chil/backends/verilog:verilog-module "test-empty")
+  (make-instance 'verilog-module
+                 :name (chil-sym->verilog-sym "test-empty"))
   "CHIL Module for testing that has no inputs, no outputs, and no body.")
 
 (defparameter *test-module-inputs*
-  (chil/backends/verilog:verilog-module "test-inputs"
-               :inputs '("addr" "ready"))
+  (let ((inputs (list (make-instance 'verilog-net :name "valid")
+                      (make-instance 'verilog-net :name "addr"))))
+    (make-instance 'verilog-module
+                   :name (chil-sym->verilog-sym "test-inputs")
+                   :inputs inputs))
   "CHIL Module for testing that has only inputs, no outputs, and no body.")
 
 (defparameter *test-module-outputs*
-  (chil/backends/verilog:verilog-module "test-outputs"
-               :outputs '("addr" "valid"))
+  (let ((outputs (list (make-instance 'verilog-net :name "ready")
+                       (make-instance 'verilog-net :name "data"))))
+    (make-instance 'verilog-module
+                   :name (chil-sym->verilog-sym "test-outputs")
+                   :outputs outputs))
   "CHIL Module for testing that has only outputs, no inputs, and no body.")
 
 (defparameter *test-module-inputs-outputs*
-  (chil/backends/verilog:verilog-module "test-inputs-outputs"
-               :inputs '("addr" "valid")
-               :outputs '("addr" "valid"))
+  (let ((inputs (list (make-instance 'verilog-net :name "valid")
+                      (make-instance 'verilog-net :name "addr")))
+        (outputs (list (make-instance 'verilog-net :name "ready")
+                       (make-instance 'verilog-net :name "data"))))
+    (make-instance 'verilog-module
+                   :name (chil-sym->verilog-sym "test-inputs-outputs")
+                   :inputs inputs
+                   :outputs outputs))
   "CHIL Module for testing that has only outputs, no inputs, and no body.")
 
 (defun generate-verilog (vmodule)
@@ -39,8 +51,8 @@ endmodule // test_empty"
 
 (define-test generate-verilog-module-only-inputs ()
   (assert-string-equal "module test_inputs (
-input addr,
-input ready
+input valid,
+input addr
 );
 body;
 endmodule // test_inputs"
@@ -48,8 +60,8 @@ endmodule // test_inputs"
 
 (define-test generate-verilog-module-only-outputs ()
   (assert-string-equal "module test_outputs (
-output addr,
-output valid
+output ready,
+output data
 );
 body;
 endmodule // test_outputs"
@@ -57,10 +69,10 @@ endmodule // test_outputs"
 
 (define-test generate-verilog-module-inputs-outputs ()
   (assert-string-equal "module test_inputs_outputs (
-input addr,
 input valid,
-output addr,
-output valid
+input addr,
+output ready,
+output data
 );
 body;
 endmodule // test_inputs_outputs"
