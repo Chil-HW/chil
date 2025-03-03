@@ -230,3 +230,26 @@ endmodule // GENV_passthrough"
                                           :target (first outputs)
                                           :body (first inputs)))))))
 
+(define-test combinatorial-binop-module ()
+  (assert-string-equal
+   "module GENV_comb_binop (
+input GENV_x,
+input GENV_y,
+output GENV_f
+);
+assign f = x + y;
+endmodule // GENV_comb_binop"
+   (let* ((inputs (list (make-instance 'verilog-net :name "x")
+                        (make-instance 'verilog-net :name "y")))
+          (outputs (list (make-instance 'verilog-net :name "f")))
+          (binop (make-instance 'verilog-binop :op '+
+                                               :lhs (first inputs)
+                                               :rhs (second inputs))))
+     (generate-verilog
+      (make-instance 'verilog-module
+                     :name (chil-sym->verilog-sym "comb-binop")
+                     :inputs inputs
+                     :outputs outputs
+                     :body (make-instance 'verilog-assign
+                                          :target (first outputs)
+                                          :body binop))))))
