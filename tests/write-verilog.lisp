@@ -176,6 +176,11 @@ assign F = a;
 endmodule // GENV_test_body"
    (generate-verilog *test-module-body*)))
 
+;; TODO: This new output format provides us a way to generate VERILOG modules of
+;; arbitrary complexity. This is quite helpful for our dreams of property-based
+;; test generation. We will need to couple the Verilog output generation to a
+;; Verilog linter to make sure what we generate is actually valid Verilog.
+
 (define-test generate-verilog-assign ()
   (assert-string-equal
    "assign DEV = foo;"
@@ -184,10 +189,6 @@ endmodule // GENV_test_body"
                    :target (make-instance 'verilog-net :name "DEV")
                    :body (make-instance 'verilog-net :name "foo")))))
 
-;; TODO: This new output format provides us a way to generate VERILOG modules of
-;; arbitrary complexity. This is quite helpful for our dreams of property-based
-;; test generation. We will need to couple the Verilog output generation to a
-;; Verilog linter to make sure what we generate is actually valid Verilog.
 (define-test generate-verilog-binop ()
   (assert-string-equal
    "foo ^ BAR"
