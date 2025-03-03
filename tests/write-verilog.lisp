@@ -53,66 +53,72 @@ a string."
   "CHIL Module for testing that has only outputs, no inputs, and no body.")
 
 (define-test generate-verilog-empty-module ()
-  (assert-string-equal "module test_empty (
+  (assert-string-equal
+   "module GENV_test_empty (
 );
 body;
-endmodule // test_empty"
+endmodule // GENV_test_empty"
                 (generate-verilog *test-module-empty*)))
 
 (define-test generate-verilog-module-only-inputs ()
-  (assert-string-equal "module test_inputs (
-input valid,
-input addr
+  (assert-string-equal
+   "module GENV_test_inputs (
+input GENV_valid,
+input GENV_addr
 );
 body;
-endmodule // test_inputs"
+endmodule // GENV_test_inputs"
                 (generate-verilog *test-module-inputs*)))
 
 (define-test generate-verilog-module-only-outputs ()
-  (assert-string-equal "module test_outputs (
-output ready,
-output data
+  (assert-string-equal
+   "module GENV_test_outputs (
+output GENV_ready,
+output GENV_data
 );
 body;
-endmodule // test_outputs"
+endmodule // GENV_test_outputs"
                 (generate-verilog *test-module-outputs*)))
 
 (define-test generate-verilog-module-inputs-outputs ()
-  (assert-string-equal "module test_inputs_outputs (
-input valid,
-input addr,
-output ready,
-output data
+  (assert-string-equal
+   "module GENV_test_inputs_outputs (
+input GENV_valid,
+input GENV_addr,
+output GENV_ready,
+output GENV_data
 );
 body;
-endmodule // test_inputs_outputs"
+endmodule // GENV_test_inputs_outputs"
                 (generate-verilog *test-module-inputs-outputs*)))
 
 (define-test generate-verilog-module-parameters ()
-  (assert-string-equal "module test_parameters #(
-parameter EMPTY,
-parameter IN_WIDTH = 32,
-parameter out_width = 16
+  (assert-string-equal
+   ;; FIXME: Parameters should not get the GENV prefix.
+   "module GENV_test_parameters #(
+parameter GENV_EMPTY,
+parameter GENV_IN_WIDTH = 32,
+parameter GENV_out_width = 16
 )
 (
-input valid,
-input addr,
-output ready,
-output data
+input GENV_valid,
+input GENV_addr,
+output GENV_ready,
+output GENV_data
 );
 body;
-endmodule // test_parameters"
-                       (let ((inputs (list (make-instance 'verilog-net :name "valid")
-                                           (make-instance 'verilog-net :name "addr")))
-                             (outputs (list (make-instance 'verilog-net :name "ready")
-                                            (make-instance 'verilog-net :name "data"))))
+endmodule // GENV_test_parameters"
+   (let ((inputs (list (make-instance 'verilog-net :name "valid")
+                       (make-instance 'verilog-net :name "addr")))
+         (outputs (list (make-instance 'verilog-net :name "ready")
+                        (make-instance 'verilog-net :name "data"))))
 
-                         (generate-verilog
-                          (make-instance 'verilog-module
-                                         :name (chil-sym->verilog-sym "test-parameters")
-                                         :parameters '(("EMPTY") ("IN_WIDTH" 32) ("out-width" 16))
-                                         :inputs inputs
-                                         :outputs outputs)))))
+     (generate-verilog
+      (make-instance 'verilog-module
+                     :name (chil-sym->verilog-sym "test-parameters")
+                     :parameters '(("EMPTY") ("IN_WIDTH" 32) ("out-width" 16))
+                     :inputs inputs
+                     :outputs outputs)))))
 
 (define-test generate-verilog-invalid-parameters ()
   (assert-error 'simple-error
@@ -147,13 +153,14 @@ endmodule // test_parameters"
   "CHIL Module for testing that is a complete module, but unparameterized.")
 
 (define-test generate-verilog-body ()
-  (assert-string-equal "module test_body (
-input a,
-output F
+  (assert-string-equal
+   "module GENV_test_body (
+input GENV_a,
+output GENV_F
 );
 assign F = a;
-endmodule // test_body"
-                       (generate-verilog *test-module-body*)))
+endmodule // GENV_test_body"
+   (generate-verilog *test-module-body*)))
 
 ;; TODO: This new output format provides us a way to generate VERILOG modules of
 ;; arbitrary complexity. This is quite helpful for our dreams of property-based
