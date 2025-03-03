@@ -53,6 +53,21 @@ Corresponds to the Perl regular expression \"[[:alpha:]_]+[[:alnum:]_$]*\".")
 ;;; Verilog Backend Structure
 ;;;
 
+(defclass verilog-net (verilog-module)
+  ((name
+    :reader name
+    :initarg :name
+    :type string
+    :documentation "Name for this net."))
+  (:documentation "Verilog nets.
+
+A Verilog net is a structurally \"combinational\" hardware circuit. They can be
+just a single wire or a very large combinational net. Sequential elements are
+allowed in Verilog nets, but they must behave in a certain way?"))
+
+(defmethod codegen ((net verilog-net) stream)
+  (format stream "~a" (name net)))
+
 (defclass verilog-module (chil/backends:backend-hdl)
   ((name
     :reader name
@@ -141,20 +156,6 @@ The two directions supported are the symbols 'input and 'output."
         (format stream "body;"))
     ;; FIXME: This manual forced newline should not be here.
     (format stream "~%endmodule // ~a" (name verilog-module))))
-
-(defclass verilog-net (verilog-module)
-  ((name
-    :reader name
-    :initarg :name
-    :type string
-    :documentation "Name for this net."))
-  (:documentation "Verilog nets.
-
-A Verilog net is a combinational hardware circuit. They can be just a single
-wire or a very large combinational net."))
-
-(defmethod codegen ((net verilog-net) stream)
-  (format stream "~a" (name net)))
 
 (defparameter *verilog-binops*
   '(+ - * / % bit-and bit-or bit-xor))
