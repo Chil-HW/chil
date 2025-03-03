@@ -211,5 +211,22 @@ endmodule // GENV_test_body"
                           :lhs (make-instance 'verilog-net :name "foo")
                           :rhs (make-instance 'verilog-net :name "BAR"))))))
 
+(define-test passthrough-module ()
+  (assert-string-equal
+   "module GENV_passthrough (
+input GENV_x,
+output GENV_f
+);
+assign f = x;
+endmodule // GENV_passthrough"
+   (let ((inputs (list (make-instance 'verilog-net :name "x")))
          (outputs (list (make-instance 'verilog-net :name "f"))))
+     (generate-verilog
+      (make-instance 'verilog-module
+                     :name (chil-sym->verilog-sym "passthrough")
+                     :inputs inputs
+                     :outputs outputs
+                     :body (make-instance 'verilog-assign
+                                          :target (first outputs)
+                                          :body (first inputs)))))))
 
