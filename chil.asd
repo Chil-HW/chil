@@ -17,7 +17,10 @@
                              (:module "Verilog"
                               ;; Verilog "module" not under subdir right now.
                               :pathname #p""
-                              :components ((:file "verilog")))))
+                              :components ((:file "verilog")))
+                             (:module "VHDL"
+                              :pathname #p""
+                              :components ((:file "vhdl")))
                              (:file "system-verilog")))
                (:module "Utils"
                 :pathname ""
@@ -39,16 +42,19 @@
                 :pathname #p""
                 :depends-on ("base")
                 :components ((:file "write-verilog")))
-               (:file "write-vhdl")
+               (:module "VHDL-tests"
+                :pathname #p""
+                :depends-on ("base")
+                :components ((:file "write-vhdl")))
                (:file "utils")))
 
 (defmethod asdf:perform ((o asdf:test-op) (c (eql (find-system :chil/tests))))
-  ;; Binding `*package*' to package-under-test makes for more reproducible tests.
-  (let ((*packages* (list (find-package :chil/tests)
-                          (find-package :chil/tests/verilog))))
+  (let ((packages (list (find-package :chil/tests)
+                        (find-package :chil/tests/verilog)
+                        (find-package :chil/tests/vhdl))))
     (uiop:symbol-call
      :lisp-unit2 :run-tests
-     :package *packages*
+     :package packages
      :name :chil
      :run-contexts (find-symbol "WITH-SUMMARY-CONTEXT" :lisp-unit2))))
 
