@@ -78,7 +78,7 @@ a string."
   (assert-string-equal
    "module GENV_test_empty (
 );
-body;
+empty-body-net
 endmodule // GENV_test_empty"
                 (generate-verilog *test-module-empty*)))
 
@@ -88,7 +88,7 @@ endmodule // GENV_test_empty"
 input GENV_valid,
 input GENV_addr
 );
-body;
+empty-body-net
 endmodule // GENV_test_inputs"
                 (generate-verilog *test-module-inputs*)))
 
@@ -98,7 +98,7 @@ endmodule // GENV_test_inputs"
 output GENV_ready,
 output GENV_data
 );
-body;
+empty-body-net
 endmodule // GENV_test_outputs"
                 (generate-verilog *test-module-outputs*)))
 
@@ -110,7 +110,7 @@ input GENV_addr,
 output GENV_ready,
 output GENV_data
 );
-body;
+empty-body-net
 endmodule // GENV_test_inputs_outputs"
                 (generate-verilog *test-module-inputs-outputs*)))
 
@@ -128,7 +128,7 @@ input GENV_addr,
 output GENV_ready,
 output GENV_data
 );
-body;
+empty-body-net
 endmodule // GENV_test_parameters"
    (let ((inputs (list (make-instance 'verilog-net :name "valid")
                        (make-instance 'verilog-net :name "addr")))
