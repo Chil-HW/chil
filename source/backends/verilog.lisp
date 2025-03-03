@@ -43,15 +43,10 @@ Corresponds to the Perl regular expression \"[[:alpha:]_]+[[:alnum:]_$]*\".")
 ;; is effectively a no-op.
 (defun chil-sym->verilog-sym (str)
   "Replace characters in STR that are invalid for Verilog symbols."
-  ;; TODO: Need a better way to map characters to replace to known-good
-  ;; characters for that particular HDL.
-  (let ((chars-to-replace (cl-ppcre:create-scanner "-")))
-    (cl-ppcre:regex-replace-all chars-to-replace str "_")))
-
-;; TODO: deftype a string type for Verilog symbols when strings?
-;; (deftype verilog-symbol (chil-str)
-;;   `(something ,chil-str))
-;; TODO: Need to subtype verilog-symbol under string
+  ;; TODO: Should we allow users to configure how Chil symbols get replaced with
+  ;; a backend-friendly format?
+  (let ((chars-to-replace (cl-ppcre:create-scanner "[#%&<=>?@\\^\\-\\/]")))
+    (uiop:strcat "GENV_" (cl-ppcre:regex-replace-all chars-to-replace str "_"))))
 
 
 ;;;
