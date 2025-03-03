@@ -17,6 +17,28 @@ a string."
 
 
 ;;;
+;;; Tests for various utilities used by the Verilog backend.
+;;;
+
+(define-test chil->verilog-symbol-conversion ()
+  ;; If the replaced string is parseable into a Verilog symbol (which means the
+  ;; original conversion and the scanned version are the same), then the
+  ;; replacement function is correct.
+  (assert-true
+   (check-it:check-it (check-it:generator (chil/tests:chil-symbol-generator))
+    (lambda (chil-id)
+      ;; TODO: We should impose a character limit on identifiers. The Verilog
+      ;; spec says at least 1024-long identifiers should be allowed.
+      ;; (assert-string= (chil-sym->verilog-sym chil-id)
+      (string= (chil-sym->verilog-sym chil-id)
+       (multiple-value-bind (substr-match regs)
+           (cl-ppcre:scan-to-strings chil/backends/verilog:verilog-identifier-regexp
+                                     (chil-sym->verilog-sym chil-id))
+         (declare (ignore regs))
+         substr-match))))))
+
+
+;;;
 ;;; Begin Verilog codegen unit tests
 ;;;
 
