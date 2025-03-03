@@ -104,6 +104,11 @@ allowed in Verilog nets, but they must behave in a certain way?"))
     :documentation "The body of this Verilog module."))
   (:documentation "Verilog-specific backend module."))
 
+(defmethod print-object ((obj verilog-module) stream)
+  (print-unreadable-object (obj stream :type t :identity t)
+    (with-accessors ((name name)) obj
+      (format stream ": ~a" name))))
+
 (defmethod codegen ((verilog-module verilog-module) stream)
   (flet ((module-io->strings (direction ios)
            "Generate Verilog argument string based on ARGS, noting the DIRECTION
