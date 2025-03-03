@@ -188,7 +188,17 @@ endmodule // GENV_test_body"
 ;; arbitrary complexity. This is quite helpful for our dreams of property-based
 ;; test generation. We will need to couple the Verilog output generation to a
 ;; Verilog linter to make sure what we generate is actually valid Verilog.
-(define-test generate-verilog-assign ()
+(define-test generate-verilog-binop ()
+  (assert-string-equal
+   "foo ^ BAR"
+   (generate-verilog
+    (make-instance
+     ;; TODO: :op is another chance for property-checking test generation.
+     'verilog-binop :op 'bit-xor
+     :lhs (make-instance 'verilog-net :name "foo")
+     :rhs (make-instance 'verilog-net :name "BAR")))))
+
+(define-test generate-verilog-assign-binop ()
   (assert-string-equal
    "assign DEV = foo | BAR;"
    (generate-verilog
