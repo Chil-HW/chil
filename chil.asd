@@ -32,7 +32,6 @@
   :depends-on (:chil :alexandria :lisp-unit2 :check-it)
   :pathname #p"tests/"
   :components ((:file "base")
-               (:file "example")
                (:module "Verilog-tests"
                 :pathname #p""
                 :depends-on ("base")
