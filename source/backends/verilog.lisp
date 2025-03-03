@@ -4,7 +4,6 @@
            #:chil-sym->verilog-sym
            #:verilog-module
            #:verilog-net
-           #:*verilog-binops*
            #:+ #:- #:* #:/ #:% #:bit-and #:bit-or
            #:verilog-binop
            #:verilog-assign
@@ -157,8 +156,8 @@ The two directions supported are the symbols 'input and 'output."
     ;; FIXME: This manual forced newline should not be here.
     (format stream "~%endmodule // ~a" (name verilog-module))))
 
-(defparameter *verilog-binops*
-  '(+ - * / % bit-and bit-or bit-xor))
+(deftype verilog-binops ()
+  '(member + - * / % bit-and bit-or bit-xor))
 (trivia:defun-ematch binops->verilog (op)
   ('+ "+")
   ('- "-")
@@ -168,9 +167,6 @@ The two directions supported are the symbols 'input and 'output."
   ('bit-and "&")
   ('bit-or "|")
   ('bit-xor "^"))
-
-(deftype verilog-binops ()
-  `(member ,@*verilog-binops*))
 
 ;; FIXME: Should this subclass something else (like verilog-net)?
 ;; Then anything that can drive a combinational net could be used here. However,
