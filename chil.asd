@@ -7,6 +7,9 @@
                 :pathname ""
                 :depends-on ("chil")
                 :components ((:file "module")))
+               (:module "IR"
+                :pathname #p""
+                :components ((:file "ir")))
                (:module "Backends"
                 :pathname #p"backends/"
                 :depends-on ("Module")
