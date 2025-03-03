@@ -1,6 +1,7 @@
 (defpackage :chil/backends/verilog
   (:use :cl :cl-ppcre :chil/backends)
-  (:export #:chil-sym->verilog-sym
+  (:export #:verilog-identifier-regexp
+           #:chil-sym->verilog-sym
            #:verilog-module
            #:verilog-net
            #:*verilog-binops*
@@ -15,6 +16,27 @@
 ;;;
 ;;; Helpers for converting from Chil to Verilog
 ;;;
+
+(alexandria:define-constant verilog-identifier-regexp
+  '(:sequence
+    (:greedy-repetition 1 nil
+     (:char-class
+      (:range #\a #\z)
+      (:range #\A #\Z)
+      #\_))
+    (:greedy-repetition 0 nil
+     (:char-class
+      (:range #\a #\z)
+      (:range #\A #\Z)
+      (:range #\0 #\9)
+      #\_ #\$)))
+  :test #'equal
+  :documentation
+  "A cl-ppcre \"parse tree\" to match Verilog identifiers.
+
+Taken from the IEEE Standard for SystemVerilog, IEEE 1800-2023.
+
+Corresponds to the Perl regular expression \"[[:alpha:]_]+[[:alnum:]_$]*\".")
 
 ;; Symbol/string conversion should be done at the Chil -> Backend instantiation
 ;; time. Using this function after the instantiation of a backend Verilog module
