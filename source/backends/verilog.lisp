@@ -57,7 +57,11 @@ Corresponds to the Perl regular expression \"[[:alpha:]_]+[[:alnum:]_$]*\".")
     :reader name
     :initarg :name
     :type string
-    :documentation "Name for this net."))
+    :documentation "Name for this net.")
+   (body
+    ;; Break the infinite recursion between verilog-module and verilog-net by
+    ;; setting a truly constant value for a verilog-net's body.
+    :initform '()))
   (:documentation "Verilog nets.
 
 A Verilog net is a structurally \"combinational\" hardware circuit. They can be
