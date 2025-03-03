@@ -14,10 +14,10 @@
                 :pathname #p"backends/"
                 :depends-on ("Module")
                 :components ((:file "base")
-                             (:file "verilog")
                              (:module "Verilog"
-                              :pathname #p"verilog")
-                             (:file "vhdl")
+                              ;; Verilog "module" not under subdir right now.
+                              :pathname #p""
+                              :components ((:file "verilog")))))
                              (:file "system-verilog")))
                (:module "Utils"
                 :pathname ""
