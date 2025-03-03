@@ -14,11 +14,11 @@ chil_files := chil.asd $(shell find . -type f -name '*.lisp')
 
 .PHONY: build
 build: $(chil_files)
-	$(lisp_eval) '(asdf:compile-system :chil)'
+	$(lisp_eval) '(asdf:compile-system :chil :force t)'
 
 chil_tests := chil.asd $(shell find ./tests/ -type f -name '*.lisp')
 .PHONY: check
 check: $(chil_files) $(chil_tests)
-	$(lisp_eval) '(asdf:test-system :chil)'
+	$(lisp_eval) '(asdf:test-system :chil :force t)'
 
 include doc/local.mk
