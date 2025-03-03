@@ -99,8 +99,12 @@ allowed in Verilog nets, but they must behave in a certain way?"))
     :initarg :body
     ;; TODO: Is it legal to have an empty body in a generated Verilog module?
     ;; This may be useful if I want to support arbitrary blackboxes.
-    :initform '()
     :type verilog-net
+    ;; FIXME: If initform has this shape, then the control stack is exhausted
+    ;; and the Lisp image blows up. Why?
+    :initform (make-instance 'verilog-net
+               :name "empty-body-net")
+               ;; :name (chil-sym->verilog-sym "empty-body-net"))
     :documentation "The body of this Verilog module."))
   (:documentation "Verilog-specific backend module."))
 
