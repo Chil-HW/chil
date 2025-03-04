@@ -52,6 +52,29 @@ Corresponds to the Perl regular expression \"[[:alpha:]_]+[[:alnum:]_$]*\".")
 ;;; Verilog Backend Structure
 ;;;
 
+(defclass verilog-symbol ()
+  ((name
+    :reader name
+    :initarg :name
+    :initform (error "You must supply a value for the symbol slot.")
+    :type string
+    :documentation "The symbol string."))
+  (:documentation "A Verilog symbol."))
+
+;; Ensure the Verilog symbol is generated with Verilog's valid set of chars.
+(defmethod initialize-instance :after ((vsym verilog-symbol) &key)
+  (with-slots ((n name)) vsym
+    ;; Since we require the user provide a symbol when they create an instance
+    ;; of the class, we do not need to check that the string is nil and we do
+    ;; not need to provide a way to set the value after the fact with the
+    ;; restart system.
+    (setf n (chil-sym->verilog-sym n))))
+
+;; NOTE: print-object is used for ~a in a format call.
+(defmethod print-object ((vsym verilog-symbol) stream)
+  (with-accessors ((sym name)) vsym
+    (format stream "~a" sym)))
+
 (defclass verilog-net (verilog-module)
   ((name
     :reader name
