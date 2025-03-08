@@ -38,19 +38,20 @@
   :depends-on (:chil :alexandria :lisp-unit2 :check-it)
   :pathname #p"tests/"
   :components ((:file "base")
+               ;; TODO: Convert base & utils to a single module
+               (:file "utils")
                (:module "Types"
                 :pathname #p"types/"
                 :depends-on ("utils")
                 :components ((:file "uint")))
                (:module "Verilog-tests"
                 :pathname #p""
-                :depends-on ("base")
+                :depends-on ("base" "utils")
                 :components ((:file "write-verilog")))
                (:module "VHDL-tests"
                 :pathname #p""
-                :depends-on ("base")
-                :components ((:file "write-vhdl")))
-               (:file "utils")))
+                :depends-on ("base" "utils")
+                :components ((:file "write-vhdl")))))
 
 (defmethod asdf:perform ((o asdf:test-op) (c (eql (find-system :chil/tests))))
   (let ((packages (list (find-package :chil/tests)
