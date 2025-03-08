@@ -47,7 +47,8 @@
                (:module "Verilog-tests"
                 :pathname #p""
                 :depends-on ("base" "utils")
-                :components ((:file "write-verilog")))
+                :components ((:file "write-verilog")
+                             (:file "sim")))
                (:module "VHDL-tests"
                 :pathname #p""
                 :depends-on ("base" "utils")
