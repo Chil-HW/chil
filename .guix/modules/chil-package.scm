@@ -41,6 +41,7 @@
   #:use-module (guix build-system asdf)
   #:use-module (gnu packages)
   #:use-module (gnu packages autotools)
+  #:use-module (gnu packages fpga)
   #:use-module (gnu packages texinfo)
   #:use-module (gnu packages lisp)
   #:use-module (gnu packages lisp-xyz)
@@ -69,7 +70,8 @@
           cl-slynk
           cl-ppcre
           cl-trivia
-          cl-check-it))
+          cl-check-it
+          verilator))
    (build-system asdf-build-system/sbcl)
    ;; (build-system asdf-build-system/source) ;; Maybe use this?
    (arguments
@@ -108,7 +110,8 @@
           cl-slynk
           cl-ppcre
           cl-trivia
-          cl-check-it))
+          cl-check-it
+          verilator))
    (build-system asdf-build-system/ecl)
    ;; (build-system asdf-build-system/source) ;; Maybe use this?
    (arguments
