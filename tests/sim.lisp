@@ -49,7 +49,12 @@ run.")
        (uiop:finish-outputs tmp-stream)
        (multiple-value-bind (stdout stderr rc)
            (uiop:run-program (list "verilator" "--lint-only"
-                                   (uiop:native-namestring pname)))
+                                   "-Wall"
+                                   (uiop:native-namestring pname))
+                             ;; Do not raise a continuable condition when
+                             ;; verilator has a non-zero exit code, since this
+                             ;; is a unit test and cannot do anything with them.
+                             :ignore-error-status 't)
          ;; (declare (ignore stdout stderr))
          (format t "~a~%~%" stdout)
          (format t "~a" stderr)
