@@ -56,11 +56,14 @@ run.")
            (uiop:run-program (list "verilator" "--lint-only"
                                    "-Wall"
                                    (uiop:native-namestring pname))
+                             :output :string
+                             :error-output :string
                              ;; Do not raise a continuable condition when
                              ;; verilator has a non-zero exit code, since this
                              ;; is a unit test and cannot do anything with them.
                              :ignore-error-status 't)
-         ;; (declare (ignore stdout stderr))
-         (format t "~a~%~%" stdout)
-         (format t "~a" stderr)
+         ;; Only print program's stdout/stderr when test program's rc != 0.
+         (unless (zerop rc)
+           (format t "~a~%~%" stdout)
+           (format t "~a" stderr))
          rc)))))
