@@ -22,6 +22,8 @@ run.")
    (uiop:with-temporary-file (:stream tmp-stream
                               :pathname pname
                               :direction :output
+                              ;; TODO: Only keep unit test files if the test
+                              ;; fails.
                               :keep 't
                               ;; TODO: It would be nice to generate a nicer
                               ;; module file name from the name of the module.
