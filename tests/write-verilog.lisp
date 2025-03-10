@@ -212,6 +212,20 @@ endmodule // test_body"
                           :lhs (make-instance 'verilog-net :name "foo")
                           :rhs (make-instance 'verilog-net :name "BAR"))))))
 
+(defparameter *combinatorial-passthrough-module*
+  (let ((inputs (list (make-instance 'verilog-net :name "x")))
+        (outputs (list (make-instance 'verilog-net :name "f"))))
+    (make-instance 'verilog-module
+                   :name (chil/backends:hyphen->underscore "passthrough")
+                   :inputs inputs
+                   :outputs outputs
+                   :body (make-instance 'verilog-assign
+                                        :target (first outputs)
+                                        :body (first inputs))))
+  "A simple combinatorial Verilog module that just passes its input argument
+directly as its output.
+NOTE: This module has NO buffering!")
+
 (define-test passthrough-module ()
   (assert-string-equal
    "module passthrough (
@@ -220,16 +234,24 @@ output f
 );
 assign f = x;
 endmodule // passthrough"
-   (let ((inputs (list (make-instance 'verilog-net :name "x")))
-         (outputs (list (make-instance 'verilog-net :name "f"))))
-     (generate-verilog
-      (make-instance 'verilog-module
-                     :name (chil/backends:hyphen->underscore "passthrough")
-                     :inputs inputs
-                     :outputs outputs
-                     :body (make-instance 'verilog-assign
-                                          :target (first outputs)
-                                          :body (first inputs)))))))
+   (generate-verilog *combinatorial-passthrough-module*)))
+
+(defparameter *combinatorial-binop-module*
+  (let* ((inputs (list (make-instance 'verilog-net :name "x")
+                       (make-instance 'verilog-net :name "y")))
+         (outputs (list (make-instance 'verilog-net :name "f")))
+         (binop (make-instance 'verilog-binop :op '+
+                                              :lhs (first inputs)
+                                              :rhs (second inputs))))
+    (make-instance 'verilog-module
+                   :name (chil/backends:hyphen->underscore "comb-binop")
+                   :inputs inputs
+                   :outputs outputs
+                   :body (make-instance 'verilog-assign
+                                        :target (first outputs)
+                                        :body binop)))
+  "A simple purely-combinatorial Verilog module containing what behavioral
+Verilog considers a purely-combinational binary operator.")
 
 (define-test combinatorial-binop-module ()
   (assert-string-equal
@@ -240,17 +262,4 @@ output f
 );
 assign f = x + y;
 endmodule // comb_binop"
-   (let* ((inputs (list (make-instance 'verilog-net :name "x")
-                        (make-instance 'verilog-net :name "y")))
-          (outputs (list (make-instance 'verilog-net :name "f")))
-          (binop (make-instance 'verilog-binop :op '+
-                                               :lhs (first inputs)
-                                               :rhs (second inputs))))
-     (generate-verilog
-      (make-instance 'verilog-module
-                     :name (chil/backends:hyphen->underscore "comb-binop")
-                     :inputs inputs
-                     :outputs outputs
-                     :body (make-instance 'verilog-assign
-                                          :target (first outputs)
-                                          :body binop))))))
+   (generate-verilog *combinatorial-binop-module*)))
