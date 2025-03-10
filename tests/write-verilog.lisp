@@ -12,8 +12,9 @@
 (defun generate-verilog (vmodule)
   "Helper function to generate Verilog modules. Returns the generated Verilog as
 a string."
-  (uiop:with-output (str 'nil)
-    (chil/backends/verilog:codegen vmodule str)))
+  (string-trim '(#\Newline #\Space)
+               (uiop:with-output (str 'nil)
+                 (chil/backends/verilog:codegen vmodule str))))
 
 
 ;;;

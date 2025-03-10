@@ -189,8 +189,8 @@ The two directions supported are the symbols 'input and 'output."
     (if (body verilog-module)
         (codegen (body verilog-module) stream)
         (format stream "body;"))
-    ;; FIXME: This manual forced newline should not be here.
-    (format stream "~%endmodule // ~a" (name verilog-module))))
+    ;; FIXME: The manual newline at the beginning should not be here.
+    (format stream "~%endmodule // ~a~%" (name verilog-module))))
 
 (deftype verilog-binops ()
   '(member + - * / % bit-and bit-or bit-xor))
