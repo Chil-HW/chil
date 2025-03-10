@@ -19,8 +19,8 @@ run.")
 
 (define-test verilator-example-sim-test ()
   (assert-number-equal 0
-   (uiop:with-temporary-file (:stream tmp-stream
-                              :pathname pname
+   (uiop:with-temporary-file (:stream fstream
+                              :pathname fpath
                               :direction :output
                               ;; TODO: Only keep unit test files if the test
                               ;; fails.
@@ -43,10 +43,10 @@ run.")
        ;; Turn off the DECLFILENAME lint flag, since we knowingly generate
        ;; Verilog files that do NOT have the same name as the module they
        ;; contain.
-       (format tmp-stream "/* verilator lint_off DECLFILENAME */~%")
-       (chil/backends/verilog:codegen vmodule tmp-stream)
-       (format tmp-stream "/* verilator lint_off DECLFILENAME */~%")
-       (uiop:finish-outputs tmp-stream)
+       (format fstream "/* verilator lint_off DECLFILENAME */~%")
+       (chil/backends/verilog:codegen vmodule fstream)
+       (format fstream "/* verilator lint_off DECLFILENAME */~%")
+       (uiop:finish-outputs fstream)
 
        ;; FIXME: Replace run-program with launch-program for async handling and
        ;; parallel evaluation of tests. Need to use wait-process to get wait on
@@ -55,7 +55,7 @@ run.")
        (multiple-value-bind (stdout stderr rc)
            (uiop:run-program (list "verilator" "--lint-only"
                                    "-Wall"
-                                   (uiop:native-namestring pname))
+                                   (uiop:native-namestring fpath))
                              :output :string
                              :error-output :string
                              ;; Do not raise a continuable condition when
