@@ -45,14 +45,14 @@ a string."
 
 (defparameter *test-module-empty*
   (make-instance 'verilog-module
-                 :name (chil-sym->verilog-sym "test-empty"))
+                 :name (chil/backends:hyphen->underscore "test-empty"))
   "CHIL Module for testing that has no inputs, no outputs, and no body.")
 
 (defparameter *test-module-inputs*
   (let ((inputs (list (make-instance 'verilog-net :name "valid")
                       (make-instance 'verilog-net :name "addr"))))
     (make-instance 'verilog-module
-                   :name (chil-sym->verilog-sym "test-inputs")
+                   :name (chil/backends:hyphen->underscore "test-inputs")
                    :inputs inputs))
   "CHIL Module for testing that has only inputs, no outputs, and no body.")
 
@@ -60,7 +60,7 @@ a string."
   (let ((outputs (list (make-instance 'verilog-net :name "ready")
                        (make-instance 'verilog-net :name "data"))))
     (make-instance 'verilog-module
-                   :name (chil-sym->verilog-sym "test-outputs")
+                   :name (chil/backends:hyphen->underscore "test-outputs")
                    :outputs outputs))
   "CHIL Module for testing that has only outputs, no inputs, and no body.")
 
@@ -70,67 +70,67 @@ a string."
         (outputs (list (make-instance 'verilog-net :name "ready")
                        (make-instance 'verilog-net :name "data"))))
     (make-instance 'verilog-module
-                   :name (chil-sym->verilog-sym "test-inputs-outputs")
+                   :name (chil/backends:hyphen->underscore "test-inputs-outputs")
                    :inputs inputs
                    :outputs outputs))
   "CHIL Module for testing that has only outputs, no inputs, and no body.")
 
 (define-test generate-verilog-empty-module ()
   (assert-string-equal
-   "module GENV_test_empty (
+   "module test_empty (
 );
-empty-body-net
-endmodule // GENV_test_empty"
+empty_body_net
+endmodule // test_empty"
                 (generate-verilog *test-module-empty*)))
 
 (define-test generate-verilog-module-only-inputs ()
   (assert-string-equal
-   "module GENV_test_inputs (
-input GENV_valid,
-input GENV_addr
+   "module test_inputs (
+input valid,
+input addr
 );
-empty-body-net
-endmodule // GENV_test_inputs"
+empty_body_net
+endmodule // test_inputs"
                 (generate-verilog *test-module-inputs*)))
 
 (define-test generate-verilog-module-only-outputs ()
   (assert-string-equal
-   "module GENV_test_outputs (
-output GENV_ready,
-output GENV_data
+   "module test_outputs (
+output ready,
+output data
 );
-empty-body-net
-endmodule // GENV_test_outputs"
+empty_body_net
+endmodule // test_outputs"
                 (generate-verilog *test-module-outputs*)))
 
 (define-test generate-verilog-module-inputs-outputs ()
   (assert-string-equal
-   "module GENV_test_inputs_outputs (
-input GENV_valid,
-input GENV_addr,
-output GENV_ready,
-output GENV_data
+   "module test_inputs_outputs (
+input valid,
+input addr,
+output ready,
+output data
 );
-empty-body-net
-endmodule // GENV_test_inputs_outputs"
+empty_body_net
+endmodule // test_inputs_outputs"
                 (generate-verilog *test-module-inputs-outputs*)))
 
 (define-test generate-verilog-module-parameters ()
   (assert-string-equal
    ;; FIXME: Parameters should not get the GENV prefix.
-   "module GENV_test_parameters #(
-parameter GENV_EMPTY,
-parameter GENV_IN_WIDTH = 32,
-parameter GENV_out_width = 16
+   "module test_parameters #(
+parameter EMPTY,
+parameter IN_WIDTH = 32,
+parameter out_width = 16
 )
 (
-input GENV_valid,
-input GENV_addr,
-output GENV_ready,
-output GENV_data
+input valid,
+input addr,
+output ready,
+output data
 );
-empty-body-net
-endmodule // GENV_test_parameters"
+empty_body_net
+endmodule // test_parameters"
    (let ((inputs (list (make-instance 'verilog-net :name "valid")
                        (make-instance 'verilog-net :name "addr")))
          (outputs (list (make-instance 'verilog-net :name "ready")
@@ -138,7 +138,7 @@ endmodule // GENV_test_parameters"
 
      (generate-verilog
       (make-instance 'verilog-module
-                     :name (chil-sym->verilog-sym "test-parameters")
+                     :name (chil/backends:hyphen->underscore "test-parameters")
                      :parameters '(("EMPTY") ("IN_WIDTH" 32) ("out-width" 16))
                      :inputs inputs
                      :outputs outputs)))))
@@ -151,7 +151,7 @@ endmodule // GENV_test_parameters"
                                      (make-instance 'verilog-net :name "data"))))
                   (generate-verilog
                    (make-instance 'verilog-module
-                                  :name (chil-sym->verilog-sym "invalid-parameters")
+                                  :name (chil/backends:hyphen->underscore "invalid-parameters")
                                   :parameters '(("IN_WIDTH" 32) ("failing" 16 2))
                                   :inputs inputs
                                   :outputs outputs)))))
@@ -168,7 +168,7 @@ endmodule // GENV_test_parameters"
   (let ((inputs (list (make-instance 'verilog-net :name "a")))
         (outputs (list (make-instance 'verilog-net :name "F"))))
     (make-instance 'verilog-module
-                   :name (chil-sym->verilog-sym "test-body")
+                   :name (chil/backends:hyphen->underscore "test-body")
                    :inputs inputs
                    :outputs outputs
                    :body (make-instance 'verilog-assign :target (first outputs)
@@ -177,12 +177,12 @@ endmodule // GENV_test_parameters"
 
 (define-test generate-verilog-body ()
   (assert-string-equal
-   "module GENV_test_body (
-input GENV_a,
-output GENV_F
+   "module test_body (
+input a,
+output F
 );
 assign F = a;
-endmodule // GENV_test_body"
+endmodule // test_body"
    (generate-verilog *test-module-body*)))
 
 ;; TODO: This new output format provides us a way to generate VERILOG modules of
@@ -214,17 +214,17 @@ endmodule // GENV_test_body"
 
 (define-test passthrough-module ()
   (assert-string-equal
-   "module GENV_passthrough (
-input GENV_x,
-output GENV_f
+   "module passthrough (
+input x,
+output f
 );
 assign f = x;
-endmodule // GENV_passthrough"
+endmodule // passthrough"
    (let ((inputs (list (make-instance 'verilog-net :name "x")))
          (outputs (list (make-instance 'verilog-net :name "f"))))
      (generate-verilog
       (make-instance 'verilog-module
-                     :name (chil-sym->verilog-sym "passthrough")
+                     :name (chil/backends:hyphen->underscore "passthrough")
                      :inputs inputs
                      :outputs outputs
                      :body (make-instance 'verilog-assign
@@ -233,13 +233,13 @@ endmodule // GENV_passthrough"
 
 (define-test combinatorial-binop-module ()
   (assert-string-equal
-   "module GENV_comb_binop (
-input GENV_x,
-input GENV_y,
-output GENV_f
+   "module comb_binop (
+input x,
+input y,
+output f
 );
 assign f = x + y;
-endmodule // GENV_comb_binop"
+endmodule // comb_binop"
    (let* ((inputs (list (make-instance 'verilog-net :name "x")
                         (make-instance 'verilog-net :name "y")))
           (outputs (list (make-instance 'verilog-net :name "f")))
@@ -248,7 +248,7 @@ endmodule // GENV_comb_binop"
                                                :rhs (second inputs))))
      (generate-verilog
       (make-instance 'verilog-module
-                     :name (chil-sym->verilog-sym "comb-binop")
+                     :name (chil/backends:hyphen->underscore "comb-binop")
                      :inputs inputs
                      :outputs outputs
                      :body (make-instance 'verilog-assign
