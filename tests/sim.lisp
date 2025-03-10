@@ -25,9 +25,6 @@ run.")
                               ;; TODO: Only keep unit test files if the test
                               ;; fails.
                               :keep 't
-                              ;; TODO: It would be nice to generate a nicer
-                              ;; module file name from the name of the module.
-                              ;; :prefix ((uiop:strcat "tmp" ...))
                               :type "v")
      (let* ((inputs (list (make-instance 'verilog-net :name "x")
                           (make-instance 'verilog-net :name "y")))
