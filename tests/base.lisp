@@ -1,7 +1,9 @@
 (defpackage :chil/tests
   (:use :cl :lisp-unit2 :check-it)
   (:export #:chil-symbol-generator
-           #:program-installed-p))
+           #:program-installed-p
+           #:call-with-named-temporary-file
+           #:with-named-temporary-file))
 
 (in-package :chil/tests)
 
