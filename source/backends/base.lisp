@@ -1,7 +1,8 @@
 (defpackage :chil/backends
   (:use :cl)
   (:export #:backend-hdl
-           #:codegen))
+           #:codegen
+           #:module-filename))
 
 (in-package :chil/backends)
 
@@ -22,3 +23,10 @@ target."))
   (:documentation "Abstract method to perform code generation on the provided
 backend MODULE to STREAM. Every backend object that the user cares about should
 provide an implementation for `codegen'."))
+
+(defgeneric module-filename (backend-module)
+  (:documentation "Return the filename representation this module should have
+if/when this module is serialized to disk.
+
+This will add the file extension and other information to the module's filename
+that you would expect."))

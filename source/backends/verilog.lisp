@@ -192,6 +192,9 @@ The two directions supported are the symbols 'input and 'output."
     ;; FIXME: The manual newline at the beginning should not be here.
     (format stream "~%endmodule // ~a~%" (name verilog-module))))
 
+(defmethod module-filename ((vmod verilog-module))
+  (format 'nil "~a.v" (name vmod)))
+
 (deftype verilog-binops ()
   '(member + - * / % bit-and bit-or bit-xor))
 (trivia:defun-ematch binops->verilog (op)
