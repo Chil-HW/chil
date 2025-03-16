@@ -2,6 +2,7 @@
   (:use :cl)
   (:export #:backend-hdl
            #:codegen
+           #:hyphen->underscore
            #:module-filename))
 
 (in-package :chil/backends)
@@ -23,6 +24,10 @@ target."))
   (:documentation "Abstract method to perform code generation on the provided
 backend MODULE to STREAM. Every backend object that the user cares about should
 provide an implementation for `codegen'."))
+
+(defun hyphen->underscore (str)
+  (let ((chars-to-replace (cl-ppcre:create-scanner "-")))
+    (cl-ppcre:regex-replace-all chars-to-replace str "_")))
 
 (defgeneric module-filename (backend-module)
   (:documentation "Return the filename representation this module should have
