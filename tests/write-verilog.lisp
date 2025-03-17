@@ -45,32 +45,32 @@ a string."
 
 (defparameter *test-module-empty*
   (make-instance 'verilog-module
-                 :name (chil/backends:hyphen->underscore "test-empty"))
+                 :name (make-instance 'verilog-name :name "test-empty"))
   "CHIL Module for testing that has no inputs, no outputs, and no body.")
 
 (defparameter *test-module-inputs*
-  (let ((inputs (list (make-instance 'verilog-net :name "valid")
-                      (make-instance 'verilog-net :name "addr"))))
+  (let ((inputs (list (make-instance 'verilog-name :name "valid")
+                      (make-instance 'verilog-name :name "addr"))))
     (make-instance 'verilog-module
-                   :name (chil/backends:hyphen->underscore "test-inputs")
+                   :name (make-instance 'verilog-name :name "test-inputs")
                    :inputs inputs))
   "CHIL Module for testing that has only inputs, no outputs, and no body.")
 
 (defparameter *test-module-outputs*
-  (let ((outputs (list (make-instance 'verilog-net :name "ready")
-                       (make-instance 'verilog-net :name "data"))))
+  (let ((outputs (list (make-instance 'verilog-name :name "ready")
+                       (make-instance 'verilog-name :name "data"))))
     (make-instance 'verilog-module
-                   :name (chil/backends:hyphen->underscore "test-outputs")
+                   :name (make-instance 'verilog-name :name "test-outputs")
                    :outputs outputs))
   "CHIL Module for testing that has only outputs, no inputs, and no body.")
 
 (defparameter *test-module-inputs-outputs*
-  (let ((inputs (list (make-instance 'verilog-net :name "valid")
-                      (make-instance 'verilog-net :name "addr")))
-        (outputs (list (make-instance 'verilog-net :name "ready")
-                       (make-instance 'verilog-net :name "data"))))
+  (let ((inputs (list (make-instance 'verilog-name :name "valid")
+                      (make-instance 'verilog-name :name "addr")))
+        (outputs (list (make-instance 'verilog-name :name "ready")
+                       (make-instance 'verilog-name :name "data"))))
     (make-instance 'verilog-module
-                   :name (chil/backends:hyphen->underscore "test-inputs-outputs")
+                   :name (make-instance 'verilog-name :name "test-inputs-outputs")
                    :inputs inputs
                    :outputs outputs))
   "CHIL Module for testing that has only outputs, no inputs, and no body.")
@@ -117,7 +117,6 @@ endmodule // test_inputs_outputs"
 
 (define-test generate-verilog-module-parameters ()
   (assert-string-equal
-   ;; FIXME: Parameters should not get the GENV prefix.
    "module test_parameters #(
 parameter EMPTY,
 parameter IN_WIDTH = 32,
@@ -131,28 +130,33 @@ output data
 );
 empty_body_net
 endmodule // test_parameters"
-   (let ((inputs (list (make-instance 'verilog-net :name "valid")
-                       (make-instance 'verilog-net :name "addr")))
-         (outputs (list (make-instance 'verilog-net :name "ready")
-                        (make-instance 'verilog-net :name "data"))))
+   (let ((params `((,(make-instance 'verilog-name :name "EMPTY"))
+                   (,(make-instance 'verilog-name :name "IN-WIDTH") 32)
+                   (,(make-instance 'verilog-name :name "out_width") 16)))
+         (inputs (list (make-instance 'verilog-name :name "valid")
+                       (make-instance 'verilog-name :name "addr")))
+         (outputs (list (make-instance 'verilog-name :name "ready")
+                        (make-instance 'verilog-name :name "data"))))
 
      (generate-verilog
       (make-instance 'verilog-module
-                     :name (chil/backends:hyphen->underscore "test-parameters")
-                     :parameters '(("EMPTY") ("IN_WIDTH" 32) ("out-width" 16))
+                     :name (make-instance 'verilog-name :name "test-parameters")
+                     :parameters params
                      :inputs inputs
                      :outputs outputs)))))
 
 (define-test generate-verilog-invalid-parameters ()
   (assert-error 'simple-error
-                (let ((inputs (list (make-instance 'verilog-net :name "valid")
-                                    (make-instance 'verilog-net :name "addr")))
-                      (outputs (list (make-instance 'verilog-net :name "ready")
-                                     (make-instance 'verilog-net :name "data"))))
+                (let ((params `((,(make-instance 'verilog-name :name "IN_WIDTH") 32)
+                                (,(make-instance 'verilog-name :name "failing") 16 2)))
+                      (inputs (list (make-instance 'verilog-name :name "valid")
+                                    (make-instance 'verilog-name :name "addr")))
+                      (outputs (list (make-instance 'verilog-name :name "ready")
+                                     (make-instance 'verilog-name :name "data"))))
                   (generate-verilog
                    (make-instance 'verilog-module
-                                  :name (chil/backends:hyphen->underscore "invalid-parameters")
-                                  :parameters '(("IN_WIDTH" 32) ("failing" 16 2))
+                                  :name (make-instance 'verilog-name :name "invalid-parameters")
+                                  :parameters params
                                   :inputs inputs
                                   :outputs outputs)))))
 
@@ -165,10 +169,10 @@ endmodule // test_parameters"
                    :body (make-instance 'verilog-net :name "foo")))))
 
 (defparameter *test-module-body*
-  (let ((inputs (list (make-instance 'verilog-net :name "a")))
-        (outputs (list (make-instance 'verilog-net :name "F"))))
+  (let ((inputs (list (make-instance 'verilog-name :name "a")))
+        (outputs (list (make-instance 'verilog-name :name "F"))))
     (make-instance 'verilog-module
-                   :name (chil/backends:hyphen->underscore "test-body")
+                   :name (make-instance 'verilog-name :name "test-body")
                    :inputs inputs
                    :outputs outputs
                    :body (make-instance 'verilog-assign :target (first outputs)
@@ -213,10 +217,10 @@ endmodule // test_body"
                           :rhs (make-instance 'verilog-net :name "BAR"))))))
 
 (defparameter *combinatorial-passthrough-module*
-  (let ((inputs (list (make-instance 'verilog-net :name "x")))
-        (outputs (list (make-instance 'verilog-net :name "f"))))
+  (let ((inputs (list (make-instance 'verilog-name :name "x")))
+        (outputs (list (make-instance 'verilog-name :name "f"))))
     (make-instance 'verilog-module
-                   :name (chil/backends:hyphen->underscore "passthrough")
+                   :name (make-instance 'verilog-name :name "passthrough")
                    :inputs inputs
                    :outputs outputs
                    :body (make-instance 'verilog-assign
@@ -237,14 +241,14 @@ endmodule // passthrough"
    (generate-verilog *combinatorial-passthrough-module*)))
 
 (defparameter *combinatorial-binop-module*
-  (let* ((inputs (list (make-instance 'verilog-net :name "x")
-                       (make-instance 'verilog-net :name "y")))
-         (outputs (list (make-instance 'verilog-net :name "f")))
+  (let* ((inputs (list (make-instance 'verilog-name :name "x")
+                       (make-instance 'verilog-name :name "y")))
+         (outputs (list (make-instance 'verilog-name :name "f")))
          (binop (make-instance 'verilog-binop :op '+
                                               :lhs (first inputs)
                                               :rhs (second inputs))))
     (make-instance 'verilog-module
-                   :name (chil/backends:hyphen->underscore "comb-binop")
+                   :name (make-instance 'verilog-name :name "comb-binop")
                    :inputs inputs
                    :outputs outputs
                    :body (make-instance 'verilog-assign
