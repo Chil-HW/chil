@@ -2,7 +2,8 @@
 
 ((nil . ((fill-column . 72)
          (sentence-end-double-space . t)))
- (org-mode . ((org-edit-src-content-indentation 0)))
+ (org-mode . ((sentence-end-double-space . nil)
+              (org-edit-src-content-indentation 0)))
  (lisp-mode
   . ((eval . (cl-flet ((enhance-imenu-lisp
                         (&rest keywords)
