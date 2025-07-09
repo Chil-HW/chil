@@ -2,18 +2,6 @@
 
 
 ;;;
-;;; Run a simulator for running tests
-;;;
-
-;; TODO: This should NOT be evaluated at compile time, but at runtime!
-(defvar verilator-installed-p
-  (chil/tests:program-installed-p "verilator")
-  "Is Verilator installed?
-
-This is used to control whether or not simulation-based unit tests should be
-run.")
-
-;;;
 ;;; Basic Lint Checks
 ;;;
 

@@ -34,6 +34,27 @@
   :depends-on (:log4cl :cl-ppcre :trivia)
   :in-order-to ((test-op (test-op "chil/tests"))))
 
+(defun program-installed-p (prog-name)
+  "Determine if the program with binary PROG-NAME is installed and available to
+the Lisp image. PROG-NAME is expected to be a string that is present in `$PATH'.
+
+Return `nil' if the program is NOT installed, `t' otherwise."
+  (multiple-value-bind (stdout stderr rc)
+      (uiop:run-program prog-name
+                        ;; Ignore cases where prog-name is
+                        ;; installed but we called it wrong.
+                        :ignore-error-status 't)
+    (declare (ignore stdout stderr))
+    ;; 127 is the default return code when a program is not locatable in $PATH.
+    (not (= rc 127))))
+
+(defvar verilator-installed-p
+  (program-installed-p "verilator")
+  "Is Verilator installed?
+
+This is used to control whether or not simulation-based unit tests should be
+run.")
+
 (defsystem :chil/tests
   :depends-on (:chil :alexandria :lisp-unit2 :check-it)
   :pathname #p"tests/"
@@ -62,6 +83,9 @@
      :lisp-unit2 :run-tests
      :package packages
      :name :chil
+     :exclude-tags (append
+                    (unless verilator-installed-p '(:verilator))
+                    (unless (program-installed-p "ghdl") '(:ghdl)))
      :run-contexts (find-symbol "WITH-SUMMARY-CONTEXT" :lisp-unit2))))
 
 (defsystem :chil/sim
