@@ -47,7 +47,33 @@ user; like `uiop:with-output-file'?"
              (ignore-errors (uiop:delete-file-if-exists pathname)))
            rc))))
 
-;; TODO: Write a test for call-with-named-temporary-file
+(defun temp-file-context (body-fn)
+  "For use with the named-temp-file tests. Deletes the temporary file created by
+the test."
+  (let (;; (lisp-unit2::*test-db* *example-db*)
+        ;; *debugger-hook*
+        ;; (lisp-unit2::*test-stream* (make-broadcast-stream))
+        )
+    (handler-bind
+        ((warning #'muffle-warning))
+      (funcall body-fn))
+    (uiop:delete-file-if-exists
+     (format nil "~a~a" (uiop:temporary-directory) "foo.test"))))
+
+(define-test call-with-named-temp-file-test (:contexts #'temp-file-context)
+  (assert-true
+   (progn
+     (call-with-named-temporary-file
+      (uiop:parse-native-namestring "foo.test")
+      (lambda (test-stream) (format test-stream "Hello, world!~%"))
+      :want-stream-p 't
+      :want-fileobj-p 'nil
+      :directory (uiop:temporary-directory)
+      :keep '(lambda (rc) (declare (ignore rc)) 't))
+
+     (uiop:file-exists-p
+      (uiop:parse-native-namestring
+       (format nil "~a~a" (uiop:temporary-directory) "foo.test"))))))
 
 (defmacro with-named-temporary-file ((&key (stream (gensym "STREAM") streamp)
                                            (fileobj (gensym "FILEOBJ") fileobjp)
