@@ -17,7 +17,7 @@ run.")
 ;;; Basic Lint Checks
 ;;;
 
-(define-test verilator-passthrough-test ()
+(define-test verilator-passthrough-test (:tags '(:verilator))
   (assert-number-equal 0
    (chil/tests:with-named-temporary-file (:stream fstream
                                           :filename (module-filename *combinatorial-passthrough-module*)
@@ -46,7 +46,7 @@ run.")
        ;; an argument.
        rc))))
 
-(define-test verilator-binop-test ()
+(define-test verilator-binop-test (:tags '(:verilator))
   (assert-number-equal 0
    (chil/tests:with-named-temporary-file (:stream fstream
                                           :filename (module-filename *combinatorial-binop-module*)
@@ -76,7 +76,7 @@ run.")
 ;;; TODO: Use property-testing to generate Verilog backend modules from Chil
 ;;; that Verilator allows to pass linting
 
-(define-test verilator-property-sim-test ()
+(define-test verilator-property-sim-test (:tags '(:verilator))
   (assert-number-equal 0
    (chil/tests:with-named-temporary-file (:stream fstream
                                           :filename (module-filename *combinatorial-binop-module*)
