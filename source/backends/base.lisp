@@ -1,11 +1,17 @@
 (defpackage :chil/backends
   (:use :cl)
-  (:export #:backend-hdl
+  (:export #:name-identity
+           #:backend-hdl
            #:codegen
            #:hyphen->underscore
            #:module-filename))
 
 (in-package :chil/backends)
+
+(defun name-identity (name)
+  "Returns the name unchanged.
+This is the identity function for converting between Chil and Verilog names."
+  name)
 
 ;;; Abstract HDL backend class
 ;; TODO: Make this a metaclass with MOP rather than just an "abstract base
