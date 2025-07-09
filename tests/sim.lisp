@@ -82,9 +82,8 @@ run.")
                                           :filename (module-filename *combinatorial-binop-module*)
                                           :fileobj fobj
                                           :direction :output
-                                          ;; TODO: Only keep unit test files if
-                                          ;; the test fails!
-                                          :keep 't)
+                                          ;; Only keep unit test files if the test fails.
+                                          :keep '(lambda (rc) (not (zerop rc))))
      ;; Turn off the DECLFILENAME lint flag, since we knowingly generate
      ;; Verilog files that do NOT have the same name as the module they
      ;; contain.

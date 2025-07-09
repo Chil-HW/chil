@@ -23,16 +23,21 @@ Return `nil' if the program is NOT installed, `t' otherwise."
                       (directory (uiop:temporary-directory))
                       keep)
   "Call THUNK with FILENAME specifying the name of the temporary file to use.
+Returns THUNK's return value.
+
+NOTE: This function returns THUNK's return value, not KEEP's!
+
+KEEP is an n-ary function which accepts all values you return from THUNK. KEEP
+is used to determine whether or not the named temporary file that was created
+should be kept. If KEEP returns `nil', the temporary file is removed. Otherwise,
+the temporary file is kept.
 
 XXX: YOU are responsible for making sure the named temporary file does NOT
 already exist!
 If the temporary file you named already exists, then the file is opened and
 EMPTIED, clearing the file!
 TODO: Raise restartable condition if file already exists with options for the
-user; like `uiop:with-output-file'?
-
-The temporary file will be deleted once THUNK completes, unless the KEEP
-argument when CALL-FUNCTION'ed returns true."
+user; like `uiop:with-output-file'?"
   (assert (or want-stream-p want-fileobj-p))
   (let* ((prefix-pn (uiop:ensure-absolute-pathname
                      (or (uiop:ensure-pathname directory
@@ -44,17 +49,20 @@ argument when CALL-FUNCTION'ed returns true."
          (pathname (uiop:parse-native-namestring
                     (format nil "~A~A" prefix-nns filename))))
     (unwind-protect
-         (progn
-           (uiop:ensure-all-directories-exist (list pathname))
-           (with-open-file (stream pathname
-                                   :direction direction
-                                   :if-exists :supersede
-                                   :if-does-not-exist :create)
-             (if want-fileobj-p
-                 (uiop:call-function thunk stream pathname)
-                 (uiop:call-function thunk stream))))
-      (unless (uiop:call-function keep)
-        (ignore-errors (uiop:delete-file-if-exists pathname))))))
+         (let
+             ((rc
+                (progn
+                  (uiop:ensure-all-directories-exist (list pathname))
+                  (with-open-file (stream pathname
+                                          :direction direction
+                                          :if-exists :supersede
+                                          :if-does-not-exist :create)
+                    (if want-fileobj-p
+                        (uiop:call-function thunk stream pathname)
+                        (uiop:call-function thunk stream))))))
+           (unless (uiop:call-function keep rc)
+             (ignore-errors (uiop:delete-file-if-exists pathname)))
+           rc))))
 
 ;; TODO: Write a test for call-with-named-temporary-file
 
