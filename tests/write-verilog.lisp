@@ -45,32 +45,32 @@ a string."
 
 (defparameter *test-module-empty*
   (make-instance 'verilog-module
-                 :name (make-instance 'verilog-name :name "test-empty"))
+                 :name (make-exportable-verilog-symbol :name "test-empty"))
   "CHIL Module for testing that has no inputs, no outputs, and no body.")
 
 (defparameter *test-module-inputs*
-  (let ((inputs (list (make-instance 'verilog-name :name "valid")
-                      (make-instance 'verilog-name :name "addr"))))
+  (let ((inputs (list (make-exportable-verilog-symbol :name "valid")
+                      (make-exportable-verilog-symbol :name "addr"))))
     (make-instance 'verilog-module
-                   :name (make-instance 'verilog-name :name "test-inputs")
+                   :name (make-exportable-verilog-symbol :name "test-inputs")
                    :inputs inputs))
   "CHIL Module for testing that has only inputs, no outputs, and no body.")
 
 (defparameter *test-module-outputs*
-  (let ((outputs (list (make-instance 'verilog-name :name "ready")
-                       (make-instance 'verilog-name :name "data"))))
+  (let ((outputs (list (make-exportable-verilog-symbol :name "ready")
+                       (make-exportable-verilog-symbol :name "data"))))
     (make-instance 'verilog-module
-                   :name (make-instance 'verilog-name :name "test-outputs")
+                   :name (make-exportable-verilog-symbol :name "test_outputs")
                    :outputs outputs))
   "CHIL Module for testing that has only outputs, no inputs, and no body.")
 
 (defparameter *test-module-inputs-outputs*
-  (let ((inputs (list (make-instance 'verilog-name :name "valid")
-                      (make-instance 'verilog-name :name "addr")))
-        (outputs (list (make-instance 'verilog-name :name "ready")
-                       (make-instance 'verilog-name :name "data"))))
+  (let ((inputs (list (make-exportable-verilog-symbol :name "valid")
+                      (make-exportable-verilog-symbol :name "addr")))
+        (outputs (list (make-exportable-verilog-symbol :name "ready")
+                       (make-exportable-verilog-symbol :name "data"))))
     (make-instance 'verilog-module
-                   :name (make-instance 'verilog-name :name "test-inputs-outputs")
+                   :name (make-exportable-verilog-symbol :name "test-inputs-outputs")
                    :inputs inputs
                    :outputs outputs))
   "CHIL Module for testing that has only outputs, no inputs, and no body.")
@@ -130,32 +130,32 @@ output data
 );
 empty_body_net
 endmodule // test_parameters"
-   (let ((params `((,(make-instance 'verilog-name :name "EMPTY"))
-                   (,(make-instance 'verilog-name :name "IN-WIDTH") 32)
-                   (,(make-instance 'verilog-name :name "out_width") 16)))
-         (inputs (list (make-instance 'verilog-name :name "valid")
-                       (make-instance 'verilog-name :name "addr")))
-         (outputs (list (make-instance 'verilog-name :name "ready")
-                        (make-instance 'verilog-name :name "data"))))
+   (let ((params `((,(make-exportable-verilog-symbol :name "EMPTY"))
+                   (,(make-exportable-verilog-symbol :name "IN-WIDTH") 32)
+                   (,(make-exportable-verilog-symbol :name "out_width") 16)))
+         (inputs (list (make-exportable-verilog-symbol :name "valid")
+                       (make-exportable-verilog-symbol :name "addr")))
+         (outputs (list (make-exportable-verilog-symbol :name "ready")
+                        (make-exportable-verilog-symbol :name "data"))))
 
      (generate-verilog
       (make-instance 'verilog-module
-                     :name (make-instance 'verilog-name :name "test-parameters")
+                     :name (make-exportable-verilog-symbol :name "test-parameters")
                      :parameters params
                      :inputs inputs
                      :outputs outputs)))))
 
 (define-test generate-verilog-invalid-parameters ()
   (assert-error 'simple-error
-                (let ((params `((,(make-instance 'verilog-name :name "IN_WIDTH") 32)
-                                (,(make-instance 'verilog-name :name "failing") 16 2)))
-                      (inputs (list (make-instance 'verilog-name :name "valid")
-                                    (make-instance 'verilog-name :name "addr")))
-                      (outputs (list (make-instance 'verilog-name :name "ready")
-                                     (make-instance 'verilog-name :name "data"))))
+                (let ((params `((,(make-exportable-verilog-symbol :name "IN_WIDTH") 32)
+                                (,(make-exportable-verilog-symbol :name "failing") 16 2)))
+                      (inputs (list (make-exportable-verilog-symbol :name "valid")
+                                    (make-exportable-verilog-symbol :name "addr")))
+                      (outputs (list (make-exportable-verilog-symbol :name "ready")
+                                     (make-exportable-verilog-symbol :name "data"))))
                   (generate-verilog
                    (make-instance 'verilog-module
-                                  :name (make-instance 'verilog-name :name "invalid-parameters")
+                                  :name (make-exportable-verilog-symbol :name "invalid-parameters")
                                   :parameters params
                                   :inputs inputs
                                   :outputs outputs)))))
@@ -165,14 +165,18 @@ endmodule // test_parameters"
    "assign DEV = foo;"
    (generate-verilog
     (make-instance 'verilog-assign
-                   :target (make-instance 'verilog-net :name "DEV")
-                   :body (make-instance 'verilog-net :name "foo")))))
+                   :target (make-instance
+                            'verilog-net
+                            :name (make-exportable-verilog-symbol :name "DEV"))
+                   :body (make-instance
+                          'verilog-net
+                          :name (make-exportable-verilog-symbol :name "foo"))))))
 
 (defparameter *test-module-body*
-  (let ((inputs (list (make-instance 'verilog-name :name "a")))
-        (outputs (list (make-instance 'verilog-name :name "F"))))
+  (let ((inputs (list (make-exportable-verilog-symbol :name "a")))
+        (outputs (list (make-exportable-verilog-symbol :name "F"))))
     (make-instance 'verilog-module
-                   :name (make-instance 'verilog-name :name "test-body")
+                   :name (make-exportable-verilog-symbol :name "test-body")
                    :inputs inputs
                    :outputs outputs
                    :body (make-instance 'verilog-assign :target (first outputs)
@@ -200,32 +204,34 @@ endmodule // test_body"
     (make-instance
      ;; TODO: :op is another chance for property-checking test generation.
      'verilog-binop :op 'bit-xor
-     :lhs (make-instance 'verilog-net :name "foo")
-     :rhs (make-instance 'verilog-net :name "BAR")))))
+     :lhs (make-exportable-verilog-symbol :name "foo")
+     :rhs (make-exportable-verilog-symbol :name "BAR")))))
 
 (define-test generate-verilog-assign-binop ()
   (assert-string-equal
    "assign DEV = foo | BAR;"
    (generate-verilog
     (make-instance 'verilog-assign
-                   :target (make-instance 'verilog-net :name "DEV")
+                   :target (make-exportable-verilog-symbol :name "DEV")
                    :body (make-instance
                           ;; TODO: :op is a chance for property-checking test
                           ;; generation.
                           'verilog-binop :op 'bit-or
-                          :lhs (make-instance 'verilog-net :name "foo")
-                          :rhs (make-instance 'verilog-net :name "BAR"))))))
+                          :lhs (make-exportable-verilog-symbol :name "foo")
+                          :rhs (make-exportable-verilog-symbol :name "BAR"))))))
 
 (defparameter *combinatorial-passthrough-module*
-  (let ((inputs (list (make-instance 'verilog-name :name "x")))
-        (outputs (list (make-instance 'verilog-name :name "f"))))
-    (make-instance 'verilog-module
-                   :name (make-instance 'verilog-name :name "passthrough")
-                   :inputs inputs
-                   :outputs outputs
-                   :body (make-instance 'verilog-assign
-                                        :target (first outputs)
-                                        :body (first inputs))))
+  (let ((inputs (list (make-exportable-verilog-symbol :name "x")))
+        (outputs (list (make-exportable-verilog-symbol :name "f"))))
+    (make-instance
+     'verilog-module
+     :name (make-exportable-verilog-symbol :name "passthrough")
+     :inputs inputs
+     :outputs outputs
+     :body (make-instance
+            'verilog-assign
+            :target (make-instance 'verilog-net :name (first outputs))
+            :body (make-instance 'verilog-net :name (first inputs)))))
   "A simple combinatorial Verilog module that just passes its input argument
 directly as its output.
 NOTE: This module has NO buffering!")
@@ -241,14 +247,14 @@ endmodule // passthrough"
    (generate-verilog *combinatorial-passthrough-module*)))
 
 (defparameter *combinatorial-binop-module*
-  (let* ((inputs (list (make-instance 'verilog-name :name "x")
-                       (make-instance 'verilog-name :name "y")))
-         (outputs (list (make-instance 'verilog-name :name "f")))
+  (let* ((inputs (list (make-exportable-verilog-symbol :name "x")
+                       (make-exportable-verilog-symbol :name "y")))
+         (outputs (list (make-exportable-verilog-symbol :name "f")))
          (binop (make-instance 'verilog-binop :op '+
-                                              :lhs (first inputs)
-                                              :rhs (second inputs))))
+                                              :lhs (make-instance 'verilog-net :name (first inputs))
+                                              :rhs (make-instance 'verilog-net :name (second inputs)))))
     (make-instance 'verilog-module
-                   :name (make-instance 'verilog-name :name "comb-binop")
+                   :name (make-exportable-verilog-symbol :name "comb-binop")
                    :inputs inputs
                    :outputs outputs
                    :body (make-instance 'verilog-assign
