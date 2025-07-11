@@ -220,6 +220,30 @@ allowed in Verilog nets, but they must behave in a certain way?"))
   (format stream " ~a " (binops->verilog (op binop)))
   (codegen (rhs binop) stream))
 
+;; FIXME: assign is weird. It connects two single-named nets. But the assign
+;; keyword itself is NOT a net.
+(defclass verilog-assign ()
+  ((target
+    :reader target
+    :initarg :target
+    :initform (error "Every verilog-assign must hvae a `target'.")
+    :type verilog-net
+    :documentation "The target of a Verilog \"assign\" statement.")
+   (body
+    :reader body
+    :initarg :body
+    :initform (error "verilog-assign must be provided a body!")
+    :type verilog-net
+    :documentation "The body to evaluate in a Verilog \"assign\" statement."))
+  (:documentation "Implementation of Verilog's \"assign\" statement."))
+
+(defmethod codegen ((component verilog-assign) stream)
+  (format stream "assign ")
+  (codegen (target component) stream)
+  (format stream " = ")
+  (codegen (body component) stream)
+  (format stream ";"))
+
 
 (defclass verilog-module (chil/backends:backend-hdl)
   ((name
@@ -320,23 +344,3 @@ The two directions supported are the symbols 'input and 'output."
 
 (defmethod module-filename ((vmod verilog-module))
   (format 'nil "~a.v" (name vmod)))
-
-(defclass verilog-assign (verilog-net)
-  ((target
-    :reader target
-    :initarg :target
-    :type verilog-net
-    :documentation "The target of a Verilog \"assign\" statement.")
-   (body
-    :reader body
-    :initarg :body
-    :type verilog-net
-    :documentation "The body to evaluate in a Verilog \"assign\" statement."))
-  (:documentation "Implementation of Verilog's \"assign\" statement."))
-
-(defmethod codegen ((component verilog-assign) stream)
-  (format stream "assign ")
-  (codegen (target component) stream)
-  (format stream " = ")
-  (codegen (body component) stream)
-  (format stream ";"))
