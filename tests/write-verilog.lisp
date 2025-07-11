@@ -79,7 +79,6 @@ a string."
   (assert-string-equal
    "module test_empty (
 );
-empty_body_net
 endmodule // test_empty"
    (generate-verilog *test-module-empty*)))
 
@@ -89,7 +88,6 @@ endmodule // test_empty"
 input valid,
 input addr
 );
-empty_body_net
 endmodule // test_inputs"
    (generate-verilog *test-module-inputs*)))
 
@@ -99,7 +97,6 @@ endmodule // test_inputs"
 output ready,
 output data
 );
-empty_body_net
 endmodule // test_outputs"
    (generate-verilog *test-module-outputs*)))
 
@@ -111,7 +108,6 @@ input addr,
 output ready,
 output data
 );
-empty_body_net
 endmodule // test_inputs_outputs"
    (generate-verilog *test-module-inputs-outputs*)))
 
@@ -128,7 +124,6 @@ input addr,
 output ready,
 output data
 );
-empty_body_net
 endmodule // test_parameters"
    (let ((params `((,(make-exportable-verilog-symbol :name "EMPTY"))
                    (,(make-exportable-verilog-symbol :name "IN-WIDTH") 32)
@@ -176,12 +171,20 @@ endmodule // test_parameters"
 (defparameter *test-module-body*
   (let ((inputs (list (make-exportable-verilog-symbol :name "a")))
         (outputs (list (make-exportable-verilog-symbol :name "F"))))
-    (make-instance 'verilog-module
-                   :name (make-exportable-verilog-symbol :name "test-body")
-                   :inputs inputs
-                   :outputs outputs
-                   :body (make-instance 'verilog-assign :target (first outputs)
-                                                        :body (first inputs))))
+    (make-instance
+     'verilog-module
+     :name (make-exportable-verilog-symbol :name "test-body")
+     :inputs inputs
+     :outputs outputs
+     :body (list
+            (make-instance
+             'verilog-assign
+             :target (make-instance
+                      'verilog-net
+                      :name (first outputs))
+             :body (make-instance
+                    'verilog-net
+                    :name (first inputs))))))
   "CHIL Module for testing that is a complete module, but unparameterized.")
 
 (define-test generate-verilog-body ()
@@ -229,10 +232,11 @@ endmodule // test_body"
      :name (make-exportable-verilog-symbol :name "passthrough")
      :inputs inputs
      :outputs outputs
-     :body (make-instance
+     :body (list
+            (make-instance
             'verilog-assign
             :target (make-instance 'verilog-net :name (first outputs))
-            :body (make-instance 'verilog-net :name (first inputs)))))
+            :body (make-instance 'verilog-net :name (first inputs))))))
   "A simple combinatorial Verilog module that just passes its input argument
 directly as its output.
 NOTE: This module has NO buffering!")
@@ -260,9 +264,12 @@ endmodule // passthrough"
      :name (make-exportable-verilog-symbol :name "comb-binop")
      :inputs inputs
      :outputs outputs
-     :body (make-instance 'verilog-assign
-                          :target (first outputs)
-                          :body binop)))
+     :body (list
+            (make-instance
+             'verilog-assign
+             :target (make-instance
+                      'verilog-net :name (first outputs))
+             :body binop))))
   "A simple purely-combinatorial Verilog module containing what behavioral
 Verilog considers a purely-combinational binary operator.")
 

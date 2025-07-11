@@ -2,7 +2,6 @@
   (:use :cl :cl-ppcre :chil/backends)
   (:export #:verilog-identifier-regexp
            #:chil-sym->verilog-sym
-           #:verilog-module
            #:list-of-verilog-names-p
            #:name-translation-functions
            #:name-translation-function-p
@@ -10,6 +9,7 @@
            #:verilog-symbol
            #:make-exportable-verilog-symbol
            #:verilog-net
+           #:verilog-module
            #:+ #:- #:* #:/ #:% #:bit-and #:bit-or
            #:verilog-binop
            #:verilog-assign
@@ -244,6 +244,26 @@ allowed in Verilog nets, but they must behave in a certain way?"))
   (codegen (body component) stream)
   (format stream ";"))
 
+
+;;;
+;;; Modules
+;;; The unit of hardware abstraction in Verilog for reusable components.
+;;;
+
+(defparameter module-body-forms
+  (list (find-class 'verilog-assign))
+  "The set of classes that a Verilog module can have in its body.")
+
+(defun list-of-module-body-forms-p (body-elements)
+  "Predicate to determine if the provided form is a valid entry in a module's
+`body' slot."
+  (and (listp body-elements)
+       (every (lambda (ele)
+                (member (class-of ele) module-body-forms))
+              body-elements)))
+
+(deftype list-of-module-body-forms ()
+  `(satisfies list-of-module-body-forms-p))
 
 (defclass verilog-module (chil/backends:backend-hdl)
   ((name
@@ -272,17 +292,15 @@ allowed in Verilog nets, but they must behave in a certain way?"))
     :initform '()
     :type list-of-verilog-symbols
     :documentation "Output wires from this Verilog module.")
+   ;; It is legal to have an empty body in a generated Verilog module.
+   ;; This is useful to support arbitrary blackboxes.
+   ;; From SystemVerilog 2024 Standard, Section 23.2.4 Module Contents:
+   ;; "The module definition can contain zero or more module items."
    (body
     :reader body
     :initarg :body
-    ;; TODO: Is it legal to have an empty body in a generated Verilog module?
-    ;; This may be useful if I want to support arbitrary blackboxes.
-    :type verilog-net
-    ;; FIXME: If initform has this shape, then the control stack is exhausted
-    ;; and the Lisp image blows up. Why?
-    :initform (make-instance 'verilog-net
-               :name "empty-body-net")
-               ;; :name (chil-sym->verilog-sym "empty-body-net"))
+    :type list-of-module-body-forms
+    :initform '()
     :documentation "The body of this Verilog module."))
   (:documentation "Verilog-specific backend module."))
 
@@ -335,12 +353,15 @@ The two directions supported are the symbols 'input and 'output."
     (format stream "~%~{~a~^,~&~}~&" ; ~% FORCES a line break!
             (append (module-io->strings 'input (inputs verilog-module))
                     (module-io->strings 'output (outputs verilog-module))))
-    (format stream ");~&")
-    (if (body verilog-module)
-        (codegen (body verilog-module) stream)
-        (format stream "body;"))
-    ;; FIXME: The manual newline at the beginning should not be here.
-    (format stream "~%endmodule // ~a~%" (name verilog-module))))
+    (format stream ");~%")
+    ;; Now loop all of the module's body pieces and codegen them in turn.
+    (loop for b in (body verilog-module)
+          do (codegen b stream)
+             (format stream "~%"))
+    ;; Lastly, generate the endmodule line
+    (format stream "endmodule // ")
+    (codegen (name verilog-module) stream)
+    (format stream "~%")))
 
 (defmethod module-filename ((vmod verilog-module))
   (format 'nil "~a.v" (name vmod)))
