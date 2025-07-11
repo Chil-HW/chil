@@ -64,7 +64,9 @@ LSP support would be an important part of this.
 [[https://bullno1.com/blog/building-a-language-server][Bull No 1]] wrote an article about how to make an LSP server in something other than the "default" Node.JS runtime.
 
 * Testing
-  1. Property-based testing of pure functions.
+  1. For any tests that are unrelated, they should be launched in their own process?
+     [[https://sunshowers.io/posts/nextest-process-per-test/]]
+  2. Property-based testing of pure functions.
      For example, ~chil:log2up~ should be property tested.
      This way I only have to write the properties required, and not any actual implementation.
      Possible candidates:
@@ -88,36 +90,36 @@ LSP support would be an important part of this.
          If I write my own, we should read [[https://www.cs.cornell.edu/~asampson/blog/autoreduction.html][Adrian Sampson's "Automated Test-Case Reduction" blog post]].
        - [[https://stevana.github.io/the_sad_state_of_property-based_testing_libraries.html]]
        - [[https://www.well-typed.com/blog/2019/01/qsm-in-depth/]]
-  2. Property-based testing of single modules.
+  3. Property-based testing of single modules.
      Module is written like normal.
      Asserts are present in module.
      Provide random inputs to module to verify correctness.
      Follows "stateful property-based testing" from https://stevana.github.io/the_sad_state_of_property-based_testing_libraries.html
      Inputs should be random both in terms of value (the bit/byte value) AND in their arrival distribution.
-  3. Automated generation of test programs for modules requiring simulation (integration testing).
+  4. Automated generation of test programs for modules requiring simulation (integration testing).
      Interesting works in software:
      * [[https://dl.acm.org/doi/10.1145/3428264][YARPGen]]
-  4. The unit testing framework should allow for a variety of underlying runners.
+  5. The unit testing framework should allow for a variety of underlying runners.
      A runner is the thing that runs the test.
      The default runner for ~cargo test~ is shared-process, where every test runs inside the same process.
      But one alternative is to have a process per test, leveraging process-boundary isolation to prevent shared memory gotchas.
      [[https://sunshowers.io/posts/nextest-process-per-test/]]
      Once this far, you could go the next step and have test-per-container for namespace/filesystem isolation.
      If this problem gets reframed into an actor model, then each test is an actor and there can be a hierarchy, allowing for distributing these tests across machines easily.
-  5. Generated output (Verilog, VHDL) should be checked against simulators for linting.
+  6. Generated output (Verilog, VHDL) should be checked against simulators for linting.
      For Verilog, use Verilator & Icarus.
      For VHDL, use GHDL.
-  6. There should be an interpreter/simulator for the top-level language that is used (Host language simulation).
+  7. There should be an interpreter/simulator for the top-level language that is used (Host language simulation).
      See the [[*Simulator][Simulator]] Section.
      This solves the problem where only the emitted language can be verified, and not the host language.
-  7. Any unit tests for modules (whether in the standard library or written by the designer) *must* be synthesizable.
+  8. Any unit tests for modules (whether in the standard library or written by the designer) *must* be synthesizable.
      Down to the low-level language.
-  8. Need the ability to collect *host-language* coverage information out of tests.
+  9. Need the ability to collect *host-language* coverage information out of tests.
      The more semantic information available should mean tracking coverage and finding cases where there is no test-case coverage should be eaiser.
      For example, the higher-level language knows what is an FSM, and should be able to test all possible cases for it.
      The lower-level generated language may not understand that information and just blindly test.
-  9. *AFTER EVERYTHING ELSE DONE*: EDA tooling for Chil.
-     Design Verification workflows & debug should be able to be performed on Chil, rather than its outputs.
+  10. *AFTER EVERYTHING ELSE DONE*: EDA tooling for Chil.
+      Design Verification workflows & debug should be able to be performed on Chil, rather than its outputs.
 
 ** Formal Methods
 Hardware is extensively validated and verified with formal methods.
