@@ -19,13 +19,33 @@ run.")
 
 (define-test verilator-example-sim-test ()
   (assert-number-equal 0
-   (uiop:with-temporary-file (:stream fstream
-                              :pathname fpath
-                              :direction :output
-                              ;; TODO: Only keep unit test files if the test
-                              ;; fails.
-                              :keep 't
-                              :type "v")
+   (chil/tests:with-named-temporary-file (:stream fstream
+                                          :filename (module-filename *combinatorial-passthrough-module*)
+                                          :fileobj fobj
+                               :direction :output
+                               ;; Only keep unit test files if the test fails.
+                               :keep '(lambda (rc) (not (zerop rc))))
+     (chil/backends/verilog:codegen *combinatorial-passthrough-module* fstream)
+     (uiop:finish-outputs fstream)
+
+     (multiple-value-bind (stdout stderr rc)
+         (uiop:run-program (list "verilator" "--lint-only"
+                                 "-Wall"
+                                 (uiop:native-namestring fobj))
+                           :output :string
+                           :error-output :string
+                           ;; Do not raise a continuable condition when
+                           ;; verilator has a non-zero exit code, since this
+                           ;; is a unit test and cannot do anything with them.
+                           :ignore-error-status 't)
+       ;; Only print program's stdout/stderr when test program's rc != 0.
+       (unless (zerop rc)
+         (format t "~a~%~%" stdout)
+         (format t "~a" stderr))
+       ;; Lastly, return rc from this thunk to be given to the :keep function as
+       ;; an argument.
+       rc))))
+
      ;; Turn off the DECLFILENAME lint flag, since we knowingly generate
      ;; Verilog files that do NOT have the same name as the module they
      ;; contain.
