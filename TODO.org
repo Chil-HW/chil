@@ -353,6 +353,10 @@ Some ideas for these passes include:
     For example, an accelerator may need an XML file to describe the hardware that is being added.
     A pass could take in the IR, figure out what is being asked, and return an XML file describing the written circuit.
 
+** Type-Checking
+Considerations on Codecrafting has a blog post about how they believe you should make good type errors in a typed language.
+[[https://blog.polybdenum.com/2025/02/14/designing-type-inference-for-high-quality-type-errors.html][Designing type inference for high quality type errors]].
+
 * Documentation
 Language documentation should be clear and easy to read.
 When possible, it should be concise, but should not limit itself when deeper explanation is necessary.
