@@ -155,7 +155,8 @@ for making sure this string is one you expect."
   ((name
     :reader name
     :initarg :name
-    :type string
+    :type verilog-symbol
+    :initform (generate-verilog-symbol)
     :documentation "Name for this net.")
    (body
     :initform '()))
@@ -165,8 +166,15 @@ A Verilog net is a structurally \"combinational\" hardware circuit. They can be
 just a single wire or a very large combinational net. Sequential elements are
 allowed in Verilog nets, but they must behave in a certain way?"))
 
-(defmethod codegen ((net verilog-net) stream)
-  (format stream "~a" (name net)))
+(defmethod print-object ((vnet verilog-net) stream)
+  (with-accessors ((net-name name)) vnet
+    (print-unreadable-object (vnet stream :type t :identity t)
+      (format stream "~s" net-name))))
+
+(defmethod codegen ((vnet verilog-net) stream)
+  (with-accessors ((net-name name)) vnet
+    (format stream "~a" net-name)))
+
 
 (defclass verilog-module (chil/backends:backend-hdl)
   ((name
