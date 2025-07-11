@@ -22,6 +22,11 @@ a string."
 ;;;
 
 (define-test chil->verilog-symbol-conversion ()
+  ;; Underscores are a valid Chil symbol
+  (let ((chil-symbol "13__"))
+    (assert-string/= chil-symbol
+     (cl-ppcre:scan-to-strings chil/backends/verilog:verilog-identifier-regexp
+                               (chil-sym->verilog-sym chil-symbol))))
   ;; If the replaced string is parseable into a Verilog symbol (which means the
   ;; original conversion and the scanned version are the same), then the
   ;; replacement function is correct.
