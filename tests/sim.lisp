@@ -17,7 +17,7 @@ run.")
 ;;; Basic Lint Checks
 ;;;
 
-(define-test verilator-example-sim-test ()
+(define-test verilator-passthrough-test ()
   (assert-number-equal 0
    (chil/tests:with-named-temporary-file (:stream fstream
                                           :filename (module-filename *combinatorial-passthrough-module*)
@@ -46,6 +46,45 @@ run.")
        ;; an argument.
        rc))))
 
+(define-test verilator-binop-test ()
+  (assert-number-equal 0
+   (chil/tests:with-named-temporary-file (:stream fstream
+                                          :filename (module-filename *combinatorial-binop-module*)
+                                          :fileobj fobj
+                               :direction :output
+                               ;; Only keep unit test files if the test fails.
+                               :keep '(lambda (rc) (not (zerop rc))))
+     (chil/backends/verilog:codegen *combinatorial-binop-module* fstream)
+     (uiop:finish-outputs fstream)
+
+     (multiple-value-bind (stdout stderr rc)
+         (uiop:run-program (list "verilator" "--lint-only"
+                                 "-Wall"
+                                 (uiop:native-namestring fobj))
+                           :output :string
+                           :error-output :string
+                           ;; Do not raise a continuable condition when
+                           ;; verilator has a non-zero exit code, since this
+                           ;; is a unit test and cannot do anything with them.
+                           :ignore-error-status 't)
+       ;; Only print program's stdout/stderr when test program's rc != 0.
+       (unless (zerop rc)
+         (format t "~a~%~%" stdout)
+         (format t "~a" stderr))
+       rc))))
+
+;;; TODO: Use property-testing to generate Verilog backend modules from Chil
+;;; that Verilator allows to pass linting
+
+(define-test verilator-property-sim-test ()
+  (assert-number-equal 0
+   (chil/tests:with-named-temporary-file (:stream fstream
+                                          :filename (module-filename *combinatorial-binop-module*)
+                                          :fileobj fobj
+                                          :direction :output
+                                          ;; TODO: Only keep unit test files if
+                                          ;; the test fails!
+                                          :keep 't)
      ;; Turn off the DECLFILENAME lint flag, since we knowingly generate
      ;; Verilog files that do NOT have the same name as the module they
      ;; contain.
@@ -61,7 +100,7 @@ run.")
      (multiple-value-bind (stdout stderr rc)
          (uiop:run-program (list "verilator" "--lint-only"
                                  "-Wall"
-                                 (uiop:native-namestring fpath))
+                                 (uiop:native-namestring fobj))
                            :output :string
                            :error-output :string
                            ;; Do not raise a continuable condition when
