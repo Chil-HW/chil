@@ -175,6 +175,51 @@ allowed in Verilog nets, but they must behave in a certain way?"))
   (with-accessors ((net-name name)) vnet
     (format stream "~a" net-name)))
 
+(deftype verilog-binops ()
+  '(member + - * / % bit-and bit-or bit-xor))
+(trivia:defun-ematch binops->verilog (op)
+  ('+ "+")
+  ('- "-")
+  ('* "*")
+  ('/ "/")
+  ('% "%")
+  ('bit-and "&")
+  ('bit-or "|")
+  ('bit-xor "^"))
+
+;; TODO: verilog-binop IS a verilog-net, that has an auto-generated output that
+;; is the value of the binop. This is the same way that LLVM handles binop
+;; return values.
+(defclass verilog-binop (verilog-net)
+  ((op
+    :reader op
+    :initarg :op
+    :type verilog-binops
+    :documentation "Operation to perform")
+   (lhs
+    :reader lhs
+    :initarg :lhs
+    :type verilog-net
+    :documentation "Left-Hand Side of Binary Operation")
+   (rhs
+    :reader rhs
+    :initarg :rhs
+    :type verilog-net
+    :documentation "Right-Hand Side of Binary Operation"))
+  (:documentation "Verilog's binary operations."))
+
+(defmethod print-object ((binop verilog-binop) stream)
+  (with-accessors ((op op)
+                   (lhs lhs)
+                   (rhs rhs)) binop
+    (print-unreadable-object (binop stream :type t :identity t)
+      (format stream "~a ~a ~a" lhs op rhs))))
+
+(defmethod codegen ((binop verilog-binop) stream)
+  (codegen (lhs binop) stream)
+  (format stream " ~a " (binops->verilog (op binop)))
+  (codegen (rhs binop) stream))
+
 
 (defclass verilog-module (chil/backends:backend-hdl)
   ((name
@@ -275,46 +320,6 @@ The two directions supported are the symbols 'input and 'output."
 
 (defmethod module-filename ((vmod verilog-module))
   (format 'nil "~a.v" (name vmod)))
-
-(deftype verilog-binops ()
-  '(member + - * / % bit-and bit-or bit-xor))
-(trivia:defun-ematch binops->verilog (op)
-  ('+ "+")
-  ('- "-")
-  ('* "*")
-  ('/ "/")
-  ('% "%")
-  ('bit-and "&")
-  ('bit-or "|")
-  ('bit-xor "^"))
-
-;; FIXME: Should this subclass something else (like verilog-net)?
-;; Then anything that can drive a combinational net could be used here. However,
-;; a binary operation can be used in a sequential net too...
-;; There is something to think about here.
-;; The LHS & RHS of the binop should also be this abstract type too.
-(defclass verilog-binop (verilog-net)
-  ((op
-    :reader op
-    :initarg :op
-    :type verilog-binops
-    :documentation "Operation to perform")
-   (lhs
-    :reader lhs
-    :initarg :lhs
-    :type verilog-net
-    :documentation "Left-Hand Side of Binary Operation")
-   (rhs
-    :reader rhs
-    :initarg :rhs
-    :type verilog-net
-    :documentation "Right-Hand Side of Binary Operation"))
-  (:documentation "Verilog's binary operations."))
-
-(defmethod codegen ((binop verilog-binop) stream)
-  (codegen (lhs binop) stream)
-  (format stream " ~a " (binops->verilog (op binop)))
-  (codegen (rhs binop) stream))
 
 (defclass verilog-assign (verilog-net)
   ((target
