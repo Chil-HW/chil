@@ -137,6 +137,13 @@ for making sure this string is one you expect."
     (incf verilog-name-counter)
     (make-exportable-verilog-symbol :name s)))
 
+(defun list-of-verilog-symbols-p (syms)
+  (and (listp syms)
+       (every (lambda (name) (typep name 'verilog-symbol)) syms)))
+
+(deftype list-of-verilog-symbols ()
+  `(satisfies list-of-verilog-symbols-p))
+
 (defclass verilog-net (verilog-module)
   ((name
     :reader name
