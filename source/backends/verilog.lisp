@@ -144,15 +144,20 @@ for making sure this string is one you expect."
 (deftype list-of-verilog-symbols ()
   `(satisfies list-of-verilog-symbols-p))
 
-(defclass verilog-net (verilog-module)
+
+;;;
+;;; Verilog net
+;;; The Verilog net corresponds to an electrical net. This serves as the basis
+;;; for all hardware components to extend from.
+;;;
+
+(defclass verilog-net ()
   ((name
     :reader name
     :initarg :name
     :type string
     :documentation "Name for this net.")
    (body
-    ;; Break the infinite recursion between verilog-module and verilog-net by
-    ;; setting a truly constant value for a verilog-net's body.
     :initform '()))
   (:documentation "Verilog nets.
 
