@@ -73,7 +73,10 @@ run.")
                (:module "VHDL-tests"
                 :pathname #p""
                 :depends-on ("base" "utils")
-                :components ((:file "write-vhdl")))))
+                :components ((:file "write-vhdl"))))
+  :around-compile (lambda (next)
+                    (proclaim '(optimize (debug 3) (safety 3) (speed 0)))
+                    (funcall next)))
 
 (defmethod asdf:perform ((o asdf:test-op) (c (eql (find-system :chil/tests))))
   (let ((packages (list (find-package :chil/tests)
