@@ -212,9 +212,14 @@ endmodule // test_body"
    (generate-verilog
     (make-instance
      ;; TODO: :op is another chance for property-checking test generation.
-     'verilog-binop :op 'bit-xor
-                    :lhs (make-exportable-verilog-symbol :name "foo")
-                    :rhs (make-exportable-verilog-symbol :name "BAR")))))
+     'verilog-binop
+     :op 'bit-xor
+     :lhs (make-instance
+           'verilog-net
+           :name (make-exportable-verilog-symbol :name "foo"))
+     :rhs (make-instance
+           'verilog-net
+           :name (make-exportable-verilog-symbol :name "BAR"))))))
 
 (define-test generate-verilog-assign-binop ()
   (assert-string-equal
@@ -222,12 +227,19 @@ endmodule // test_body"
    (generate-verilog
     (make-instance
      'verilog-assign
-     :target (make-exportable-verilog-symbol :name "DEV")
+     :target (make-instance
+              'verilog-net
+              :name (make-exportable-verilog-symbol :name "DEV"))
      :body (make-instance
             ;; TODO: :op is a chance for property-checking test generation.
-            'verilog-binop :op 'bit-or
-            :lhs (make-exportable-verilog-symbol :name "foo")
-            :rhs (make-exportable-verilog-symbol :name "BAR"))))))
+            'verilog-binop
+            :op 'bit-or
+            :lhs (make-instance
+                  'verilog-net
+                  :name (make-exportable-verilog-symbol :name "foo"))
+            :rhs (make-instance
+                  'verilog-net
+                  :name (make-exportable-verilog-symbol :name "BAR")))))))
 
 (defparameter *combinatorial-passthrough-module*
   (let ((inputs (list (make-exportable-verilog-symbol :name "x")))
