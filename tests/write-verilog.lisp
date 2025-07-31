@@ -119,9 +119,9 @@ endmodule // test_inputs_outputs"
 (define-test generate-verilog-module-parameters ()
   (assert-string-equal
    "module test_parameters #(
-parameter EMPTY,
 parameter IN_WIDTH = 32,
-parameter out_width = 16
+out_width = 16,
+another_test = 82;
 )
 (
 input valid,
@@ -130,9 +130,19 @@ output ready,
 output data
 );
 endmodule // test_parameters"
-   (let ((params `((,(make-exportable-verilog-symbol :name "EMPTY"))
-                   (,(make-exportable-verilog-symbol :name "IN-WIDTH") 32)
-                   (,(make-exportable-verilog-symbol :name "out_width") 16)))
+   (let ((params (list
+                  (make-instance
+                   'module-parameter
+                   :name (make-exportable-verilog-symbol :name "IN-WIDTH")
+                   :value 32)
+                  (make-instance
+                   'module-parameter
+                   :name (make-exportable-verilog-symbol :name "out_width")
+                   :value 16)
+                  (make-instance
+                   'module-parameter
+                   :name (make-exportable-verilog-symbol :name "another_test")
+                   :value 82)))
          (inputs (list (make-exportable-verilog-symbol :name "valid")
                        (make-exportable-verilog-symbol :name "addr")))
          (outputs (list (make-exportable-verilog-symbol :name "ready")
@@ -144,21 +154,6 @@ endmodule // test_parameters"
                      :parameters params
                      :inputs inputs
                      :outputs outputs)))))
-
-(define-test generate-verilog-invalid-parameters ()
-  (assert-error 'simple-error
-                (let ((params `((,(make-exportable-verilog-symbol :name "IN_WIDTH") 32)
-                                (,(make-exportable-verilog-symbol :name "failing") 16 2)))
-                      (inputs (list (make-exportable-verilog-symbol :name "valid")
-                                    (make-exportable-verilog-symbol :name "addr")))
-                      (outputs (list (make-exportable-verilog-symbol :name "ready")
-                                     (make-exportable-verilog-symbol :name "data"))))
-                  (generate-verilog
-                   (make-instance 'verilog-module
-                                  :name (make-exportable-verilog-symbol :name "invalid-parameters")
-                                  :parameters params
-                                  :inputs inputs
-                                  :outputs outputs)))))
 
 (define-test generate-verilog-assign ()
   (assert-string-equal

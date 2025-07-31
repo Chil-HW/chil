@@ -9,6 +9,7 @@
            #:verilog-symbol
            #:make-exportable-verilog-symbol
            #:verilog-net
+           #:module-parameter
            #:verilog-module
            #:+ #:- #:* #:/ #:% #:bit-and #:bit-or
            #:verilog-binop
@@ -250,6 +251,36 @@ allowed in Verilog nets, but they must behave in a certain way?"))
 ;;; The unit of hardware abstraction in Verilog for reusable components.
 ;;;
 
+(defclass module-parameter ()
+  ((name
+    :reader name
+    :initarg :name
+    :type verilog-symbol
+    :documentation "Parameter name.")
+   (value
+    :reader value
+    :initarg :value
+    :type number
+    :documentation "Parameter's resolved value."))
+  (:documentation "Hardware module parameters."))
+
+(defmethod print-object ((param module-parameter) stream)
+  (with-accessors ((name name) (val value)) param
+    (print-unreadable-object (param stream :type t :identity t)
+      (format stream "~a = ~a" name val))))
+
+(defmethod codegen ((param module-parameter) stream)
+  (with-accessors ((name name) (val value)) param
+    (format stream "~a = ~a" name val)))
+
+(defun list-of-module-parameters-p (params)
+  (and (listp params)
+       (every (lambda (elem) (typep elem 'module-parameter))
+              params)))
+
+(deftype list-of-module-parameters ()
+  `(satisfies list-of-module-parameters-p))
+
 (defparameter module-body-forms
   (list (find-class 'verilog-assign))
   "The set of classes that a Verilog module can have in its body.")
@@ -271,14 +302,14 @@ allowed in Verilog nets, but they must behave in a certain way?"))
     :initarg :name
     :type verilog-symbol
     :documentation "Verilog module's name.")
-   ;; FIXME: Do we actually need to propagate parameter information? The Chil
+   ;; REVIEW: Do we actually need to propagate parameter information? The Chil
    ;; level of the language should handle elaborating and resolving all
    ;; parameters, shouldn't it? But what about future interoperability?
    (parameters
     :reader parameters
     :initarg :parameters
     :initform '()
-    ;; :type alist-of-string-vals
+    :type list-of-module-parameters
     :documentation "Parameters that this module should have.")
    (inputs
     :reader inputs
@@ -330,18 +361,9 @@ The two directions supported are the symbols 'input and 'output."
     ;; NOTE: Parameters only output when at least one parameter is provided.
     (unless (uiop:emptyp (parameters verilog-module))
       (format stream "#(")
-      (format stream "~%~{~a~^,~&~}~&"
-              (mapcar (trivia:lambda-match
-                        ;; Parameter without default value
-                        ((list name)
-                         (format 'nil "parameter ~a" name))
-                        ;; Parameter with default value
-                        ((list name val)
-                         (format 'nil "parameter ~a = ~a" name val))
-                        ;; TODO: Raise an error if your module uses parameters
-                        ;; incorrectly.
-                        (_
-                         (error "Modules must have 1 or 2 elements in their parameters.")))
+      (format stream "~%parameter ~{~a~^,~&~};~&"
+              ;; Use 'nil so codegen returns a string
+              (mapcar (lambda (p) (codegen p 'nil))
                       (parameters verilog-module)))
       (format stream ")~&"))
     ;; Module I/O
