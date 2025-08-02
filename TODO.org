@@ -28,6 +28,9 @@ See also `another-symbol'."
     - Generics should come from a defgeneric form for increased inspectability and reliability of access.
       Methods can be undocumented, because they are generally just implementations for a documented generic.
       Method documentation is where exceptional implementation details end up.
+      [[https://aartaka.me/my-generics.html][https://aartaka.me/my-generics.html]]
+      [[https://lispcookbook.github.io/cl-cookbook/clos.html#methods][https://lispcookbook.github.io/cl-cookbook/clos.html#methods]]
+      [[https://www.reddit.com/r/Common_Lisp/comments/1j6u0wc/comment/mgrmnd2]]
     - Give *very* clear documentation about macros.
       Include many examples for all common cases in the documentation!
 
