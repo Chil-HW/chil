@@ -63,6 +63,9 @@ This can be done with the ~declaim~ function.
 LSP support would be an important part of this.
 [[https://bullno1.com/blog/building-a-language-server][Bull No 1]] wrote an article about how to make an LSP server in something other than the "default" Node.JS runtime.
 
+** Optimizing the Common Lisp in the Compiler
+[[https://www.fosskers.ca/en/blog/optimizing-common-lisp]]
+
 * Testing
   1. For any tests that are unrelated, they should be launched in their own process?
      [[https://sunshowers.io/posts/nextest-process-per-test/]]
