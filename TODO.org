@@ -196,6 +196,11 @@ Many of the concepts discussed in this section come from [[https://jakob.space/b
 (with-ready wrapper-bundle (assign underlying-bits 3) (assert-valid))
      #+end_src
      This would prevent use-without-valid and signal asynchrony errors as identified by "Debugging in the Brave New World of Reconfigurable Hardware".
+     * We may *not* want to introduce another layer of indirection like Chisel's ~Valid~ does.
+       Chisel ~Valid~ adds a valid bit and moves all the fields of the bundle provided to it under the ~.bits~ namespace.
+       This was probably to avoid naming collisions.
+       But there are cases (namely around nesting depth and length of identifiers) where this would become extremely annoying (See BOOM's ROB).
+       We need to check to ensure the user does not have a ~.valid~ signal in their bundle already.
   5. I want a way to mark implementations that are *deliberately* incomplete.
      This is like Rust's [[https://doc.rust-lang.org/std/macro.todo.html][~todo!()~]] and [[https://doc.rust-lang.org/std/macro.unimplemented.html][~unimplemented!()~]] macros or Scala's ~Predef.???~ operator.
   6. The equivalent to Chisel's ~Flipped~ constructor could be a macro that just switches all ~(inputs ...)~ to ~(outputs ...)~.
