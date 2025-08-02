@@ -81,7 +81,7 @@ a string."
 );
 empty_body_net
 endmodule // test_empty"
-                (generate-verilog *test-module-empty*)))
+   (generate-verilog *test-module-empty*)))
 
 (define-test generate-verilog-module-only-inputs ()
   (assert-string-equal
@@ -91,7 +91,7 @@ input addr
 );
 empty_body_net
 endmodule // test_inputs"
-                (generate-verilog *test-module-inputs*)))
+   (generate-verilog *test-module-inputs*)))
 
 (define-test generate-verilog-module-only-outputs ()
   (assert-string-equal
@@ -101,7 +101,7 @@ output data
 );
 empty_body_net
 endmodule // test_outputs"
-                (generate-verilog *test-module-outputs*)))
+   (generate-verilog *test-module-outputs*)))
 
 (define-test generate-verilog-module-inputs-outputs ()
   (assert-string-equal
@@ -113,7 +113,7 @@ output data
 );
 empty_body_net
 endmodule // test_inputs_outputs"
-                (generate-verilog *test-module-inputs-outputs*)))
+   (generate-verilog *test-module-inputs-outputs*)))
 
 (define-test generate-verilog-module-parameters ()
   (assert-string-equal
@@ -164,13 +164,14 @@ endmodule // test_parameters"
   (assert-string-equal
    "assign DEV = foo;"
    (generate-verilog
-    (make-instance 'verilog-assign
-                   :target (make-instance
-                            'verilog-net
-                            :name (make-exportable-verilog-symbol :name "DEV"))
-                   :body (make-instance
-                          'verilog-net
-                          :name (make-exportable-verilog-symbol :name "foo"))))))
+    (make-instance
+     'verilog-assign
+     :target (make-instance
+              'verilog-net
+              :name (make-exportable-verilog-symbol :name "DEV"))
+     :body (make-instance
+            'verilog-net
+            :name (make-exportable-verilog-symbol :name "foo"))))))
 
 (defparameter *test-module-body*
   (let ((inputs (list (make-exportable-verilog-symbol :name "a")))
@@ -204,21 +205,21 @@ endmodule // test_body"
     (make-instance
      ;; TODO: :op is another chance for property-checking test generation.
      'verilog-binop :op 'bit-xor
-     :lhs (make-exportable-verilog-symbol :name "foo")
-     :rhs (make-exportable-verilog-symbol :name "BAR")))))
+                    :lhs (make-exportable-verilog-symbol :name "foo")
+                    :rhs (make-exportable-verilog-symbol :name "BAR")))))
 
 (define-test generate-verilog-assign-binop ()
   (assert-string-equal
    "assign DEV = foo | BAR;"
    (generate-verilog
-    (make-instance 'verilog-assign
-                   :target (make-exportable-verilog-symbol :name "DEV")
-                   :body (make-instance
-                          ;; TODO: :op is a chance for property-checking test
-                          ;; generation.
-                          'verilog-binop :op 'bit-or
-                          :lhs (make-exportable-verilog-symbol :name "foo")
-                          :rhs (make-exportable-verilog-symbol :name "BAR"))))))
+    (make-instance
+     'verilog-assign
+     :target (make-exportable-verilog-symbol :name "DEV")
+     :body (make-instance
+            ;; TODO: :op is a chance for property-checking test generation.
+            'verilog-binop :op 'bit-or
+            :lhs (make-exportable-verilog-symbol :name "foo")
+            :rhs (make-exportable-verilog-symbol :name "BAR"))))))
 
 (defparameter *combinatorial-passthrough-module*
   (let ((inputs (list (make-exportable-verilog-symbol :name "x")))
@@ -250,16 +251,18 @@ endmodule // passthrough"
   (let* ((inputs (list (make-exportable-verilog-symbol :name "x")
                        (make-exportable-verilog-symbol :name "y")))
          (outputs (list (make-exportable-verilog-symbol :name "f")))
-         (binop (make-instance 'verilog-binop :op '+
-                                              :lhs (make-instance 'verilog-net :name (first inputs))
-                                              :rhs (make-instance 'verilog-net :name (second inputs)))))
-    (make-instance 'verilog-module
-                   :name (make-exportable-verilog-symbol :name "comb-binop")
-                   :inputs inputs
-                   :outputs outputs
-                   :body (make-instance 'verilog-assign
-                                        :target (first outputs)
-                                        :body binop)))
+         (binop (make-instance
+                 'verilog-binop :op '+
+                 :lhs (make-instance 'verilog-net :name (first inputs))
+                 :rhs (make-instance 'verilog-net :name (second inputs)))))
+    (make-instance
+     'verilog-module
+     :name (make-exportable-verilog-symbol :name "comb-binop")
+     :inputs inputs
+     :outputs outputs
+     :body (make-instance 'verilog-assign
+                          :target (first outputs)
+                          :body binop)))
   "A simple purely-combinatorial Verilog module containing what behavioral
 Verilog considers a purely-combinational binary operator.")
 
