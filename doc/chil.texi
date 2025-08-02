@@ -89,6 +89,12 @@ language as the design is written in.
 Synthesize to hardware, if possible.
 @end enumerate
 
+@emph{Ideally}, Chil will be a language and tool that is the
+@uref{https://www.eiffel.org/documentation, Eiffel} of hardware.  Chil
+should allow you to express analyses, designs, implementations, and
+maintenance, @emph{and} give you tools to further extend the language
+for your own needs.
+
 @node Hardware Language
 @chapter Hardware Language
 
