@@ -66,6 +66,16 @@ This can be done with the ~declaim~ function.
 LSP support would be an important part of this.
 [[https://bullno1.com/blog/building-a-language-server][Bull No 1]] wrote an article about how to make an LSP server in something other than the "default" Node.JS runtime.
 
+[[https://microsoft.github.io/language-server-protocol/][LSP]] is a way for langage-specific tools to provide language-specific information to any generic text editor without needing to implement language-specific features in *each* editor.
+Succinctly, this means the $M \times N$ problem of language support turns into $M + N$, just like in a compiler.
+LSP has become very popular (as of making this TODO list) and is supported by Emacs, Vim, NeoVim, Helix, Zen, VS Code, and most other editors.
+
+If I use a Lisp-based language, the REPL-driven development style already strongly supports this behavior by virtue of working inside a live and dynamic programming environment.
+However, LSPs also offer *refactoring tools*, like "rename all instances of this symbol" of "find all referrers to this symbol".
+These would be particularly important to have when writing hardware code, since symbols are often defined far away from where they are used (at least in my experience).
+
+This blog post discusses how to make an LSP client (not server!) in "just 200 lines of Clojure" ([[https://vlaaad.github.io/lsp-client-in-200-lines-of-code]]).
+
 ** Optimizing the Common Lisp in the Compiler
 [[https://www.fosskers.ca/en/blog/optimizing-common-lisp]]
 
