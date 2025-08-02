@@ -120,6 +120,68 @@ signal in one module to the first signal in the other module, and so
 on.} connection primitive for a Chisel design.  Chisel had that feature,
 but only in the experimental package at the time.
 
+@menu
+* Interactive Development::     Building hardware with a REPL!
+@end menu
+
+@node Interactive Development
+@section Interactive Development
+
+One of the goals of Chil was to provide the ability for users to
+@emph{interactively} write their hardware designs.  This is part of the
+reason why the hardware language is built on top of a Lisp language.
+You can introspect all parts of the language and ``ask'' the language
+itself what everything means.  Your code as an end-developer sits at the
+same level as the language-provided library code.
+
+@c https://stackoverflow.com/questions/21367083/how-do-i-access-the-documentation-string-of-a-slot-of-a-defclass-in-common-lisp
+To find documentation about class slots in, you will have to do the
+following: In SBCL:
+@example
+CHIL> (defclass foo ()
+  ((bar
+    :accessor bar
+    :initarg :bar
+    :initform 1
+    :type integer
+    :documentation "An example slot in a class."))
+  (:default-initargs :bar 1)
+  (:documentation "An example class."))
+#<STANDARD-CLASS CHIL:FOO>
+
+CHIL> (sb-mop:finalize-inheritance *)
+NIL
+
+CHIL> (sb-mop::class-slots **)
+(#<SB-MOP:STANDARD-EFFECTIVE-SLOT-DEFINITION CHIL::BAR>)
+
+CHIL> (documentation (first *) t)
+"An example slot in a class."
+@end example
+
+In CCL:
+@example
+CHIL> (defclass foo ()
+  ((bar
+    :accessor bar
+    :initarg :bar
+    :initform 1
+    :type integer
+    :documentation "An example slot in a class."))
+  (:default-initargs :bar 1)
+  (:documentation "An example class."))
+#<STANDARD-CLASS CHIL:FOO>
+
+CHIL> (sb-mop:finalize-inheritance *)
+NIL
+
+CHIL> (sb-mop::class-slots **)
+(#<SB-MOP:STANDARD-EFFECTIVE-SLOT-DEFINITION CHIL::BAR>)
+
+CHIL> (documentation (first *) 'slot-definition)
+"An example slot in a class."
+@end example
+
 @node Optimization
 @chapter Optimization
 
