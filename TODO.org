@@ -570,12 +570,32 @@ You can look at [[https://docs.amd.com/r/en-US/ug949-vivado-design-methodology][
      5. Multi-issue in-order pipelined
      6. Single-issue out-of-order
      7. Multi-issue out-of-order
+        1. [[https://github.com/mathis-s/SoomRV][SoomRV]] is an example of this.
   10. [[https://github.com/adam-maj/tiny-gpu][tiny-gpu]]: A minimal GPU that executes a single kernel at a time with many threads per core.
       This architecture also includes a small amount of possible configuration too.
-  11. [[https://github.com/turbo9team/turbo9][turbo9]]: Pipelined Motorola 6809 design
-  12. [[https://gitlab.com/zephray/caster][Caster]]: Electrophoretics Display (eInk) Controller.
+  11. [[https://github.com/raster-gpu/raster-i][raster-i]]: A minimal rasterizing GPU  for tile-based rendering.
+      NOTE: This repo is implemented in C++ and Chisel 3.
+  12. [[https://github.com/turbo9team/turbo9][turbo9]]: Pipelined Motorola 6809 design
+  13. [[https://gitlab.com/zephray/caster][Caster]]: Electrophoretics Display (eInk) Controller.
       Used by [[https://github.com/Modos-Labs/Glider][Glider]].
-  13. [[https://www.cl.cam.ac.uk/research/security/ctsrd/cheri/][CHERI]] in Hardware
+  14. [[https://www.cl.cam.ac.uk/research/security/ctsrd/cheri/][CHERI]] in Hardware
       This has already been done with ARM, MIPS, and recently RISC-V.
       But I want to implement on this.
-  14. Custom architecture
+  15. Custom architecture
+      Something to think about
+      #+begin_quote
+      https://docs.kernel.org/next/RCU/whatisRCU.html#whatisrcu
+
+      ... [T]he typical RCU update sequence goes something like the following:
+
+      a. Remove pointers to a data structure, so that subsequent readers cannot gain a reference to it.
+      b. Wait for all previous readers to complete their RCU read-side critical sections.
+      c. At this point, there cannot be any readers who hold references to the data structure, so it now may safely be reclaimed (e.g., kfree()d).
+
+      Step (b) above is the key idea underlying RCU’s deferred destruction.
+      The ability to wait until all readers are done allows RCU readers to use much lighter-weight synchronization, in some cases, absolutely no synchronization at all.
+      In contrast, in more conventional lock-based schemes, readers must use heavy-weight synchronization in order to prevent an updater from deleting the data structure out from under them.
+      This is because lock-based updaters typically update data items in place, and must therefore exclude readers.
+      In contrast, RCU-based updaters typically take advantage of the fact that writes to single aligned pointers are atomic on modern CPUs, allowing atomic insertion, removal, and replacement of data items in a linked structure without disrupting readers.
+      Concurrent RCU readers can then continue accessing the old versions, and can dispense with the atomic operations, memory barriers, and communications cache misses that are so expensive on present-day SMP computer systems, even in absence of lock contention.
+#+end_quote
