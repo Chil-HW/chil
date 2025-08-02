@@ -211,6 +211,17 @@ Many of the concepts discussed in this section come from [[https://jakob.space/b
      Implicit resets make it harder to pipeline reset logic & add balanced flop trees.
   8. Need a way to control naming.
 
+** A Language to Build Correct-by-Construction Concurrent Software
+[[https://dezyne.org/dezyne/manual/dezyne/dezyne.html#Ideas-and-Concepts][Dezyne]] is a language that is designed to produce correct-by-construction concurrent software.
+It has a variety of tools to specify, validate, verify, simulate, document, and implement concurrent control software.
+
+Dezyne has model-based checking tools and design-by-contract systems.
+Further, Dezyne has its formal semantics expressed for verification.
+
+Importantly, Dezyne treats the language primitives of the message passing programming model as first-class citizens.
+
+This could be an interesting upper-level language to lower into a Chil language.
+
 ** Separating FSM Definition from Their Usage
 Hardware is controlled (almost) completely by finite state machines.
 Traditional hardware languages (Verilog/SystemVerilog and VHDL) and even modern HDLs (Chisel, SpinalHDL, etc.) do not let you define a finite state machine and its transitions separately from the FSMs use.
