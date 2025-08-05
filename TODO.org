@@ -43,6 +43,7 @@ These are some other HDL langauges that I may want to look at.
     - Generate human-readable documentation
     - Generate boilerplate for simulators & compilers & HDLs
   * [[https://github.com/domus123/vhdlisp][VHDLisp]]
+  * [[https://dlang.org/][DLang]] has a bunch of cool features. Here are [[https://bradley.chatha.dev/blog/dlang-propaganda/features-of-d-that-i-love/][10 cool features.]]
 
 * Interesting Common Lisp Libraries
 Many of these libraries are [[https://github.com/CodyReichert/awesome-cl][listed here]].
