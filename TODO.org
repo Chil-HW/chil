@@ -56,6 +56,15 @@ Many of these libraries are [[https://github.com/CodyReichert/awesome-cl][listed
   * [[http://marijnhaverbeke.nl/postmodern/][postmodern]] - Interact with PostgreSQL
   * [[https://github.com/Shinmera/binary-structures][binary-structures]] - Make parsing & interacting with binary files/structures easier
   * [[https://github.com/Shinmera/parachute][Parachute]] - Testing framework that Kandria uses
+  * [[https://github.com/trivial-features/trivial-features][trivial-features]] - Make interacting with ~*FEATURES*~ more portable
+    - ~*FEATURES*~ has things like which platform or ISA you are running on.
+  * [[https://github.com/libre-man/unix-opts][unix-opts]] - Make your command-line interface to your program a Unix one.
+    - I don't know how this compares against Clingon yet.
+  * [[https://github.com/wiseman/cl-difflib][cl-difflib]] - Produce diffs between sequences
+    - This could be useful if I want to be able to diff ASTs or something.
+  * [[https://github.com/40ants/log4cl-extras][log4cl-extras]] - Extra goodies for log4cl logging, JSON formatting for instance.
+
+More interesting libraries can be found on [[https://40ants.com/lisp-project-of-the-day/index.html][40 Ant's Lisp Project of the Day]].
 
 * Compilation Targets
 A variety of compilation targets should be available, either for debugging or performance.
