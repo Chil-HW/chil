@@ -446,6 +446,116 @@ Effectively, this would become the unified way to work with anything in my Chil 
 Common Lisp has an implementation of Datalog as a DSL [[https://github.com/thephoeron/cl-datalog][on GitHub]] called [[https://github.com/thephoeron/cl-datalog][cl-datalog]].
 Datalog was originally implemented in Clojure, with this [[https://clojure.github.io/clojure-contrib/doc/datalog.html][Overview of Datalog]]?
 
+** Information Gathered from fud2
+[[https://docs.calyxir.org/running-calyx/fud2/index.html][fud2]] is undergoing a rework that I think is "the right" approach for making a toolchain driver.
+Instead of representing the state of things you are working on as a graph of states with transforms between the states as a simple directed graph, represent the thing as a hypergraph.
+
+#+begin_comment
+Work working on this, it is easy to confuse a "multigraph" with a "hypergraph".
+
+A multigraph allows two nodes to have multiple edges between them.
+But critically, each edge can only connect 2 nodes/vertices at a time!
+
+A hypergraph allows a single edge to connect multiple nodes/vertices.
+
+This is a multigraph, because there are multiple edges connecting A and D directly.
+     B
+   /   \
+  / +-+ \
+A --+ +-- D
+  \ +-+ /
+   \   /
+     C
+
+This is a hypergraph becaues a /single/ edge connects A, B, C, and D.
+    B
+    |\
+    | \
+A --+-- D
+    | /
+    |/
+    C
+#+end_comment
+
+Hypergraphs have some interesting possible representations:
+  * An incidence (adjacency) matrix format
+  * A bipartite graph with edges on one side and vertices on another
+
+There are several things to consider here:
+  1. The [[*Data Model][Data Model]]
+  2. The [[*Scripting Interface][Scripting Interface]]
+  3. The [[*Planner][Planner]]
+  4. The [[*Execution Engine][Execution Engine]]
+
+*** Data Model
+How do we represent the hypergraph, its nodes and its hyperedges?
+The data model specifies the data structures for states (nodes) and ops/transforms (edges).
+Ultimately, the quality of the Data Model will determine who esay/hard it is to make/use the other components.
+
+Something we must support is a way for a single node to flow into multiple for later.
+For example, Calyx uses a wrapper for the AXI protocol family called YXI.
+#+begin_example
+     +-----calyx-----+
+yxi--+--axi-wrapper--+--combine-yxi-calyx--> next
+#+end_example
+With Calyx, the YXI must flow through an op to produce two states, one produces Calyx RTL and the other produces an AXI wrapper.
+In a later step, both of those files (Calyx and AXI wrapper) must be combined by another op to produce another state/node.
+According to [[https://github.com/calyxir/calyx/issues/1958][Issue 1958]], this produces a hyperedge in the hyperpath.
+
+*** Scripting Interface
+The scripting interface is (effectively) how /you/ (as a user) declare the nodes and edges in the hypergraph.
+How do you translate a set of input nodes into a set of output nodes?
+
+This is language that you use to manipulate and work with the [[*Data Model][data model]].
+
+Something that we should consider is that states may want to be parametric.
+For example, Calyx has multiple states to handle Verilog:
+  * ~verilog~
+  * ~verilog-noverify~
+  * ~synth-verilog~
+  * ~verilog-refmem~
+  * ~verilog-refmem-noverify~
+Many of these are duplicates about pre-/post-verification and whether or not what is produced should be synthesizable.
+The [[https://github.com/calyxir/project/blob/main/notes/fud2-next.md][fud2 Next Steps Doc]] presents the idea that a state be parameterizable.
+For example, there is a single ~verilog~ state that accepts what to do as parameters: ~verilog[verify?, synth?, refmem?]~.
+
+One interesting thing this setup allows is a transformer/edge to be less strict about the inputs it allows.
+For example, an op that takes in only synthesizable verilog would specify its Verilog input as ~verilog[X, true, X]~, where ~X~ means "don't care".
+
+*** Planner
+The planner is a tool that semi-automatically explores the hypergraph to determine what must be done and in what order.
+It will start from the set of starting points to produce a set of final/output points.
+What the planner finds is called a /hyperpath/.
+Finding such a hyperpath is not an easy task, but there are solutions/algorithms out there.
+There are likely a bunch of algorithms to look at from recommender systems, image retrieval, and competition networks.
+A potential problem about our case is that we provide multiple non-sibling starting points in the hypergraph which might not even have a connection between them.
+
+One common set of starting points is that you have both an RTL design and a memory file to give to a simulator.
+But what if the memory file is described as a textual file (or even a program!) such as JSON?
+You need to first compile that into a raw binary that the simulator understands.
+fud2 has this exact problem as taken from [[https://github.com/calyxir/calyx/issues/1958][Issue 1958]].
+
+#+begin_example
+calyx --calyx--> verilog --icarus--> simulator --+
+dat --dat2sim--> simdata ------------------------+--simulate--> dat
+#+end_example
+
+We *must* provide a "no-op"/manual planner; a planner that does nothing and falls back to doing what the user says.
+This amounts to not using a planner at all.
+In my opinion, the manual planner should accept a hyperpath of steps to take from a file, similar to a task description graph.
+
+One interesting way to construct this planner would be to use Datalog as the contraint handler.
+It would be interesting to explore and minimize this space by using e-graphs, but I don't know if e-graphs would even work on hypergraphs.
+
+*** Execution Engine
+fud2 is written in a combination of [[https://www.rust-lang.org/][Rust]] and [[https://rhai.rs/][Rhai]] and outputs [[https://ninja-build.org/][Ninja]] files.
+These Ninja files contain the steps required to do what the planner decided and is what is /actually/ executed.
+The Rust and Rhai of fud2 are intended *just* to represent the problem space, search it for a way to complete the action the user requested, and generate the Ninja.
+Once the Ninja is generated, Calyx "leaves" the world of Rust and Rhai and just invoke Ninja with the generated Ninja files.
+
+Since we are in the dynamic world of Common Lisp, could actually have our system run inside of the "current" Common Lisp image itself.
+Whether or not that is a good idea, remains to be seen.
+
 * Optimization
 Within Chil, I would like to have an optimization framework for the higher-level language.
 I am not sure how much optimization is possible in the long-run.
