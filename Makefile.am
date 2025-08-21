@@ -8,6 +8,7 @@ makefile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 lisp_eval := $(LISP_PROG) $(LISP_FLAGS) \
              --eval '(require "asdf")' \
+             --eval '(asdf:load-asd "$(makefile_dir)/chilog.asd")' \
              --eval '(asdf:load-asd "$(makefile_dir)/chil.asd")' \
              --eval
 
