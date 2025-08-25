@@ -45,6 +45,7 @@ simulators.
 @menu
 * Introduction::                What is Chil?
 * Hardware Language::           Chil, the language.
+* Chilog::                      Chilog, Datalog in Common Lisp & Chil.
 * Optimization::                Optimizing and lowering Chil.
 * Code Generation::             Generating other HDLs and IR HDLs.
 * Build Artifacts::             Managing & interacting with build artifacts.
@@ -193,6 +194,201 @@ CHIL> (sb-mop::class-slots **)
 CHIL> (documentation (first *) 'slot-definition)
 "An example slot in a class."
 @end example
+
+@node Chilog
+@chapter Chilog
+
+@cindex chilog
+Chilog is an implementation of
+@uref{https://en.wikipedia.org/wiki/Datalog, Datalog} in Common Lisp.
+It is intended to be a way to conveniently model, work with, and produce
+declarative logic programs for various uses.  We hope that Chilog serves
+as a domain-specific language to express complex tasks more easily and
+more correctly.
+
+That being said, because Chilog is a general implementation of Datalog,
+it @emph{may} be slower than a custom written tool, because Chilog can
+be seen as a ``one size fits all'' tool.  This can be alleviated by
+using one of the more complex engines, @pxref{Chilog Engines}.
+
+Chilog's only user (currently) is Chil itself, so there are conveniences
+added to the Chilog language to make using the Datalog portions of the
+language from Chil itself easier.
+
+Relevant work:
+@table @samp
+@item Single Python File Na@"{@dotless{i}}ve Implementation
+@url{https://btmc.substack.com/p/implementing-logic-programming}
+
+@item Simple & High-Performance Rust Implementation
+@url{https://github.com/frankmcsherry/blog/blob/master/posts/2025-06-03.md}
+
+@end table
+
+@menu
+* Datalog Terminology::         Phrases, terms, and words used by Datalog.
+* Chilog Engines::              Evaluating Chilog programs.
+@end menu
+
+@node Datalog Terminology
+@section Datalog Terminology
+
+Datalog has a long and rich history in both research work and industrial
+programming work. This long history also means that Datalog has
+sometimes has specific terminology used that may not be
+commonplace. This section aims to be a glossary of sorts so that you can
+seamlessly switch between Datalog and Chilog work.
+
+Datalog is both monotonic and confluent.
+@itemize
+@item
+Monotonic: As you add more rules and/or facts, the set of things that
+are true only increases.
+@item
+Confluent: Regardless of what order the rules are in, you will get the
+same resulting set of facts.
+@end itemize
+
+@deffn {Glossary} {Extensional Database}
+The set of facts that the writer pre-installed into the database. These
+usually form some kind of ``ground-truth'' about the problem being
+represented.
+
+Extensional Database is often shortened to EDB.
+
+Cast in a different light, the EDB is the thing being analyzed.
+@end deffn
+
+@deffn {Glossary} {Fact}
+A Datalog fact is a tuple of terms that makes the associated
+relation/rule always produce true.
+@end deffn
+
+@deffn {Glossary} {Intensional Database}
+The set of rules/relations that the writer wrote in the program.  These
+represent the task at hand (an analysis, traversal, etc.) as Horn clause
+formulae over finite domains.  These relations are used in inference and
+combined with the Extensional Database to find new facts.
+@c combined with the @ref{Extensional Database} to find new facts.
+
+Intensional Database is often shortened to IDB.
+@end deffn
+
+@deffn {Glossary} {Relation}
+A relation (sometimes called a rule) is part of the Intensional
+Database.  Elements of this relation are referred to as tuples.
+@c A relation (sometimes called a rule) is part of the @ref{Intensional
+@c Database}.  Elements of this relation are referred to as tuples.
+
+Every relation is implicitly universally quantified over the variables
+present in the relation, meaning that for any setting of the variables,
+if the body is true for some variable settings, then the head is true
+for those same settings.
+@end deffn
+
+@deffn {Glossary} {Atom}
+A relation is composed of atoms.
+
+When viewed in an object-oriented light, an atom is an instantiation of
+a predicate with specific values/variables to build a rule.
+@end deffn
+
+@deffn {Glossary} {Equivalence Relation}
+Equivalence relations are binary relations that are reflexive,
+symmetric, and transitive.
+
+Reflexivity: R(a, a) :- R(a, _)
+
+Symmetry: R(a, b) :- R(b, a)
+
+Transitivity: R(a, c) :- R(a, b), R(b, c).
+@end deffn
+
+Syntactically (what you are allowed to write), Datalog is a subset of
+Prolog.  This is done by adding restrictions to what you can write (or
+removing power) from the language.  Restricting the Datalog writer may
+seem like a bad idea, but by restricting the language, we make it
+Turing-@emph{incomplete}, which allows us to make many guarantees, one
+of which is termination.
+
+The largest restriction Datalog enforces is that the programs be
+@b{well-formed}.  A well-formed Datalog program is one where for every
+relation in the program is well-formed.  A well-formed relation is one
+where all variables that appear in the head of the relation appear in
+the body.  There are nuances around this requirement depending on what
+Datalog ``extensions'' are present.
+
+@example
+Datalog programs are @emph{guaranteed} to terminate.
+@end example
+
+
+@node Chilog Engines
+@section Chilog Engines
+
+Chilog's evaluation design allows you to decouple the representation and
+storage of facts and rules from the process of inferring facts and
+answering queries for those rules. The piece that infers facts and
+answers queries is ``an engine''.
+@cindex Chilog Engine
+
+There are (or will be) several engines, including:
+@itemize
+@item
+A na@"{@dotless{i}}ve interpreter.
+
+This engine recomputes every fact for every rule/relation every time a
+unification step is performed.  This means it has terrible runtime
+performance, since it ``discovers'' the same facts many times.  However,
+it serves as a golden baseline by which to compare the correctness of
+the other engines.
+
+@item
+A semi-na@"{@dotless{i}}ve interpreter.
+
+The semi-na@"{@dotless{i}}ve engine is an improvement over the
+na@"{@dotless{i}}ve one by leveraging Datalog's monotonicity and
+confluence properties.  These properties mean that regardless of the
+evaluation order of the rules, we will always only @b{add}
+information/facts to the database.  This observation means we do not
+need to perform unification on facts we discovered previously, but only
+on the facts found on the most recent round of unification.
+
+@item
+An ``interpreter'' that talks to a SQL database which performs the inference.
+
+For this discussion, assume we have a relation like @t{path/2} below
+which attempts to find all paths from node/vertex @t{X} to @t{Z} in some
+graph. For the moment, ignore the need to reach a fixed-point.
+
+@example datalog
+path(X,Z) :- edge(X,Y), path(Y,Z).
+@end example
+
+If you attempt to compute @t{path/2}, you need to find all of
+@t{edge/2}'s facts that have a @t{Y} value that matches a fact of
+@t{path/2} that has the @b{same} @t{Y} as a source. Since we know the
+current state of both @t{edge/2} and @t{path/2}'s facts, we can take a
+hint from databases and treat this as a relational algebra @t{JOIN}
+(@math{\bowtie}).  In particular, this is an equijoin.
+
+With this knowledge, we can encode each predicate as a SQL table, each
+of the predicate's arguments as a column/attribute of the table, and
+each fact as a row/tuple in the table.  Then to find new facts, we
+@t{JOIN} the two tables based on the shared variables in each of the
+atoms in the relation to find an answer.
+
+@item
+A synthesizer/compiler.
+
+This engine behaves similar to @uref{https://souffle-lang.github.io,
+Souffl@'e}. The Datalog program is written in Chilog, but only the
+Intensional Database is considered. These relations are then translated
+to more efficient operations and then compiled to a separate binary. The
+Extensional Database (facts) are provided as an input to the compiled
+program.
+@end itemize
+
 
 @node Optimization
 @chapter Optimization
