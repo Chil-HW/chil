@@ -45,6 +45,7 @@ simulators.
 @menu
 * Introduction::                What is Chil?
 * Hardware Language::           Chil, the language.
+* Chilog::                      Chilog, Datalog in Common Lisp & Chil.
 * Optimization::                Optimizing and lowering Chil.
 * Code Generation::             Generating other HDLs and IR HDLs.
 * Build Artifacts::             Managing & interacting with build artifacts.
@@ -193,6 +194,19 @@ CHIL> (sb-mop::class-slots **)
 CHIL> (documentation (first *) 'slot-definition)
 "An example slot in a class."
 @end example
+
+@node Chilog
+@chapter Chilog
+
+@cindex chilog
+Chilog is an implementation of
+@uref{https://en.wikipedia.org/wiki/Datalog, Datalog} in Common Lisp.
+It is intended to be a way to conveniently model, work with, and produce
+declarative logic programs for various uses.
+
+Chilog's only user (currently) is Chil itself, so there are conveniences
+added to the Chilog language to make using the Datalog portions of the
+language from Chil itself easier.
 
 @node Optimization
 @chapter Optimization
