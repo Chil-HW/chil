@@ -9,6 +9,7 @@
            #:chilog-rule
            #:head #:body
            #:chilog-predicate
+           #:chilog-predicate-p
            #:name #:arity #:facts #:rules
            #:add-fact! #:add-rule!
            #:predicate->atom ; DOES THIS NEED TO BE EXPORTED?
@@ -171,6 +172,9 @@ Must be >=0.")
     :documentation "List of Chilog rules for this predicate"))
   (:documentation "A Chilog predicate"))
 
+(defun chilog-predicate-p (p)
+  (typep p (find-class 'chilog-predicate)))
+
 (defmethod (setf facts) (new-facts (pred chilog-predicate))
   "Set a new set of facts for PRED.
 
@@ -180,6 +184,7 @@ NOTE: This does NOT verify that the new facts are sane in any way!"
   (setf (slot-value pred 'facts) new-facts))
 
 (defmethod add-fact! (new-fact (pred chilog-predicate))
+  (check-type new-fact chilog-fact)
   ;; (setf (facts pred) pred)
   ;; FIXME: add-fact! should not add the same fact multiple times!
   (setf (facts pred) (cons new-fact (facts pred))))
