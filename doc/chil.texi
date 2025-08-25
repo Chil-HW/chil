@@ -51,6 +51,7 @@ simulators.
 * Interaction::                 Using Chil from the command-line.
 * Resources::                   Resources Chil used for inspiration.
 * Contributing::                You can help too!
+* Concept Index::               Concepts.
 @end menu
 
 @node Introduction
@@ -588,6 +589,11 @@ After that you can run one of the following commands:
       You can point your browser to the relevant file in the
       @file{doc/chil.html} directory.
 @end itemize
+
+@c *********************************************************************
+@node Concept Index
+@unnumbered Concept Index
+@printindex cp
 
 @bye
 
