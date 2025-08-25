@@ -572,7 +572,9 @@ Effectively, this would become the unified way to work with anything in my Chil 
     Currently (2024-08-16), fud2 uses a breadth-first search to find a path in the graph of operations from the input to the requested output.
     However, they are also investigating other methods, like using E-Graphs (Equivalence Graphs) through egglog, or constraint programming through Datalog.
 
-Datalog was originally implemented in Clojure, with this [[https://clojure.github.io/clojure-contrib/doc/datalog.html][Overview of Datalog]]?
+Datalog has many implementations, a major one was Datomic in Clojure, with this [[https://clojure.github.io/clojure-contrib/doc/datalog.html][Overview of Datalog]].
+Another major implementation is [[https://souffle-lang.github.io/][Soufflé]].
+According to Wikipedia, [[https://www.datomic.com/][Datomic]] has an implementation of [[https://en.wikipedia.org/wiki/Datomic][Datalog]], but is also a "traditional" DBMS built with and into Clojure.
 
 ** Information Gathered from fud2
 [[https://docs.calyxir.org/running-calyx/fud2/index.html][fud2]] is undergoing a rework that I think is "the right" approach for making a toolchain driver.
