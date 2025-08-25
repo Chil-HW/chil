@@ -52,6 +52,7 @@ simulators.
 * Resources::                   Resources Chil used for inspiration.
 * Contributing::                You can help too!
 * Concept Index::               Concepts.
+* Programming Index::           Datatypes, functions, and variables.
 @end menu
 
 @node Introduction
@@ -594,6 +595,12 @@ After that you can run one of the following commands:
 @node Concept Index
 @unnumbered Concept Index
 @printindex cp
+
+@node Programming Index
+@unnumbered Programming Index
+@syncodeindex tp fn
+@syncodeindex vr fn
+@printindex fn
 
 @bye
 
