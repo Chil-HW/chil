@@ -354,6 +354,12 @@ This way you are comparing both your implementation of the ISA and another RTL-l
 
 This could be combined with [[*Compiler Instruction Generation/Backend][Compiler Instruction Generation/Backend]] to generate compiler backends that are tightly coupled to the ISA's specification in the formal language.
 
+[[https://alastairreid.github.io/][Alastair Reid]] has several good blog posts about why Machine-Readable Specs are important:
+  * https://alastairreid.github.io/riscv-spec-issues/
+  * [[https://alastairreid.github.io/modular-specs/]]
+  * https://alastairreid.github.io/mrs-at-scale/
+  * https://alastairreid.github.io/talks/goals-of-modern-ISA-spec-PLARCH-2023-06-17.pdf
+
 ** Compiler Instruction Generation/Backend
 This is an idea taken from/inspired by "[[https://arxiv.org/abs/2305.09580][Generate Compilers from Hardware Models]]".
 
