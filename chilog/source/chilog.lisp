@@ -1,6 +1,21 @@
 (defpackage :chilog
   (:use :cl)
-  (:export #:hello))
+  (:export #:chilog-variable
+           #:chilog-variable-p
+           #:name
+           #:chilog-value-p
+           #:chilog-atom
+           #:predicate #:terms
+           #:chilog-rule
+           #:head #:body
+           #:chilog-predicate
+           #:name #:arity #:facts #:rules
+           #:add-fact! #:add-rule!
+           #:predicate->atom ; DOES THIS NEED TO BE EXPORTED?
+           #:add-rules!
+           #:chilog-db
+           #:variables #:predicates
+           #:add-variable! #:add-predicate!))
 
 (in-package :chilog)
 
