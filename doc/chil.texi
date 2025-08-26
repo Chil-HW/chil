@@ -7,6 +7,9 @@
 @settitle Chil Reference Manual
 @c %**end of header
 
+@c This command defines a custom index for acronyms
+@defindex ac
+
 @include version.texi
 
 @copying
@@ -53,6 +56,7 @@ simulators.
 * Contributing::                You can help too!
 * Concept Index::               Concepts.
 * Programming Index::           Datatypes, functions, and variables.
+* Acronym Index::               Acronyms and their expansions.
 @end menu
 
 @node Introduction
@@ -234,6 +238,7 @@ This first pass does something.
 @node Backend Conversion Pass
 @section Backend Conversion Pass
 
+@acindex DAG
 The backend conversion pass is the logical connector between a Chil
 module and another language that other tools can accept.  This pass is
 repsonsible for converting a single Chil design (a @acronym{DAG,
@@ -601,6 +606,10 @@ After that you can run one of the following commands:
 @syncodeindex tp fn
 @syncodeindex vr fn
 @printindex fn
+
+@node Acronym Index
+@unnumbered Acronym Index
+@printindex ac
 
 @bye
 
