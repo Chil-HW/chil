@@ -28,6 +28,8 @@
 
 ;; We try to unify ancestor[Z, Y] with its first fact, and we succeed, because we can set Z=’bob’ and Y=’carol’. We managed to do a complete substitution, so we yield it.
 
+;; TODO: Define tests for each piece in the interpreter
+
 (define-test unify ()
   ;; Unifying an atom with a literal is always possible?
   (assert-true

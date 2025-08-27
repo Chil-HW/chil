@@ -14,9 +14,15 @@
 
 ;; substitution is a hash-table!
 (defun unify (atom fact substitution)
-  "Unify the ATOM with FACT. If ATOM is a variable, then use the provided
-SUBSTITUTIONs to attempt to find a suitable value to substitute."
-  (let ((zipped-terms (mapcar #'list (terms atom) fact)))
+  "Attempt to unify ATOM's terms with FACT. If ATOM is a variable, then use the
+provided SUBSTITUTIONs to attempt to find a suitable value to substitute.
+
+Returns `nil' when unification fails, `t' otherwise."
+  ;; NOTE: This zip is why an atom's terms and a fact must have the same arity!
+  ;; The cons construction does not generalize beyond 2 lists, but produces a
+  ;; pair which we can trivially destructure.
+  (let (;; (zipped-terms (mapcar #'cons (terms atom) fact))
+        (zipped-terms (mapcar #'list (terms atom) fact)))
     (loop for new-term in zipped-terms do
       ;; TODO: Use pattern matching on the zipped-terms!
       (let ((term (car zipped-terms))
@@ -27,10 +33,20 @@ SUBSTITUTIONs to attempt to find a suitable value to substitute."
              (declare (ignore _val))
              (if (and t (not present?))
                  (return 'nil)
+                 ;; XXX: It is important that the passed-in substitution hash-table
+                 ;; be modified directly! We want pass-by-reference semantics, not
+                 ;; pass-by-value here!
                  (setf (gethash term substitution) val))))
+          ;; term was not a chilog-variable, so it must be a chilog-value and we
+          ;; can compare them directly.
           ((not (equal term val))
            (return 'nil))
-          (t 'do-nothing))))
+          ;; NOTE: chilog-terms are either chilog-values or chilog-variables.
+          ;; Thus, a chilog-atom's list-of-chilog-terms should be perfectly
+          ;; partitioned by the two cond branches above and this last case
+          ;; should never happen.
+          ;; TODO: Hint that the 't branch of cond is dead code?
+          (t (error "Attempted to unify something other than a chilog-value or chilog-variable!")))))
     't))
 
 ;; NOTE: Renamed from search because the CL standard defines #'search.
