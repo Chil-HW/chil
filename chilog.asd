@@ -13,7 +13,8 @@
   :pathname #p"chilog/tests/"
   :components ((:file "utils")
                (:file "chilog")
-               (:file "interpreter"))
+               (:file "interpreter")
+               (:file "path-reachability"))
   :around-compile (lambda (next)
                     (proclaim '(optimize (debug 3) (safety 3) (speed 0)))
                     (funcall next)))
@@ -21,7 +22,8 @@
 (defmethod asdf:perform ((o asdf:test-op)
                          (c (eql (find-system :chilog/tests))))
   (let ((packages (list (find-package :chilog/tests)
-                        (find-package :chilog/tests/interpreter))))
+                        (find-package :chilog/tests/interpreter)
+                        (find-package :chilog/tests/digraph))))
     (unless (null
              (uiop:symbol-call
               :lisp-unit2 :failed
