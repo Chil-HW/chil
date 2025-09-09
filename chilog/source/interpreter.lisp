@@ -96,5 +96,14 @@ possible substitions."
               (add-fact! f p)))))))
 
 (defun query (chilog-db &rest atoms)
-  "Wrapper around `evaluate' that allows for a variadic amount of ATOMS."
+  "Query the Datalog program to return a set of valid substitutions for the
+variables in the ATOMS provided.
+
+This also serves as a wrapper around `evaluate' to allow for a variadic amount
+of ATOMS.
+
+NOTE: This will perform unification! But this unification will be relatively
+fast since we require inference to be perofrmed before we allow queries to be
+made. If you try to query before inference is performed, an INCOMPLETE set of
+facts will be returned."
   (evaluate chilog-db atoms))
