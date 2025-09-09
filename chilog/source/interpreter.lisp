@@ -17,7 +17,7 @@
   "Attempt to unify ATOM's terms with FACT. If ATOM is a variable, then use the
 provided SUBSTITUTIONs to attempt to find a suitable value to substitute.
 
-Returns `nil' when unification fails, `t' otherwise."
+Returns `t' when unification succeeds, `nil' otherwise."
   ;; NOTE: This zip is why an atom's terms and a fact must have the same arity!
   ;; The cons construction does not generalize beyond 2 lists, but produces a
   ;; pair which we can trivially destructure.
@@ -69,12 +69,23 @@ Returns a list of valid substitutions (as hash-tables) for ATOMS."
               collect (search-db chilog-db (1+ i) atoms new-sub)))))
 
 (defun evaluate (chilog-db atoms)
-  "Evaluate the provided list of ATOMS in CHILOG-DB to produce a set/list of
+  "Evalute the ATOMS of a predicate (the right-hand side of a predicate) in
+CHILOG-DB. Evaluation is done by searching and unifying to find a valid set of
+substitutions for the variables in ATOMS.
+
+Returns a list of valid substitutions (as hash-tables) for ATOMS.
+Evaluate the provided list of ATOMS in CHILOG-DB to produce a set/list of
 possible substitions."
   (search-db chilog-db 0 atoms (make-hash-table)))
 
 (defun infer (chilog-db)
-  "Perform the fixed-point inference on CHILOG-DB to find all facts."
+  "Perform a fixed-point iteration \"inference\" on the Datalog program to
+determine the complete universe of facts present in the program.
+
+In particular, this implementation performs a depth-first walk of the
+predicates, rules, and facts in the Datalog program while performing a
+fixed-point iteration to produce the complete universe of facts present in the
+program."
   ;; NOTE: The "do" is not important here! I only have it so Emacs indents the
   ;; loop's body nicely.
   (loop do
