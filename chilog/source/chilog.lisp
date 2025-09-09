@@ -44,6 +44,10 @@
 (defun chilog-variable-p (v)
   (typep v (find-class 'chilog-variable)))
 
+(defmethod print-object ((var chilog-variable) stream)
+  (print-unreadable-object (var stream :type t :identity t)
+    (format stream "~a" (name var))))
+
 (defun chilog-value-p (v)
   (or (typep v 'boolean)
       ;; NOTE: numberp also allows complex values! If we need to refine to just
@@ -89,6 +93,11 @@ What we call an `atom' is the USAGE of a predicate, e.g. \"father(X, bill)\"."))
 (defun chilog-atom-p (a)
   (typep a (find-class 'chilog-atom)))
 
+(defmethod print-object ((atom chilog-atom) stream)
+  (let ((ts (format 'nil "~{~a~^, ~}" (terms atom))))
+    (print-unreadable-object (atom stream :type t :identity t)
+      (format stream "~a(~a)" (predicate atom) ts))))
+
 (defun list-of-chilog-atoms-p (atoms)
   (and (listp atoms)
        (every #'chilog-atom-p atoms)))
@@ -115,6 +124,11 @@ The left-hand-side (LHS) of the :- is the head atom.
 The right-hand-side (RHS) of the :- is the body list of atoms."))
 
 (defun chilog-rule-p (r) (typep r (find-class 'chilog-rule)))
+
+(defmethod print-object ((rule chilog-rule) stream)
+  (let ((body-str (format 'nil "~{~a~^, ~}" (body rule))))
+    (print-unreadable-object (rule stream :type t :identity t)
+      (format stream "~a :- ~a" (head rule) body-str))))
 
 (defun chilog-fact-p (vals)
   (and (listp vals)
@@ -174,6 +188,10 @@ Must be >=0.")
 
 (defun chilog-predicate-p (p)
   (typep p (find-class 'chilog-predicate)))
+
+(defmethod print-object ((pred chilog-predicate) stream)
+  (print-unreadable-object (pred stream :type t :identity t)
+    (format stream "~a/~a" (name pred) (arity pred))))
 
 (defmethod (setf facts) (new-facts (pred chilog-predicate))
   "Set a new set of facts for PRED.
