@@ -52,7 +52,7 @@ Returns `t' when unification succeeds, `nil' otherwise."
              (if (and present? (equal val v))
                  (progn
                    (log:warn "UNIFICATION FAILED! DIFFERING VALUES! " substitution " != " v)
-                   (return 'nil))
+                   (return-from unify 'nil))
                  ;; XXX: It is important that the passed-in substitution hash-table
                  ;; be modified directly! We want pass-by-reference semantics, not
                  ;; pass-by-value here!
@@ -62,7 +62,7 @@ Returns `t' when unification succeeds, `nil' otherwise."
           ((not (equal term val))
            (progn
              (log:warn "UNIFICATION FAILED! " term " != " val)
-             (return 'nil)))
+             (return-from unify 'nil)))
           ((equal term val)
            (log:debug "UNIFICATION Nothing! " term " = " val)
            '())
@@ -134,9 +134,12 @@ program."
                       (log:info "Got a new fact! " predicate " = " fact)
                       (acons predicate fact new-facts))
                     (log:info predicate " = " fact " already known. Do nothing!"))))))
+      ;; If we did NOT find new facts (new-facts is empty), then we have reached
+      ;; the fixed-point and are done. Otherwise, we discovered new facts, so we
+      ;; add them to the database and continue through our fixed-point again.
       ;; Chose alexandria here for no particular reason.
       (if (alexandria:emptyp new-facts)
-          (return)
+          (return) ; Returns from outer loop
           (loop for new-fact in new-facts do
             ;; TODO: Use pattern matching instead of manual destructuring!
             (let ((p (car new-fact))
