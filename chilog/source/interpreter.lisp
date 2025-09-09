@@ -1,7 +1,9 @@
 (defpackage :chilog/interpreter
   (:use :cl :log4cl
         :chilog)
-  (:export #:unify
+  (:export #:alist->substitution
+           #:alist->substitutions
+           #:unify
            #:infer
            #:query))
 
@@ -14,6 +16,18 @@
 
 ;; (deftype chilog-substitution ()
 ;;   hashtable chilog-variable chilog-value)
+
+(defun alist->substitution (substitution)
+  "Convert and return SUBSTITUTION from an alist to Chilog's interpreter's
+notion of a variable substitution."
+  ;; (check-type subs alist)
+  (alexandria:alist-hash-table substitution :test #'equal))
+
+(defun alist->substitutions (&rest subs)
+  "Convert each substitution in SUBS from an alist to Chilog's interpreter's
+notion of a variable substitution, returning them as a list."
+  (check-type subs list)
+  (mapcar #'alist->substitution subs))
 
 ;; substitution is a hash-table!
 ;; NOTE: substitution is expected to be passed by-reference, so that
