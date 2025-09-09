@@ -18,6 +18,7 @@
 provided SUBSTITUTIONs to attempt to find a suitable value to substitute.
 
 Returns `t' when unification succeeds, `nil' otherwise."
+  (log:info "Attempting to unify " atom " with " fact " while " substitution)
   ;; NOTE: This zip is why an atom's terms and a fact must have the same arity!
   ;; The cons construction does not generalize beyond 2 lists, but produces a
   ;; pair which we can trivially destructure.
@@ -29,10 +30,11 @@ Returns `t' when unification succeeds, `nil' otherwise."
             (val  (cdr zipped-terms)))
         (cond
           ((chilog-variable-p term)
-           (multiple-value-bind (_val present?) (gethash term substitution)
-             (declare (ignore _val))
-             (if (and t (not present?))
-                 (return 'nil)
+           (multiple-value-bind (v present?) (gethash term substitution)
+             (if (and present? (equal val v))
+                 (progn
+                   (log:warn "UNIFICATION FAILED! DIFFERING VALUES! " substitution " != " v)
+                   (return 'nil))
                  ;; XXX: It is important that the passed-in substitution hash-table
                  ;; be modified directly! We want pass-by-reference semantics, not
                  ;; pass-by-value here!
@@ -40,13 +42,19 @@ Returns `t' when unification succeeds, `nil' otherwise."
           ;; term was not a chilog-variable, so it must be a chilog-value and we
           ;; can compare them directly.
           ((not (equal term val))
-           (return 'nil))
+           (progn
+             (log:warn "UNIFICATION FAILED! " term " != " val)
+             (return 'nil)))
+          ((equal term val)
+           (log:debug "UNIFICATION Nothing! " term " = " val)
+           '())
           ;; NOTE: chilog-terms are either chilog-values or chilog-variables.
           ;; Thus, a chilog-atom's list-of-chilog-terms should be perfectly
           ;; partitioned by the two cond branches above and this last case
           ;; should never happen.
           ;; TODO: Hint that the 't branch of cond is dead code?
           (t (error "Attempted to unify something other than a chilog-value or chilog-variable!")))))
+    (log:info "Unification successful! " substitution)
     't))
 
 ;; NOTE: Renamed from search because the CL standard defines #'search.
@@ -86,6 +94,7 @@ In particular, this implementation performs a depth-first walk of the
 predicates, rules, and facts in the Datalog program while performing a
 fixed-point iteration to produce the complete universe of facts present in the
 program."
+  (log:info "Inferring")
   ;; NOTE: The "do" is not important here! I only have it so Emacs indents the
   ;; loop's body nicely.
   (loop do
@@ -94,7 +103,9 @@ program."
     (let ((new-facts '()))
       (loop
         for predicate in (alexandria:hash-table-values (predicates chilog-db)) do
+          (log:info "Performing inference on " predicate)
           (loop for rule in (rules predicate) do
+            (log:info predicate " has rule " rule "! Eval it!")
             (loop for sub in (evaluate chilog-db (body rule)) do
               (let* ((terms (terms (head rule)))
                      (fact (if (chilog-variable-p terms)
