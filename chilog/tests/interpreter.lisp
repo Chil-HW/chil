@@ -55,12 +55,52 @@ test provided in :TEST. By default :TEST is set to `equal'."
     :full-form ',whole))
 
 (define-test unify ()
-  ;; Unifying an atom with a literal is always possible?
-  (assert-true
-   (chilog/interpreter:unify
-    (make-instance
-     'chilog-atom
-     :predicate "test-atom"
-     :terms '())
-    (list 32)
-    (make-hash-table))))
+  ;; Unify a variable with another fact.
+  ;; This is an aliasing operation.
+  ;; test("foo") :- .
+  ;; unify-test(X) :- test(X).
+  (let* ((subs (make-hash-table :test #'equal))
+         (X (make-instance 'chilog-variable :name "X"))
+         (unify-possible? (chilog/interpreter:unify
+                           (make-instance
+                            'chilog-atom
+                            :predicate "test"
+                            :terms (list X))
+                           (list "foo")
+                           subs)))
+    (assert-true unify-possible?)
+    (assert-equalp
+     (chilog/interpreter:alist->substitution
+      `((,X . "foo")))
+     subs))
+
+  ;; test("foo", "bar") :- .
+  ;; unify-test(X, Y) :- test(X, Y).
+  (let* ((sub (make-hash-table :test #'equal))
+         (X (make-instance 'chilog-variable :name "X"))
+         (Y (make-instance 'chilog-variable :name "Y"))
+         (unify-possible? (chilog/interpreter:unify
+                           (make-instance
+                            'chilog-atom
+                            :predicate "test"
+                            :terms (list X Y))
+                           (list "foo" "bar")
+                           sub)))
+    (assert-true unify-possible?)
+    (assert-equalp
+     (chilog/interpreter:alist->substitution
+      `((,X . "foo") (,Y . "bar")))
+     sub))
+
+  ;; test("foo", "bar") :- .
+  ;; unify-test(X, "foo") :- test(X, "foo")
+  (let* ((sub (make-hash-table :test #'equal))
+         (X (make-instance 'chilog-variable :name "X"))
+         (unify-possible? (chilog/interpreter:unify
+                           (make-instance
+                            'chilog-atom
+                            :predicate "test"
+                            :terms (list X "foo"))
+                           (list "foo" "bar")
+                           sub)))
+    (assert-false unify-possible?)))
