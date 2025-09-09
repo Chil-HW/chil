@@ -104,3 +104,31 @@ test provided in :TEST. By default :TEST is set to `equal'."
                            (list "foo" "bar")
                            sub)))
     (assert-false unify-possible?)))
+
+(define-test search-db ()
+  ;; Searching the database for facts should provide us with all facts that we
+  ;; installed.
+  (let* ((dl (make-instance 'chilog-db))
+         (parent (make-instance 'chilog-predicate
+                                :name "parent"
+                                :arity 2))
+         (X (make-instance 'chilog-variable :name "X"))
+         (Y (make-instance 'chilog-variable :name "Y"))
+         (subs))
+    (add-predicate! parent dl)
+    (add-variable! X dl)
+    (add-variable! Y dl)
+    (add-fact! (list "alice" "bob") parent)
+    (add-fact! (list "bob" "carol") parent)
+    (setf subs
+          (chilog/interpreter::search-db
+           dl
+           0
+           (list (predicate->atom parent (list X Y)))
+           (make-hash-table :test #'equal)))
+    (assert-set-equal
+     (chilog/interpreter:alist->substitutions
+      `((,X . "alice") (,Y . "bob"))
+      `((,X . "bob") (,Y . "carol")))
+     subs
+     :test #'equalp)))
