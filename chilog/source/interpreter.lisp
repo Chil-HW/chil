@@ -24,12 +24,11 @@ Returns `t' when unification succeeds, `nil' otherwise."
   ;; NOTE: This zip is why an atom's terms and a fact must have the same arity!
   ;; The cons construction does not generalize beyond 2 lists, but produces a
   ;; pair which we can trivially destructure.
-  (let (;; (zipped-terms (mapcar #'cons (terms atom) fact))
-        (zipped-terms (mapcar #'list (terms atom) fact)))
+  (let ((zipped-terms (mapcar #'cons (terms atom) fact)))
     (loop for new-term in zipped-terms do
       ;; TODO: Use pattern matching on the zipped-terms!
-      (let ((term (car zipped-terms))
-            (val  (cdr zipped-terms)))
+      (let ((term (car new-term))
+            (val  (cdr new-term)))
         (cond
           ((chilog-variable-p term)
            (multiple-value-bind (v present?) (gethash term substitution)
