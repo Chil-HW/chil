@@ -39,7 +39,9 @@
     :initform (error "Variables MUST have names!")
     :type string
     :documentation "The variable's name as a string"))
-  (:documentation "A Chilog symbol/variable."))
+  (:documentation "A Chilog symbol/variable.
+The variable will take on a value once inference is performed by the Chilog
+engine."))
 
 (defun chilog-variable-p (v)
   (typep v (find-class 'chilog-variable)))
@@ -56,6 +58,7 @@
       (stringp v)))
 
 (deftype chilog-value ()
+  "A Chilog value is a concretized and constant value."
   `(satisfies chilog-value-p))
 
 (defun chilog-term-p (term)
@@ -63,6 +66,10 @@
       (chilog-variable-p term)))
 
 (deftype chilog-term ()
+  "A Chilog term is either a `chilog-variable' (X, Z, FOO) or a `chilog-value'
+('t, 32, 2.3, or \"hello\"). `chilog-predicate's use `chilog-term's in their
+\"argument lists\" either to define the predicate or turn a predicate into a
+`chilog-atom' for another rule."
   `(satisfies chilog-term-p))
 
 (defun list-of-chilog-terms-p (terms)
@@ -87,8 +94,14 @@ In our example for `atom''s documentation, the predicate would be \"father\".")
     :type list-of-chilog-terms
     :documentation "The list of terms that this `atom' uses.
 In our example for `atom''s documentation, the terms are \"'(\"X\" \"bill\")\"."))
-  (:documentation "A Chilog Atom.
-What we call an `atom' is the USAGE of a predicate, e.g. \"father(X, bill)\"."))
+  (:documentation "A Chilog Atom is a usage of a `chilog-predicate'; an atom is
+a predicate with `chilog-term's provided to it.
+
+In the Datalog example below, ancestor[X, Y] AND parent[X, Y] are Atoms.
+ancestor[X, Y] = parent[X, Y]
+
+NOTE: An Atom's predicate is just the NAME of the predicate, NOT the actual
+predicate object."))
 
 (defun chilog-atom-p (a)
   (typep a (find-class 'chilog-atom)))
@@ -118,8 +131,11 @@ What we call an `atom' is the USAGE of a predicate, e.g. \"father(X, bill)\"."))
     :initform (error "Chilog rules must have a non-empty body")
     :type list-of-chilog-atoms
     :documentation "The atoms that form the body of the rule."))
-  (:documentation "A Chilog rule.
-Chilog rules correspond to the :- components of Datalog.
+  (:documentation "A `chilog-rule' is a single Datalog equation.
+In practice, this means `chilog-rule's correspond to the :- components of
+Datalog.
+
+Rules have a head and a body.
 The left-hand-side (LHS) of the :- is the head atom.
 The right-hand-side (RHS) of the :- is the body list of atoms."))
 
@@ -135,7 +151,11 @@ The right-hand-side (RHS) of the :- is the body list of atoms."))
        (every #'chilog-value-p vals)))
 
 (deftype chilog-fact ()
-  "Facts are a \"row\" of `chilog-value's that belong to a single
+  "A `chilog-fact' is a completely concretized set of values that match the
+arity of a `chilog-predicate' and satisfy the predicate's terms according to the
+predicate's rules.
+
+Informally, facts are a \"row\" of `chilog-value's that belong to a single
 `chilog-predicate'."
   `(satisfies chilog-fact-p))
 
@@ -162,29 +182,51 @@ lists!"
     :initarg :name
     :initform (error "Chilog predicates must have a name")
     :type string
-    :documentation "Name for the predicate")
+    :documentation "Name for the predicate.
+In our example from `chilog-predicate''s documentation, the name is \"ancestor\".")
    (arity
     :reader arity
     :initarg :arity
     :initform (error "Chilog predicates must have a known non-negative arity")
     :type unsigned-byte
     :documentation "Arity of the predicate.
-Must be >=0.")
+Must be >=0. In our example from `chilog-predicate''s documentation, the arity
+is 2.")
    (facts
     :reader facts
     :writer add-fact!
     :initarg :facts
     :initform '()
     :type list-of-chilog-facts
-    :documentation "Set of Chilog facts for this predicate")
+    :documentation "Set of Chilog facts for this predicate.
+This is the set of things we know either because they were provided to us in the
+Datalog program, or we \"learned\" them by evaluating the rules and unifying
+values.
+These are values that would show up on the right side of the :- in Datalog, but
+are NOT calls to other predicates.")
    (rules
     :reader rules
     :writer add-rule!
     :initarg :rules
     :initform '()
     :type list-of-chilog-rules
-    :documentation "List of Chilog rules for this predicate"))
-  (:documentation "A Chilog predicate"))
+    :documentation "List of Chilog rules for this predicate, the right-hand side
+of the :- operator in Datalog.
+In our example from `chilog-predicate''s documentation, there are two rules,
+the \"parent(X, Z)\" and \"ancestor(Z, Y)\" rules."))
+  (:documentation "A `chilog-predicate' is something that Chilog must solve
+during inference.
+Predicates consist of a name, the predicate's arity, and all rules that are
+on the right-hand side of the :- symbol.
+
+NOTE: Facts are also predicates! But, they have an empty set of rules.
+
+Each predicate ALWAYS tracks any facts it knows from construction or learns
+during inference. Once inference is complete, you can always access the
+complete learned/inferred/provided set of facts.
+
+The Datalog below represents what we call a predicate.
+ancestor(X, Y) :- parent(X, Z), ancestor(Z, Y)"))
 
 (defun chilog-predicate-p (p)
   (typep p (find-class 'chilog-predicate)))
@@ -218,11 +260,18 @@ NOTE: This does NOT verify that the new rules are sane in any way!"
   (setf (rules pred) (cons new-rule (rules pred))))
 
 (defun predicate->atom (pred terms)
-  "Convert the \"bare\" predicate PRED to a `chilog-atom' by providing
-semi-concrete TERMS that match the declared arity of the predicate.
+  "Convert the \"bare\" `chilog-predicate' PRED to a `chilog-atom' by providing
+semi-concrete TERMS that match the declared arity of the predicate. By
+semi-concrete, we mean that the terms can be either constant literals or
+`chilog-variable's.
 
-By semi-concrete, we mean that the terms can have both constant literals and
-`chilog-variable's."
+This is used in the construction of predicates. For example, the parent[X, Y]
+in the Datalog equation below
+ancestor(X, Y) :- parent(X, Y)
+
+will have the variables X and Y applied as terms to each predicate to form a
+`chilog-atom'. This atom is then the given to `add-rules!' to be included in the
+database."
   (if (= (length terms) (arity pred))
       (make-instance
        'chilog-atom
@@ -231,17 +280,28 @@ By semi-concrete, we mean that the terms can have both constant literals and
       (error "Number of provided terms does not match the predicate's arity")))
 
 (defun add-rules! (predicate terms rhs)
-  "Define the \"body\" of PREDICATE by setting the predicates TERMS to be
-equivalent to RHS.
+  "Concretize PREDICATE into a rule/line of Datalog by setting the predicate's
+arguments to be TERMS and those to be equivalent to RHS.
 
-For the documentation below, assume the following Datalog rule:
+This is usually the function you want to use to add a rule to a predicate. It
+provides additional checks and is generally more convenient to use.
+
+This is also how you define facts! A fact is a predicate that has
+literals for TERMS and RHS is the empty tuple, denoting that it has no
+equations to satisfy to be true.
+
+For the documentation below, assume the following Datalog rules:
 parent(alice, bob).
+ancestor(X, Y) = parent(X, Y)
 
-We can treat this as syntactic sugar for representing the fact
+PREDICATE = ancestor
+TERMS = (Variable X, Variable Y)
+RHS = (predicate->atom parent '(X, Y)) :- (predicate->atom parent '(X, Y))
+
+We can treat the first line as syntactic sugar for representing fact, giving us:
 parent(alice, bob) :- .
 
-The predicate here is \"parent\", the terms are \"alice\" and \"bob\" and the
-RHS is empty (because this is a fact)."
+Which means the RHS is empty, because \"parent(alice, bob) :- .\" is a fact."
   ;; NOTE: This match is exhaustive because atom and listp comprise the two
   ;; possible partitions of all values.
   (cond
@@ -296,10 +356,16 @@ program/database.")
     ;; :type hash-table
     :documentation "The set of `chilog-predicate's known to Chilog's
 program/database."))
-  (:documentation "Chilog's fact database."))
+  (:documentation "Chilog's representation of a Datalog program. This contains
+all the `chilog-variable's and `chilog-predicate's in the Chilog/Datalog program.
+
+    This also includes a Datalog inference engine, using an iterative
+    fixed-point depth-first search algorithm to find solutions.
+
+."))
 
 (defmethod add-variable! ((new-var chilog-variable) (db chilog-db))
-  "Add NEW-VAR `chilog-variable' to DB, the `chilog-db'."
+  "Register the `chilog-variable' NEW-VAR in the Datalog program and return it."
   (restart-case
       (multiple-value-bind (_var present?)
           (gethash (name new-var) (variables db))
@@ -343,7 +409,8 @@ NOTE: This does NOT verify that the new variables are sane!"
   (error "Cannot set DB variables with unknown type of ~a" new-vars))
 
 (defmethod add-predicate! ((new-pred chilog-predicate) (db chilog-db))
-  "Add NEW-PRED to DB, the Chilog database (`chilog-db')."
+  "Register the `chilog-predicate' NEW-PRED with the Datalog program and return
+it."
   (restart-case
       (multiple-value-bind (_pred present?)
           (gethash (name new-pred) (predicates db))
