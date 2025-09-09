@@ -100,8 +100,11 @@ program."
                      (fact (if (chilog-variable-p terms)
                                (gethash t sub)
                                terms)))
-                (unless (member fact (facts predicate))
-                  (acons predicate fact new-facts))))))
+                (if (not (member fact (facts predicate)))
+                    (progn
+                      (log:info "Got a new fact! " predicate " = " fact)
+                      (acons predicate fact new-facts))
+                    (log:info predicate " = " fact " already known. Do nothing!"))))))
       ;; Chose alexandria here for no particular reason.
       (if (alexandria:emptyp new-facts)
           (return)
