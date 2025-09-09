@@ -52,16 +52,21 @@ Returns `nil' when unification fails, `t' otherwise."
 ;; NOTE: Renamed from search because the CL standard defines #'search.
 (defun search-db (chilog-db i atoms subs)
   "Search in CHILOG-DB for ATOMS that match the provided substitions, SUBS.
+I is used to control how \"far\" in the ATOM list we are currently searching.
 
-This implementation operates in a lazy(?) depth-first search."
+Returns a list of valid substitutions (as hash-tables) for ATOMS."
+  (log:debug "Searching")
   (if (= i (length atoms))
-      subs
+      (progn
+        (log:info "Completed DFS for " atoms ". Return " subs)
+        subs)
       (let* ((atom (nth i atoms))
              (atom-preds (gethash (predicate atom) (predicates chilog-db))))
-        (loop for fact in (facts atom-preds) do
-          (let ((new-sub (alexandria:copy-hash-table subs)))
-            (when (unify atom fact new-sub)
-              (search-db chilog-db (1+ i) atoms new-sub)))))))
+        (loop for fact in (facts atom-preds)
+              for new-sub = (alexandria:copy-hash-table subs)
+              when (unify atom fact new-sub)
+                do (log:info "Try another fact! Try to unify " atom " with " fact " while " new-sub)
+              collect (search-db chilog-db (1+ i) atoms new-sub)))))
 
 (defun evaluate (chilog-db atoms)
   "Evaluate the provided list of ATOMS in CHILOG-DB to produce a set/list of
