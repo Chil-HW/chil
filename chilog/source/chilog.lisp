@@ -308,26 +308,32 @@ Which means the RHS is empty, because \"parent(alice, bob) :- .\" is a fact."
     ;; (uiop:emptyp 'a) |- NIL. So we can check that we have a list of terms
     ;; on the RHS before moving on to see if it is a list at all.
     ((uiop:emptyp rhs)
-     ;; TODO: Facts should never contain chilog-variables! Make sure to check that!
-     (add-fact! predicate terms)
-     "empty rhs - We got a fact!")
+     (progn
+       ;; Facts can only have literals provided as terms
+       (assert (every (lambda (term) (not (chilog-variable-p term))) terms))
+       (add-fact! predicate terms)))
+    ;; If RHS is a list, then we need to add a rule with the RHS set as terms.
     ((listp rhs)
      (add-rule!
       (make-instance
        'chilog-rule
-       :head (make-instance 'chilog-atom
-                            :predicate (name predicate)
-                            :terms terms)
-       :terms rhs)
+       :head (make-instance
+              'chilog-atom
+              :predicate (name predicate)
+              :terms terms)
+       :body rhs)
       predicate))
+    ;; If RHS is an atom, then we need to add a rule, but turn the RHS's term
+    ;; into a list before we do that.
     ((atom rhs)
      (add-rule!
       (make-instance
        'chilog-rule
-       :head (make-instance 'chilog-atom
-                            :predicate (name predicate)
-                            :terms terms)
-       :terms (list rhs))
+       :head (make-instance
+              'chilog-atom
+              :predicate (name predicate)
+              :terms terms)
+       :body (list rhs))
       predicate))))
 
 
