@@ -1,7 +1,9 @@
 (defpackage :chilog/interpreter
   (:use :cl :log4cl
         :chilog)
-  (:export #:unify))
+  (:export #:unify
+           #:infer
+           #:query))
 
 (in-package :chilog/interpreter)
 
