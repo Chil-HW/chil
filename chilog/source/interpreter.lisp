@@ -13,6 +13,8 @@
 ;;   hashtable chilog-variable chilog-value)
 
 ;; substitution is a hash-table!
+;; NOTE: substitution is expected to be passed by-reference, so that
+;; modifications to substitution made inside unify are visible outside unify.
 (defun unify (atom fact substitution)
   "Attempt to unify ATOM's terms with FACT. If ATOM is a variable, then use the
 provided SUBSTITUTIONs to attempt to find a suitable value to substitute.
@@ -84,7 +86,7 @@ substitutions for the variables in ATOMS.
 Returns a list of valid substitutions (as hash-tables) for ATOMS.
 Evaluate the provided list of ATOMS in CHILOG-DB to produce a set/list of
 possible substitions."
-  (search-db chilog-db 0 atoms (make-hash-table)))
+  (search-db chilog-db 0 atoms (make-hash-table :test #'equal)))
 
 (defun infer (chilog-db)
   "Perform a fixed-point iteration \"inference\" on the Datalog program to
