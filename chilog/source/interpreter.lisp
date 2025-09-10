@@ -37,7 +37,7 @@ notion of a variable substitution, returning them as a list."
 provided SUBSTITUTIONs to attempt to find a suitable value to substitute.
 
 Returns `t' when unification succeeds, `nil' otherwise."
-  (log:info "Attempting to unify " atom " with " fact " while " substitution)
+  (log:debug "Attempting to unify " atom " with " fact " while " substitution)
   ;; NOTE: This zip is why an atom's terms and a fact must have the same arity!
   ;; The cons construction does not generalize beyond 2 lists, but produces a
   ;; pair which we can trivially destructure.
@@ -51,7 +51,7 @@ Returns `t' when unification succeeds, `nil' otherwise."
            (multiple-value-bind (v present?) (gethash term substitution)
              (if (and present? (equal val v))
                  (progn
-                   (log:warn "UNIFICATION FAILED! DIFFERING VALUES! " substitution " != " v)
+                   (log:debug "UNIFICATION FAILED! DIFFERING VALUES! " substitution " != " v)
                    (return-from unify 'nil))
                  ;; XXX: It is important that the passed-in substitution hash-table
                  ;; be modified directly! We want pass-by-reference semantics, not
@@ -61,10 +61,10 @@ Returns `t' when unification succeeds, `nil' otherwise."
           ;; can compare them directly.
           ((not (equal term val))
            (progn
-             (log:warn "UNIFICATION FAILED! " term " != " val)
+             (log:debug "UNIFICATION FAILED! " term " != " val)
              (return-from unify 'nil)))
           ((equal term val)
-           (log:debug "UNIFICATION Nothing! " term " = " val)
+           (log:trace "UNIFICATION Nothing! " term " = " val)
            '())
           ;; NOTE: chilog-terms are either chilog-values or chilog-variables.
           ;; Thus, a chilog-atom's list-of-chilog-terms should be perfectly
@@ -72,7 +72,7 @@ Returns `t' when unification succeeds, `nil' otherwise."
           ;; should never happen.
           ;; TODO: Hint that the 't branch of cond is dead code?
           (t (error "Attempted to unify something other than a chilog-value or chilog-variable!")))))
-    (log:info "Unification successful! " substitution)
+    (log:debug "Unification successful! " substitution)
     't))
 
 ;; NOTE: Renamed from search because the CL standard defines #'search.
@@ -81,17 +81,17 @@ Returns `t' when unification succeeds, `nil' otherwise."
 I is used to control how \"far\" in the ATOM list we are currently searching.
 
 Returns a list of valid substitutions (as hash-tables) for ATOMS."
-  (log:debug "Searching")
+  (log:trace "Searching DB with " atoms " and " subs)
   (if (= i (length atoms))
       (progn
-        (log:info "Completed DFS for " atoms ". Return " subs)
+        (log:debug "Completed DFS for " atoms ". Return " subs)
         subs)
       (let* ((atom (nth i atoms))
              (atom-preds (gethash (predicate atom) (predicates chilog-db))))
         (loop for fact in (facts atom-preds)
               for new-sub = (alexandria:copy-hash-table subs)
+              do (log:debug "Try another fact! Try to unify " atom " with " fact " while " new-sub)
               when (unify atom fact new-sub)
-                do (log:info "Try another fact! Try to unify " atom " with " fact " while " new-sub)
               collect (search-db chilog-db (1+ i) atoms new-sub)))))
 
 (defun evaluate (chilog-db atoms)
@@ -102,6 +102,7 @@ substitutions for the variables in ATOMS.
 Returns a list of valid substitutions (as hash-tables) for ATOMS.
 Evaluate the provided list of ATOMS in CHILOG-DB to produce a set/list of
 possible substitions."
+  (log:debug "Evaluating " atoms)
   (search-db chilog-db 0 atoms (make-hash-table :test #'equal)))
 
 (defun infer (chilog-db)
@@ -112,7 +113,7 @@ In particular, this implementation performs a depth-first walk of the
 predicates, rules, and facts in the Datalog program while performing a
 fixed-point iteration to produce the complete universe of facts present in the
 program."
-  (log:info "Inferring")
+  (log:debug "Inferring")
   ;; NOTE: The "do" is not important here! I only have it so Emacs indents the
   ;; loop's body nicely.
   (loop do
@@ -121,9 +122,9 @@ program."
     (let ((new-facts '()))
       (loop
         for predicate in (alexandria:hash-table-values (predicates chilog-db)) do
-          (log:info "Performing inference on " predicate)
+          (log:debug "Performing inference on " predicate)
           (loop for rule in (rules predicate) do
-            (log:info predicate " has rule " rule "! Eval it!")
+            (log:debug predicate " has rule " rule "! Eval it!")
             (loop for sub in (evaluate chilog-db (body rule)) do
               (let* ((terms (terms (head rule)))
                      (fact (if (chilog-variable-p terms)
@@ -131,9 +132,9 @@ program."
                                terms)))
                 (if (not (member fact (facts predicate)))
                     (progn
-                      (log:info "Got a new fact! " predicate " = " fact)
+                      (log:debug "Got a new fact! " predicate " = " fact)
                       (acons predicate fact new-facts))
-                    (log:info predicate " = " fact " already known. Do nothing!"))))))
+                    (log:debug predicate " = " fact " already known. Do nothing!"))))))
       ;; If we did NOT find new facts (new-facts is empty), then we have reached
       ;; the fixed-point and are done. Otherwise, we discovered new facts, so we
       ;; add them to the database and continue through our fixed-point again.
