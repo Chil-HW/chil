@@ -120,21 +120,25 @@ program."
     ;; new-facts is List[Tuple[Predicate, Fact]]!
     ;; We treat it as (list (cons chilog-predicate chilog-fact)), an alist.
     (let ((new-facts '()))
-      (loop
-        for predicate in (alexandria:hash-table-values (predicates chilog-db)) do
-          (log:debug "Performing inference on " predicate)
-          (loop for rule in (rules predicate) do
-            (log:debug predicate " has rule " rule "! Eval it!")
-            (loop for sub in (evaluate chilog-db (body rule)) do
-              (let* ((terms (terms (head rule)))
-                     (fact (if (chilog-variable-p terms)
-                               (gethash t sub)
-                               terms)))
-                (if (not (member fact (facts predicate)))
-                    (progn
-                      (log:debug "Got a new fact! " predicate " = " fact)
-                      (acons predicate fact new-facts))
-                    (log:debug predicate " = " fact " already known. Do nothing!"))))))
+      (loop for predicate in (alexandria:hash-table-values (predicates chilog-db))
+            do
+               (log:debug "Performing inference on " predicate)
+               (loop for rule in (rules predicate) do
+                 (log:debug predicate " has rule " rule "! Eval it!")
+                 (loop for sub in (evaluate chilog-db (body rule)) do
+                   ;; sub is a valid set of substitutions. Convert the
+                   (let ((sub-facts
+                           (loop for term in (terms (head rule))
+                                 for fact = (if (chilog-variable-p term)
+                                                (gethash term sub)
+                                                term)
+                                 collect fact)))
+                     (if (not (member sub-facts (facts predicate) :test #'equal))
+                         (progn
+                           (log:debug "Got a new fact! " predicate " = " sub-facts)
+                           (setf new-facts
+                                 (acons predicate sub-facts new-facts)))
+                         (log:debug predicate " = " sub-facts " already known. Do nothing!"))))))
       ;; If we did NOT find new facts (new-facts is empty), then we have reached
       ;; the fixed-point and are done. Otherwise, we discovered new facts, so we
       ;; add them to the database and continue through our fixed-point again.
@@ -145,6 +149,7 @@ program."
             ;; TODO: Use pattern matching instead of manual destructuring!
             (let ((p (car new-fact))
                   (f (cdr new-fact)))
+              (log:debug "Recording new fact! " p " = " f)
               (add-fact! f p)))))))
 
 (defun query (chilog-db &rest atoms)
