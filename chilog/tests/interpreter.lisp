@@ -150,3 +150,35 @@ test provided in :TEST. By default :TEST is set to `equal'."
       `((,X . "bob") (,Y . "carol")))
      subs
      :test #'equalp)))
+
+(define-test evaluate ()
+  ;; Evaluating a predicate with only facts should work. This occurs in the case
+  ;; where we are evaluating an "aliasing" predicate.
+  ;; We expect this to yield the installed facts
+  (let* ((dl (make-instance 'chilog-db))
+         (parent (make-instance 'chilog-predicate
+                                :name "parent"
+                                :arity 2))
+         (ancestor (make-instance 'chilog-predicate
+                                  :name "ancestor"
+                                  :arity 2))
+         (X (make-instance 'chilog-variable :name "X"))
+         (Y (make-instance 'chilog-variable :name "Y"))
+         (subs))
+    (add-predicate! parent dl)
+    (add-variable! X dl)
+    (add-variable! Y dl)
+    (add-fact! (list "alice" "bob") parent)
+    (add-fact! (list "bob" "carol") parent)
+    ;; ancestor(X, Y) :- parent(X, Y)
+    ;; NOTE: This rule is unused right now.
+    (add-rules! ancestor (list X Y) (predicate->atom parent (list X Y)))
+    (setf subs (chilog/interpreter::evaluate
+                dl
+                (list (predicate->atom parent (list X Y)))))
+    (assert-set-equal
+     (chilog/interpreter:alist->substitutions
+      `((,X . "alice") (,Y . "bob"))
+      `((,X . "bob") (,Y . "carol")))
+     subs
+     :test #'equalp)))
