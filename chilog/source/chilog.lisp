@@ -279,12 +279,34 @@ database."
        :terms terms)
       (error "Number of provided terms does not match the predicate's arity")))
 
+(defun term-used? (term rhs)
+  "Return 't if TERM is used at least once in the list of atoms provided as the
+RHS."
+  (cond
+    ((chilog-variable-p term)
+     ;; Some atom on the RHS must have term as a member of the atom's terms.
+     ;; foo(X) :- bar(X). is required.
+     ;; foo(X) :- bar. is illegal. member ensures this behavior.
+     ;; foo(X) :- bar(X, Y). is allowed.
+     ;; NOTE: (member 'foo '()) |- 'nil
+     (some (lambda (atom) (member term (terms atom) :test #'equal)) rhs))
+    ;; Terms are "always used", so return 't
+    ((chilog-value-p term) 't)
+    ;; TODO: Hint dead code. Everything is either a Chilog variable or value!
+    (t (error "Unknown term type!"))))
+
 (defun add-rules! (predicate terms &rest rhs)
   "Concretize PREDICATE into a rule/line of Datalog by setting the predicate's
 arguments to be TERMS and those to be equivalent to RHS.
 
 This is usually the function you want to use to add a rule to a predicate. It
 provides additional checks and is generally more convenient to use.
+
+This function also checks that every argument in the head, is used AT LEAST once
+in the rule's body. In other words, the rule's body MUST refer to ALL specified
+variables! This is a safety condition that prevents us from finding infinite
+solutions to an equation which are not interesting, but would keep the Datalog
+engine searching forever.
 
 This is also how you define facts! A fact is a predicate that has
 literals for TERMS and RHS is the empty tuple, denoting that it has no
@@ -313,15 +335,20 @@ Which means the RHS is empty, because \"parent(alice, bob) :- .\" is a fact."
         (assert (every (lambda (term) (not (chilog-variable-p term))) terms))
         (add-fact! predicate terms))
       ;; The RHS is non-empty, add a rule with the RHS set as terms.
-      (add-rule!
-       (make-instance
-        'chilog-rule
-        :head (make-instance
-               'chilog-atom
-               :predicate (name predicate)
-               :terms terms)
-        :body rhs)
-       predicate)))
+      (progn
+        ;; If a rule has argument terms in the head, the rule's
+        ;; body MUST refer to ALL specified variables!
+        ;; NOTE: If terms is empty, (every #'foo '()) |- 't
+        (assert (every (lambda (term) (term-used? term rhs)) terms))
+        (add-rule!
+         (make-instance
+          'chilog-rule
+          :head (make-instance
+                 'chilog-atom
+                 :predicate (name predicate)
+                 :terms terms)
+          :body rhs)
+         predicate))))
 
 
 ;;;
