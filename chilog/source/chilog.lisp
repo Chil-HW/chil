@@ -279,7 +279,7 @@ database."
        :terms terms)
       (error "Number of provided terms does not match the predicate's arity")))
 
-(defun add-rules! (predicate terms rhs)
+(defun add-rules! (predicate terms &rest rhs)
   "Concretize PREDICATE into a rule/line of Datalog by setting the predicate's
 arguments to be TERMS and those to be equivalent to RHS.
 
@@ -304,37 +304,24 @@ parent(alice, bob) :- .
 Which means the RHS is empty, because \"parent(alice, bob) :- .\" is a fact."
   ;; NOTE: This match is exhaustive because atom and listp comprise the two
   ;; possible partitions of all values.
-  (cond
-    ;; (uiop:emptyp 'a) |- NIL. So we can check that we have a list of terms
-    ;; on the RHS before moving on to see if it is a list at all.
-    ((uiop:emptyp rhs)
-     (progn
-       ;; Facts can only have literals provided as terms
-       (assert (every (lambda (term) (not (chilog-variable-p term))) terms))
-       (add-fact! predicate terms)))
-    ;; If RHS is a list, then we need to add a rule with the RHS set as terms.
-    ((listp rhs)
-     (add-rule!
-      (make-instance
-       'chilog-rule
-       :head (make-instance
-              'chilog-atom
-              :predicate (name predicate)
-              :terms terms)
-       :body rhs)
-      predicate))
-    ;; If RHS is an atom, then we need to add a rule, but turn the RHS's term
-    ;; into a list before we do that.
-    ((atom rhs)
-     (add-rule!
-      (make-instance
-       'chilog-rule
-       :head (make-instance
-              'chilog-atom
-              :predicate (name predicate)
-              :terms terms)
-       :body (list rhs))
-      predicate))))
+  (check-type rhs list-of-chilog-atoms
+              "The RHS of a rule (:-) MUST be a list of atoms!")
+  (if (uiop:emptyp rhs)
+      ;; The RHS is empty, which means this must be a fact.
+      (progn
+        ;; Facts can only have literals provided as terms
+        (assert (every (lambda (term) (not (chilog-variable-p term))) terms))
+        (add-fact! predicate terms))
+      ;; The RHS is non-empty, add a rule with the RHS set as terms.
+      (add-rule!
+       (make-instance
+        'chilog-rule
+        :head (make-instance
+               'chilog-atom
+               :predicate (name predicate)
+               :terms terms)
+        :body rhs)
+       predicate)))
 
 
 ;;;

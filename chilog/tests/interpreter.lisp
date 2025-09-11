@@ -207,9 +207,8 @@
     (add-rules! ancestor (list X Y) (predicate->atom parent (list X Y)))
     ;; The recursive rule for ancestor/2
     (add-rules! ancestor (list X Y)
-                (list
-                 (predicate->atom parent (list X Z))
-                 (predicate->atom ancestor (list Z Y))))
+                (predicate->atom parent (list X Z))
+                (predicate->atom ancestor (list Z Y)))
     (chilog/interpreter:infer dl)
     ;; Now verify that the ancestor/2 predicate itself carries the facts
     (assert-set-equal
@@ -278,9 +277,8 @@
     (add-rules! ancestor (list X Y) (predicate->atom parent (list X Y)))
     ;; The recursive rule for ancestor/2
     (add-rules! ancestor (list X Y)
-                (list
-                 (predicate->atom parent (list X Z))
-                 (predicate->atom ancestor (list Z Y))))
+                (predicate->atom parent (list X Z))
+                (predicate->atom ancestor (list Z Y)))
     (chilog/interpreter:infer dl)
     ;; Now that we have a recursive rule for ancestor/2, we should actually
     ;; "learn" information from the facts provided. In this case, BOTH alice
