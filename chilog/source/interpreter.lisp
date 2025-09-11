@@ -81,21 +81,30 @@ Returns `t' when unification succeeds, `nil' otherwise."
 I is used to control how \"far\" in the ATOM list we are currently searching.
 
 Returns a list of valid substitutions (as hash-tables) for ATOMS."
-  (log:trace "Searching DB with " atoms " and " subs)
+  (log:trace "Searching DB with " atoms " and " subs " Currently at search depth " i)
   (if (= i (length atoms))
       (progn
         (log:debug "Completed DFS for " atoms ". Return " subs)
         subs)
       (let* ((atom (nth i atoms))
              (atom-preds (gethash (predicate atom) (predicates chilog-db))))
-        ;; TODO: Instead remove, prevent the collect below from collecting 'nil-s.
-        (remove 'nil
-                (loop for fact in (facts atom-preds)
-                      for new-sub = (alexandria:copy-hash-table subs)
-                      do (progn (log:debug "Try another fact! Try to unify " atom " with " fact " while " new-sub) ;; (break)
-                                )
-                      when (unify atom fact new-sub)
-                      collect (search-db chilog-db (1+ i) atoms new-sub))))))
+        ;; Flatten the resulting list from searching the DB. The reasoning is
+        ;; 2-fold:
+        ;; 1. search-db returns lists and when search-db is called
+        ;;    recursively, collect will collect the list of substitutions into
+        ;;    another list layer. So the amount of recursion in a rule's search
+        ;;    in the DB will produce a nested list-of-list-of-...-list-of
+        ;;    hash-tables. Flatten flattens this out to a single list.
+        ;; 2. By virtue of flatten-ing, any 'nil that occurs because a
+        ;;    predicate's facts set is empty will be erased. This prevents
+        ;;    DB searching when a rule's fact list is empty from returning a
+        ;;    list of 'nil substitutions.
+        (alexandria:flatten
+         (loop for fact in (facts atom-preds)
+               for new-sub = (alexandria:copy-hash-table subs)
+               do (log:debug "Try another fact! Try to unify " atom " with " fact " while " new-sub)
+               when (unify atom fact new-sub)
+                 collect (search-db chilog-db (1+ i) atoms new-sub))))))
 
 (defun evaluate (chilog-db atoms)
   "Evalute the ATOMS of a predicate (the right-hand side of a predicate) in
