@@ -10,8 +10,7 @@
 (defsystem :chilog/tests
   :depends-on (:chilog :lisp-unit2 :check-it)
   :pathname #p"chilog/tests/"
-  :components ((:file "base")
-               (:file "chilog")
+  :components ((:file "chilog")
                (:file "interpreter"))
   :around-compile (lambda (next)
                     (proclaim '(optimize (debug 3) (safety 3) (speed 0)))
