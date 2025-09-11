@@ -3,11 +3,28 @@
   (:export #:chilog-variable
            #:chilog-variable-p
            #:name
+           #:chilog-value
            #:chilog-value-p
+           #:chilog-term
+           #:chilog-term-p
+           #:list-of-chilog-terms
+           #:list-of-chilog-terms-p
            #:chilog-atom
+           #:chilog-atom-p
            #:predicate #:terms
+           #:list-of-chilog-atoms
+           #:list-of-chilog-atoms-p
            #:chilog-rule
+           #:chilog-rule-p
            #:head #:body
+           #:list-of-chilog-rules
+           #:list-of-chilog-rules-p
+           #:chilog-fact
+           #:chilog-fact-p
+           #:list-of-chilog-facts
+           #:list-of-chilog-facts-p
+           #:list-of-chilog-rules
+           #:list-of-chilog-rules-p
            #:chilog-predicate
            #:chilog-predicate-p
            #:name #:arity #:facts #:rules
