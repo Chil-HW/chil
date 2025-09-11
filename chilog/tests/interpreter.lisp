@@ -182,3 +182,92 @@ test provided in :TEST. By default :TEST is set to `equal'."
       `((,X . "bob") (,Y . "carol")))
      subs
      :test #'equalp)))
+
+(define-test infer ()
+  ;; Performing inference on an "aliasing" predicate should propagate the facts
+  ;; up from the underlying "pointed-to" predicate to the "pointed-by" one. The
+  ;; end result we expect is that we yield the same thing as the original
+  ;; predicate.
+  (let* ((dl (make-instance 'chilog-db))
+         (inner (make-instance 'chilog-predicate
+                               :name "inner"
+                               :arity 1))
+         (outer (make-instance 'chilog-predicate
+                               :name "outer"
+                               :arity 1))
+         (X (make-instance 'chilog-variable :name "X")))
+    (add-predicate! inner dl)
+    (add-predicate! outer dl)
+    (add-variable! X dl)
+    (add-fact! (list "foo") inner)
+    ;; outer(X) :- inner(X)
+    ;; Install an aliasing rule
+    (add-rules! outer (list X) (predicate->atom inner (list X)))
+    (chilog/interpreter:infer dl)
+    (assert-set-equal
+     '(("foo"))
+     (facts (gethash "outer" (predicates dl)))
+     :test #'equal))
+
+  (let* ((dl (make-instance 'chilog-db))
+         (parent (make-instance 'chilog-predicate
+                                :name "parent"
+                                :arity 2))
+         (ancestor (make-instance 'chilog-predicate
+                                  :name "ancestor"
+                                  :arity 2))
+         (X (make-instance 'chilog-variable :name "X"))
+         (Y (make-instance 'chilog-variable :name "Y")))
+    (add-predicate! parent dl)
+    (add-predicate! ancestor dl)
+    (add-variable! X dl)
+    (add-variable! Y dl)
+    (add-fact! (list "alice" "bob") parent)
+    (add-fact! (list "bob" "carol") parent)
+    ;; ancestor(X, Y) :- parent(X, Y)
+    (add-rules! ancestor (list X Y) (predicate->atom parent (list X Y)))
+    ;; Perform inference, so the facts installed for parent/2 should propagate
+    ;; up to ancestor/2
+    (chilog/interpreter:infer dl)
+    (assert-set-equal
+     '(("alice" "bob")
+       ("bob" "carol"))
+     (facts (gethash "ancestor" (predicates dl)))
+     :test #'equal))
+
+  ;; Perform inference on a Datalog program with a recursive rule that should
+  ;; "learn" something.
+  (let* ((dl (make-instance 'chilog-db))
+         (parent (make-instance 'chilog-predicate
+                                :name "parent"
+                                :arity 2))
+         (ancestor (make-instance 'chilog-predicate
+                                  :name "ancestor"
+                                  :arity 2))
+         (X (make-instance 'chilog-variable :name "X"))
+         (Y (make-instance 'chilog-variable :name "Y"))
+         (Z (make-instance 'chilog-variable :name "Z")))
+    (add-variable! X dl)
+    (add-variable! Y dl)
+    (add-variable! Z dl)
+    (add-predicate! parent dl)
+    (add-predicate! ancestor dl)
+    (add-fact! (list "alice" "bob") parent)
+    (add-fact! (list "bob" "carol") parent)
+    (add-rules! ancestor (list X Y) (predicate->atom parent (list X Y)))
+    ;; The recursive rule for ancestor/2
+    (add-rules! ancestor (list X Y)
+                (list
+                 (predicate->atom parent (list X Z))
+                 (predicate->atom ancestor (list Z Y))))
+    (chilog/interpreter:infer dl)
+    ;; Now verify that the ancestor/2 predicate itself carries the facts
+    (assert-set-equal
+     '(("alice" "carol") ("bob" "carol") ("alice" "bob"))
+     (facts (gethash "ancestor" (predicates dl)))
+     :test #'equal)
+    (assert-set-equal
+     '(("alice" "carol") ("bob" "carol") ("alice" "bob"))
+     (facts ancestor)
+     :test #'equal))
+  )
