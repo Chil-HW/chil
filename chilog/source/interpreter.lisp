@@ -140,7 +140,12 @@ program."
                (loop for rule in (rules predicate) do
                  (log:debug predicate " has rule " rule "! Eval it!")
                  (loop for sub in (evaluate chilog-db (body rule)) do
-                   ;; sub is a valid set of substitutions. Convert the
+                   ;; The substitution hash-table has a substitution for EVERY
+                   ;; variable in the rule we just evaluated. However, we only
+                   ;; want to hold onto variables that were mentioned in the
+                   ;; rule's head. Collect those variable-values into an ordered
+                   ;; list that matches the arity of the predicate and use that
+                   ;; to determine if we have "new facts".
                    (let ((sub-facts
                            (loop for term in (terms (head rule))
                                  for fact = (if (chilog-variable-p term)
