@@ -262,9 +262,11 @@ NOTE: This does NOT verify that the new facts are sane in any way!"
 
 (defmethod add-fact! (new-fact (pred chilog-predicate))
   (check-type new-fact chilog-fact)
-  (assert (= (length new-fact) (arity pred)))
+  (assert (= (length new-fact) (arity pred)) ()
+          "Facts must have the same length as the arity of their predicate")
   ;; add-fact! should not add the same fact multiple times!
-  (assert (not (member new-fact (facts pred) :test #'equalp)))
+  (assert (not (member new-fact (facts pred) :test #'equalp)) ()
+          "A predicate's facts must be unique")
   (setf (facts pred) (cons new-fact (facts pred))))
 
 (defmethod (setf rules) (new-rules (pred chilog-predicate))
@@ -359,15 +361,14 @@ Which means the RHS is empty, because \"parent(alice, bob) :- .\" is a fact."
   (if (uiop:emptyp rhs)
       ;; The RHS is empty, which means this must be a fact.
       (progn
-        ;; Facts can only have literals provided as terms
-        (assert (every (lambda (term) (not (chilog-variable-p term))) terms))
+        (assert (every (lambda (term) (not (chilog-variable-p term))) terms) ()
+                "Facts can only have literals provided as terms")
         (add-fact! predicate terms))
       ;; The RHS is non-empty, add a rule with the RHS set as terms.
       (progn
-        ;; If a rule has argument terms in the head, the rule's
-        ;; body MUST refer to ALL specified variables!
         ;; NOTE: If terms is empty, (every #'foo '()) |- 't
-        (assert (every (lambda (term) (term-used? term rhs)) terms))
+        (assert (every (lambda (term) (term-used? term rhs)) terms) ()
+                "A rule's body MUST use ALL variables in head's args")
         (add-rule!
          (make-instance
           'chilog-rule
