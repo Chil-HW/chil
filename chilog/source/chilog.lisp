@@ -296,7 +296,7 @@ ancestor(X, Y) = parent(X, Y)
 
 PREDICATE = ancestor
 TERMS = (Variable X, Variable Y)
-RHS = (predicate->atom parent '(X, Y)) :- (predicate->atom parent '(X, Y))
+RHS = (predicate->atom parent (list X Y))
 
 We can treat the first line as syntactic sugar for representing fact, giving us:
 parent(alice, bob) :- .
@@ -365,10 +365,8 @@ program/database."))
   (:documentation "Chilog's representation of a Datalog program. This contains
 all the `chilog-variable's and `chilog-predicate's in the Chilog/Datalog program.
 
-    This also includes a Datalog inference engine, using an iterative
-    fixed-point depth-first search algorithm to find solutions.
-
-."))
+This also includes a Datalog inference engine, using an iterative fixed-point
+depth-first search algorithm to find solutions."))
 
 (defmethod add-variable! ((new-var chilog-variable) (db chilog-db))
   "Register the `chilog-variable' NEW-VAR in the Datalog program and return it."
