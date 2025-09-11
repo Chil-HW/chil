@@ -42,36 +42,33 @@ Returns `t' when unification succeeds, `nil' otherwise."
   ;; The cons construction does not generalize beyond 2 lists, but produces a
   ;; pair which we can trivially destructure.
   (let ((zipped-terms (mapcar #'cons (terms atom) fact)))
-    (loop for new-term in zipped-terms do
-      ;; TODO: Use pattern matching on the zipped-terms!
-      (let ((term (car new-term))
-            (val  (cdr new-term)))
-        (cond
-          ((chilog-variable-p term)
-           (multiple-value-bind (v present?) (gethash term substitution)
-             (if (and present? (not (equal val v)))
-                 (progn
-                   (log:debug "UNIFICATION FAILED! DIFFERING VALUES! " substitution " != " v)
-                   (return-from unify 'nil))
-                 ;; XXX: It is important that the passed-in substitution hash-table
-                 ;; be modified directly! We want pass-by-reference semantics, not
-                 ;; pass-by-value here!
-                 (setf (gethash term substitution) val))))
-          ;; term was not a chilog-variable, so it must be a chilog-value and we
-          ;; can compare them directly.
-          ((not (equal term val))
-           (progn
-             (log:debug "UNIFICATION FAILED! " term " != " val)
-             (return-from unify 'nil)))
-          ((equal term val)
-           (log:trace "UNIFICATION Nothing! " term " = " val)
-           '())
-          ;; NOTE: chilog-terms are either chilog-values or chilog-variables.
-          ;; Thus, a chilog-atom's list-of-chilog-terms should be perfectly
-          ;; partitioned by the two cond branches above and this last case
-          ;; should never happen.
-          ;; TODO: Hint that the 't branch of cond is dead code?
-          (t (error "Attempted to unify something other than a chilog-value or chilog-variable!")))))
+    (loop for (term . val) in zipped-terms do
+      (cond
+        ((chilog-variable-p term)
+         (multiple-value-bind (v present?) (gethash term substitution)
+           (if (and present? (not (equal val v)))
+               (progn
+                 (log:debug "UNIFICATION FAILED! DIFFERING VALUES! " substitution " != " v)
+                 (return-from unify 'nil))
+               ;; XXX: It is important that the passed-in substitution hash-table
+               ;; be modified directly! We want pass-by-reference semantics, not
+               ;; pass-by-value here!
+               (setf (gethash term substitution) val))))
+        ;; term was not a chilog-variable, so it must be a chilog-value and we
+        ;; can compare them directly.
+        ((not (equal term val))
+         (progn
+           (log:debug "UNIFICATION FAILED! " term " != " val)
+           (return-from unify 'nil)))
+        ((equal term val)
+         (log:trace "UNIFICATION Nothing! " term " = " val)
+         '())
+        ;; NOTE: chilog-terms are either chilog-values or chilog-variables.
+        ;; Thus, a chilog-atom's list-of-chilog-terms should be perfectly
+        ;; partitioned by the two cond branches above and this last case
+        ;; should never happen.
+        ;; TODO: Hint that the 't branch of cond is dead code?
+        (t (error "Attempted to unify something other than a chilog-value or chilog-variable!"))))
     (log:debug "Unification successful! " substitution)
     't))
 
@@ -170,12 +167,9 @@ program."
                   do (log:trace pred " = " facts))
             ;; Returns from outer loop
             (return))
-          (loop for new-fact in new-facts
-                do ;; TODO: Use pattern matching instead of manual destructuring!
-                   (let ((p (car new-fact))
-                         (f (cdr new-fact)))
-                     (log:debug "Recording new fact! " p " = " f)
-                     (add-fact! f p))
+          (loop for (p . f) in new-facts
+                do (log:debug "Recording new fact! " p " = " f)
+                   (add-fact! f p)
                 finally (log:debug "Fixed-point iterate AGAIN!"))))))
 
 (defun query (chilog-db &rest atoms)
