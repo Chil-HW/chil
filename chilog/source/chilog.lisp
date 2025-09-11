@@ -289,12 +289,21 @@ ancestor(X, Y) :- parent(X, Y)
 will have the variables X and Y applied as terms to each predicate to form a
 `chilog-atom'. This atom is then the given to `add-rules!' to be included in the
 database."
-  (if (= (length terms) (arity pred))
-      (make-instance
-       'chilog-atom
-       :predicate (name pred)
-       :terms terms)
-      (error "Number of provided terms does not match the predicate's arity")))
+  (restart-case
+      (if (= (length terms) (arity pred))
+          (make-instance
+           'chilog-atom
+           :predicate (name pred)
+           :terms terms)
+          (error "Number of provided terms does not match the predicate's arity"))
+
+    (set-new-terms (new-terms)
+      :report "New term set"
+      :interactive (lambda ()
+                     (format *query-io* "New terms: ")
+                     (force-output *query-io*)
+                     (list (eval (read *query-io*))))
+      (predicate->atom pred new-terms))))
 
 (declaim (ftype (function (chilog-term list-of-chilog-atoms) boolean) term-used?))
 (defun term-used? (term rhs)
