@@ -265,7 +265,7 @@ NOTE: This does NOT verify that the new facts are sane in any way!"
   (assert (= (length new-fact) (arity pred)) ()
           "Facts must have the same length as the arity of their predicate")
   ;; add-fact! should not add the same fact multiple times!
-  (assert (not (member new-fact (facts pred) :test #'equalp)) ()
+  (assert (not (member new-fact (facts pred) :test #'equalp)) (new-fact)
           "A predicate's facts must be unique")
   (setf (facts pred) (cons new-fact (facts pred))))
 
