@@ -88,11 +88,14 @@ Returns a list of valid substitutions (as hash-tables) for ATOMS."
         subs)
       (let* ((atom (nth i atoms))
              (atom-preds (gethash (predicate atom) (predicates chilog-db))))
-        (loop for fact in (facts atom-preds)
-              for new-sub = (alexandria:copy-hash-table subs)
-              do (log:debug "Try another fact! Try to unify " atom " with " fact " while " new-sub)
-              when (unify atom fact new-sub)
-              collect (search-db chilog-db (1+ i) atoms new-sub)))))
+        ;; TODO: Instead remove, prevent the collect below from collecting 'nil-s.
+        (remove 'nil
+                (loop for fact in (facts atom-preds)
+                      for new-sub = (alexandria:copy-hash-table subs)
+                      do (progn (log:debug "Try another fact! Try to unify " atom " with " fact " while " new-sub) ;; (break)
+                                )
+                      when (unify atom fact new-sub)
+                      collect (search-db chilog-db (1+ i) atoms new-sub))))))
 
 (defun evaluate (chilog-db atoms)
   "Evalute the ATOMS of a predicate (the right-hand side of a predicate) in
