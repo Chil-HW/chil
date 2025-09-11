@@ -32,6 +32,7 @@ notion of a variable substitution, returning them as a list."
 ;; substitution is a hash-table!
 ;; NOTE: substitution is expected to be passed by-reference, so that
 ;; modifications to substitution made inside unify are visible outside unify.
+(declaim (ftype (function (chilog-atom chilog-fact hash-table) boolean) unify))
 (defun unify (atom fact substitution)
   "Attempt to unify ATOM's terms with FACT. If ATOM is a variable, then use the
 provided SUBSTITUTIONs to attempt to find a suitable value to substitute.
@@ -40,8 +41,8 @@ Returns `t' when unification succeeds, `nil' otherwise."
   (log:debug "Attempting to unify " atom " with " fact " while " substitution)
   ;; NOTE: This parallel list iteration is why an atom's terms and a fact must
   ;; have the same arity!
-  (loop for term in (terms atom)
-        for val in fact
+  (loop for term of-type chilog-term in (terms atom)
+        for val of-type chilog-value in fact
         do (cond
              ((chilog-variable-p term)
               (multiple-value-bind (v present?) (gethash term substitution)
@@ -65,11 +66,9 @@ Returns `t' when unification succeeds, `nil' otherwise."
               (progn
                 (log:trace "UNIFICATION Nothing! " term " = " val)
                 'nil))
-             ;; NOTE: chilog-terms are either chilog-values or chilog-variables.
-             ;; Thus, a chilog-atom's list-of-chilog-terms should be perfectly
-             ;; partitioned by the two cond branches above and this last case
+             ;; Below is dead code. The two cond branches above should handle
+             ;; all terms (chilog-variables and chilog-values). This last case
              ;; should never happen.
-             ;; TODO: Hint that the 't branch of cond is dead code?
              (t (error "Attempted to unify something other than a chilog-value or chilog-variable!"))))
   (log:debug "Unification successful! " substitution)
   't)

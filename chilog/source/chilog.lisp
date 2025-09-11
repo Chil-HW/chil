@@ -296,6 +296,7 @@ database."
        :terms terms)
       (error "Number of provided terms does not match the predicate's arity")))
 
+(declaim (ftype (function (chilog-term list-of-chilog-atoms) boolean) term-used?))
 (defun term-used? (term rhs)
   "Return 't if TERM is used at least once in the list of atoms provided as the
 RHS."
@@ -306,10 +307,10 @@ RHS."
      ;; foo(X) :- bar. is illegal. member ensures this behavior.
      ;; foo(X) :- bar(X, Y). is allowed.
      ;; NOTE: (member 'foo '()) |- 'nil
-     (some (lambda (atom) (member term (terms atom) :test #'equal)) rhs))
+     (some (lambda (atom) (not (null (member term (terms atom) :test #'equal)))) rhs))
     ;; Terms are "always used", so return 't
     ((chilog-value-p term) 't)
-    ;; TODO: Hint dead code. Everything is either a Chilog variable or value!
+    ;; Below is dead code. Everything is either a Chilog variable or value!
     (t (error "Unknown term type!"))))
 
 (defun add-rules! (predicate terms &rest rhs)
