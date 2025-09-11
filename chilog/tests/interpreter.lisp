@@ -103,6 +103,24 @@ test provided in :TEST. By default :TEST is set to `equal'."
                             :terms (list X "foo"))
                            (list "foo" "bar")
                            sub)))
+    (assert-false unify-possible?))
+
+  ;; Test that unify returns false when we try to assign two different values to
+  ;; the same variable.
+  (let* ((sub (make-hash-table :test #'equal))
+         (X (make-instance 'chilog-variable :name "X"))
+         (unify-possible? 'nil))
+    (setf (gethash X sub) "earlier")
+    ;; If we attempt to unify X <- "bar", we must observe that X was previously
+    ;; unified to have the value "earlier". So unification should fail!
+    (setf unify-possible?
+          (chilog/interpreter:unify
+           (make-instance
+            'chilog-atom
+            :predicate "test"
+            :terms (list X "foo"))
+           (list "bar" "foo")
+           sub))
     (assert-false unify-possible?)))
 
 (define-test search-db ()

@@ -49,7 +49,7 @@ Returns `t' when unification succeeds, `nil' otherwise."
         (cond
           ((chilog-variable-p term)
            (multiple-value-bind (v present?) (gethash term substitution)
-             (if (and present? (equal val v))
+             (if (and present? (not (equal val v)))
                  (progn
                    (log:debug "UNIFICATION FAILED! DIFFERING VALUES! " substitution " != " v)
                    (return-from unify 'nil))
