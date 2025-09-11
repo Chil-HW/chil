@@ -262,6 +262,7 @@ NOTE: This does NOT verify that the new facts are sane in any way!"
 
 (defmethod add-fact! (new-fact (pred chilog-predicate))
   (check-type new-fact chilog-fact)
+  (assert (= (length new-fact) (arity pred)))
   ;; add-fact! should not add the same fact multiple times!
   (assert (not (member new-fact (facts pred) :test #'equalp)))
   (setf (facts pred) (cons new-fact (facts pred))))
