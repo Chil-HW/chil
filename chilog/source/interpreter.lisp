@@ -106,7 +106,9 @@ Returns a list of valid substitutions (as hash-tables) for ATOMS.
 Evaluate the provided list of ATOMS in CHILOG-DB to produce a set/list of
 possible substitions."
   (log:debug "Evaluating " atoms)
-  (search-db chilog-db 0 atoms (make-hash-table :test #'equal)))
+  (let ((res (search-db chilog-db 0 atoms (make-hash-table :test #'equal))))
+    (log:debug "Evaluation results: " res)
+    res))
 
 (defun infer (chilog-db)
   "Perform a fixed-point iteration \"inference\" on the Datalog program to
