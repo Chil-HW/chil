@@ -271,3 +271,83 @@ test provided in :TEST. By default :TEST is set to `equal'."
      (facts ancestor)
      :test #'equal))
   )
+
+(define-test query ()
+  ;; A query with a variable and a constant that matches a fact we installed
+  ;; should return the fact.
+  (let* ((dl (make-instance 'chilog-db))
+         (parent (make-instance 'chilog-predicate
+                                :name "parent"
+                                :arity 2))
+         (ancestor (make-instance 'chilog-predicate
+                                  :name "ancestor"
+                                  :arity 2))
+         (X (make-instance 'chilog-variable :name "X"))
+         (Y (make-instance 'chilog-variable :name "Y")))
+    (add-variable! X dl)
+    (add-variable! Y dl)
+    (add-predicate! parent dl)
+    (add-predicate! ancestor dl)
+    (add-fact! (list "alice" "bob") parent)
+    (add-fact! (list "bob" "carol") parent)
+    (add-rules! ancestor (list X Y) (predicate->atom parent (list X Y)))
+    (chilog/interpreter:infer dl)
+    ;; We expect this query to return "bob", since that is the fact we provided.
+    (assert-set-equal
+     (chilog/interpreter:alist->substitutions
+      `((,X . "bob")))
+     (chilog/interpreter:query dl (predicate->atom parent (list X "carol")))
+     :test #'equalp)
+    ;; Since ancestor is just an alias for parent, the same query against the
+    ;; ancestor predicate should return the same thing.
+    (assert-set-equal
+     (chilog/interpreter:alist->substitutions
+      `((,X . "bob")))
+     (chilog/interpreter:query dl (predicate->atom ancestor (list X "carol")))
+     :test #'equalp))
+
+  ;; Run a query in a Datalog program that has a recursive rule that should
+  ;; "learn" something.
+  (let* ((dl (make-instance 'chilog-db))
+         (parent (make-instance 'chilog-predicate
+                                :name "parent"
+                                :arity 2))
+         (ancestor (make-instance 'chilog-predicate
+                                  :name "ancestor"
+                                  :arity 2))
+         (X (make-instance 'chilog-variable :name "X"))
+         (Y (make-instance 'chilog-variable :name "Y"))
+         (Z (make-instance 'chilog-variable :name "Z")))
+    (add-variable! X dl)
+    (add-variable! Y dl)
+    (add-variable! Z dl)
+    (add-predicate! parent dl)
+    (add-predicate! ancestor dl)
+    (add-fact! (list "alice" "bob") parent)
+    (add-fact! (list "bob" "carol") parent)
+    (add-rules! ancestor (list X Y) (predicate->atom parent (list X Y)))
+    ;; The recursive rule for ancestor/2
+    (add-rules! ancestor (list X Y)
+                (list
+                 (predicate->atom parent (list X Z))
+                 (predicate->atom ancestor (list Z Y))))
+    (chilog/interpreter:infer dl)
+    ;; Now that we have a recursive rule for ancestor/2, we should actually
+    ;; "learn" information from the facts provided. In this case, BOTH alice
+    ;; and bob are ancestors of carol.
+    (assert-set-equal
+     (chilog/interpreter:alist->substitutions
+      `((,X . "alice")) ; Learned alice is ancestor of carol
+      `((,X . "bob")))
+     (chilog/interpreter:query dl (predicate->atom ancestor (list X "carol")))
+     :test #'equalp)
+    ;; Now verify that the ancestor/2 predicate itself carries these facts
+    (assert-set-equal
+     '(("alice" "carol") ("bob" "carol") ("alice" "bob"))
+     (facts (gethash "ancestor" (predicates dl)))
+     :test #'equal)
+    (assert-set-equal
+     '(("alice" "carol") ("bob" "carol") ("alice" "bob"))
+     (facts ancestor)
+     :test #'equal))
+  )
