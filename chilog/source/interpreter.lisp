@@ -38,39 +38,41 @@ provided SUBSTITUTIONs to attempt to find a suitable value to substitute.
 
 Returns `t' when unification succeeds, `nil' otherwise."
   (log:debug "Attempting to unify " atom " with " fact " while " substitution)
-  ;; NOTE: This zip is why an atom's terms and a fact must have the same arity!
-  ;; The cons construction does not generalize beyond 2 lists, but produces a
-  ;; pair which we can trivially destructure.
-  (let ((zipped-terms (mapcar #'cons (terms atom) fact)))
-    (loop for (term . val) in zipped-terms do
-      (cond
-        ((chilog-variable-p term)
-         (multiple-value-bind (v present?) (gethash term substitution)
-           (if (and present? (not (equal val v)))
-               (progn
-                 (log:debug "UNIFICATION FAILED! DIFFERING VALUES! " substitution " != " v)
-                 (return-from unify 'nil))
-               ;; XXX: It is important that the passed-in substitution hash-table
-               ;; be modified directly! We want pass-by-reference semantics, not
-               ;; pass-by-value here!
-               (setf (gethash term substitution) val))))
-        ;; term was not a chilog-variable, so it must be a chilog-value and we
-        ;; can compare them directly.
-        ((not (equal term val))
-         (progn
-           (log:debug "UNIFICATION FAILED! " term " != " val)
-           (return-from unify 'nil)))
-        ((equal term val)
-         (log:trace "UNIFICATION Nothing! " term " = " val)
-         '())
-        ;; NOTE: chilog-terms are either chilog-values or chilog-variables.
-        ;; Thus, a chilog-atom's list-of-chilog-terms should be perfectly
-        ;; partitioned by the two cond branches above and this last case
-        ;; should never happen.
-        ;; TODO: Hint that the 't branch of cond is dead code?
-        (t (error "Attempted to unify something other than a chilog-value or chilog-variable!"))))
-    (log:debug "Unification successful! " substitution)
-    't))
+  ;; NOTE: This parallel list iteration is why an atom's terms and a fact must
+  ;; have the same arity!
+  (loop for term in (terms atom)
+        for val in fact
+        do (cond
+             ((chilog-variable-p term)
+              (multiple-value-bind (v present?) (gethash term substitution)
+                (if (and present? (not (equal val v)))
+                    (progn
+                      (log:debug "UNIFICATION FAILED! DIFFERING VALUES! " substitution " != " v)
+                      (return-from unify 'nil))
+                    ;; XXX: It is important that the passed-in substitution hash-table
+                    ;; be modified directly! We want pass-by-reference semantics, not
+                    ;; pass-by-value here!
+                    (setf (gethash term substitution) val))))
+             ;; term was not a chilog-variable, so it must be a chilog-value and we
+             ;; can compare them directly.
+             ((not (equal term val))
+              (progn
+                (log:debug "UNIFICATION FAILED! " term " != " val)
+                (return-from unify 'nil)))
+             ;; term was not a chilog-variable and the values were not (not (equal ...))
+             ;; which means they are, and unification has not found anything new.
+             ((equal term val)
+              (progn
+                (log:trace "UNIFICATION Nothing! " term " = " val)
+                'nil))
+             ;; NOTE: chilog-terms are either chilog-values or chilog-variables.
+             ;; Thus, a chilog-atom's list-of-chilog-terms should be perfectly
+             ;; partitioned by the two cond branches above and this last case
+             ;; should never happen.
+             ;; TODO: Hint that the 't branch of cond is dead code?
+             (t (error "Attempted to unify something other than a chilog-value or chilog-variable!"))))
+  (log:debug "Unification successful! " substitution)
+  't)
 
 ;; NOTE: Renamed from search because the CL standard defines #'search.
 (defun search-db (chilog-db i atoms subs)
