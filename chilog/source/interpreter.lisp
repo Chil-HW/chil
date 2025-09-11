@@ -163,13 +163,20 @@ program."
       ;; add them to the database and continue through our fixed-point again.
       ;; Chose alexandria here for no particular reason.
       (if (alexandria:emptyp new-facts)
-          (return) ; Returns from outer loop
-          (loop for new-fact in new-facts do
-            ;; TODO: Use pattern matching instead of manual destructuring!
-            (let ((p (car new-fact))
-                  (f (cdr new-fact)))
-              (log:debug "Recording new fact! " p " = " f)
-              (add-fact! f p)))))))
+          (progn
+            (log:debug "Finished inference!")
+            (loop for pred being the hash-value of (predicates chilog-db)
+                  for facts = (facts pred)
+                  do (log:trace pred " = " facts))
+            ;; Returns from outer loop
+            (return))
+          (loop for new-fact in new-facts
+                do ;; TODO: Use pattern matching instead of manual destructuring!
+                   (let ((p (car new-fact))
+                         (f (cdr new-fact)))
+                     (log:debug "Recording new fact! " p " = " f)
+                     (add-fact! f p))
+                finally (log:debug "Fixed-point iterate AGAIN!"))))))
 
 (defun query (chilog-db &rest atoms)
   "Query the Datalog program to return a set of valid substitutions for the
