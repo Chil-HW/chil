@@ -57,3 +57,31 @@ test provided in :TEST. By default :TEST is set to `equal'."
      FOO)
     (assert-true (chilog:chilog-variable-p FOO)))
   )
+
+(define-test chilog-value ()
+  ;; Booleans
+  (assert-true (chilog:chilog-value-p 't))
+  (assert-true (chilog:chilog-value-p 'nil))
+
+  ;; Numbers
+  (assert-true (chilog:chilog-value-p -32))
+  (assert-true (chilog:chilog-value-p 0))
+  (assert-true (chilog:chilog-value-p 32))
+  (assert-true (chilog:chilog-value-p 3.14))
+  (assert-true (chilog:chilog-value-p #C(3 9)))
+  (assert-true
+   (check-it:check-it
+    (check-it:generator
+     ;; TODO: Generate complex numbers
+     (or (integer) (real)))
+    (lambda (x) (chilog:chilog-value-p x))))
+
+  ;; Strings
+  (assert-true (chilog:chilog-value-p ""))
+  (assert-true (chilog:chilog-value-p "X"))
+  (assert-true (chilog:chilog-value-p "fOo"))
+  (assert-true (chilog:chilog-value-p "zazagl0rp"))
+  (assert-true
+   (check-it:check-it (check-it:generator (string))
+    (lambda (s) (chilog:chilog-value-p s))))
+  )
