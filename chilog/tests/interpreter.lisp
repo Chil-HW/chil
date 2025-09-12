@@ -1,6 +1,6 @@
 (defpackage :chilog/tests/interpreter
   (:use :cl :lisp-unit2
-        :chilog :chilog/tests))
+        :chilog :chilog/tests/utils))
 
 (in-package :chilog/tests/interpreter)
 
