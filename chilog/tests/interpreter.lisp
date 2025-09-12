@@ -57,9 +57,9 @@
 
   ;; Test that unify returns false when we try to assign two different values to
   ;; the same variable.
-  (let* ((sub (make-hash-table :test #'equal))
-         (X (make-instance 'chilog-variable :name "X"))
-         (unify-possible? 'nil))
+  (let ((sub (make-hash-table :test #'equal))
+        (X (make-instance 'chilog-variable :name "X"))
+        (unify-possible? 'nil))
     (setf (gethash X sub) "earlier")
     ;; If we attempt to unify X <- "bar", we must observe that X was previously
     ;; unified to have the value "earlier". So unification should fail!
@@ -76,13 +76,13 @@
 (define-test search-db ()
   ;; Searching the database for facts should provide us with all facts that we
   ;; installed.
-  (let* ((dl (make-instance 'chilog-db))
-         (parent (make-instance 'chilog-predicate
-                                :name "parent"
-                                :arity 2))
-         (X (make-instance 'chilog-variable :name "X"))
-         (Y (make-instance 'chilog-variable :name "Y"))
-         (subs))
+  (let ((dl (make-instance 'chilog-db))
+        (parent (make-instance 'chilog-predicate
+                               :name "parent"
+                               :arity 2))
+        (X (make-instance 'chilog-variable :name "X"))
+        (Y (make-instance 'chilog-variable :name "Y"))
+        (subs))
     (add-predicate! parent dl)
     (add-variable! X dl)
     (add-variable! Y dl)
@@ -105,16 +105,16 @@
   ;; Evaluating a predicate with only facts should work. This occurs in the case
   ;; where we are evaluating an "aliasing" predicate.
   ;; We expect this to yield the installed facts
-  (let* ((dl (make-instance 'chilog-db))
-         (parent (make-instance 'chilog-predicate
-                                :name "parent"
-                                :arity 2))
-         (ancestor (make-instance 'chilog-predicate
-                                  :name "ancestor"
-                                  :arity 2))
-         (X (make-instance 'chilog-variable :name "X"))
-         (Y (make-instance 'chilog-variable :name "Y"))
-         (subs))
+  (let ((dl (make-instance 'chilog-db))
+        (parent (make-instance 'chilog-predicate
+                               :name "parent"
+                               :arity 2))
+        (ancestor (make-instance 'chilog-predicate
+                                 :name "ancestor"
+                                 :arity 2))
+        (X (make-instance 'chilog-variable :name "X"))
+        (Y (make-instance 'chilog-variable :name "Y"))
+        (subs))
     (add-predicate! parent dl)
     (add-variable! X dl)
     (add-variable! Y dl)
@@ -138,14 +138,14 @@
   ;; up from the underlying "pointed-to" predicate to the "pointed-by" one. The
   ;; end result we expect is that we yield the same thing as the original
   ;; predicate.
-  (let* ((dl (make-instance 'chilog-db))
-         (inner (make-instance 'chilog-predicate
-                               :name "inner"
-                               :arity 1))
-         (outer (make-instance 'chilog-predicate
-                               :name "outer"
-                               :arity 1))
-         (X (make-instance 'chilog-variable :name "X")))
+  (let ((dl (make-instance 'chilog-db))
+        (inner (make-instance 'chilog-predicate
+                              :name "inner"
+                              :arity 1))
+        (outer (make-instance 'chilog-predicate
+                              :name "outer"
+                              :arity 1))
+        (X (make-instance 'chilog-variable :name "X")))
     (add-predicate! inner dl)
     (add-predicate! outer dl)
     (add-variable! X dl)
@@ -159,15 +159,15 @@
      (facts (gethash "outer" (predicates dl)))
      :test #'equal))
 
-  (let* ((dl (make-instance 'chilog-db))
-         (parent (make-instance 'chilog-predicate
-                                :name "parent"
-                                :arity 2))
-         (ancestor (make-instance 'chilog-predicate
-                                  :name "ancestor"
-                                  :arity 2))
-         (X (make-instance 'chilog-variable :name "X"))
-         (Y (make-instance 'chilog-variable :name "Y")))
+  (let ((dl (make-instance 'chilog-db))
+        (parent (make-instance 'chilog-predicate
+                               :name "parent"
+                               :arity 2))
+        (ancestor (make-instance 'chilog-predicate
+                                 :name "ancestor"
+                                 :arity 2))
+        (X (make-instance 'chilog-variable :name "X"))
+        (Y (make-instance 'chilog-variable :name "Y")))
     (add-predicate! parent dl)
     (add-predicate! ancestor dl)
     (add-variable! X dl)
@@ -187,16 +187,16 @@
 
   ;; Perform inference on a Datalog program with a recursive rule that should
   ;; "learn" something.
-  (let* ((dl (make-instance 'chilog-db))
-         (parent (make-instance 'chilog-predicate
-                                :name "parent"
-                                :arity 2))
-         (ancestor (make-instance 'chilog-predicate
-                                  :name "ancestor"
-                                  :arity 2))
-         (X (make-instance 'chilog-variable :name "X"))
-         (Y (make-instance 'chilog-variable :name "Y"))
-         (Z (make-instance 'chilog-variable :name "Z")))
+  (let ((dl (make-instance 'chilog-db))
+        (parent (make-instance 'chilog-predicate
+                               :name "parent"
+                               :arity 2))
+        (ancestor (make-instance 'chilog-predicate
+                                 :name "ancestor"
+                                 :arity 2))
+        (X (make-instance 'chilog-variable :name "X"))
+        (Y (make-instance 'chilog-variable :name "Y"))
+        (Z (make-instance 'chilog-variable :name "Z")))
     (add-variable! X dl)
     (add-variable! Y dl)
     (add-variable! Z dl)
@@ -224,15 +224,15 @@
 (define-test query ()
   ;; A query with a variable and a constant that matches a fact we installed
   ;; should return the fact.
-  (let* ((dl (make-instance 'chilog-db))
-         (parent (make-instance 'chilog-predicate
-                                :name "parent"
-                                :arity 2))
-         (ancestor (make-instance 'chilog-predicate
-                                  :name "ancestor"
-                                  :arity 2))
-         (X (make-instance 'chilog-variable :name "X"))
-         (Y (make-instance 'chilog-variable :name "Y")))
+  (let ((dl (make-instance 'chilog-db))
+        (parent (make-instance 'chilog-predicate
+                               :name "parent"
+                               :arity 2))
+        (ancestor (make-instance 'chilog-predicate
+                                 :name "ancestor"
+                                 :arity 2))
+        (X (make-instance 'chilog-variable :name "X"))
+        (Y (make-instance 'chilog-variable :name "Y")))
     (add-variable! X dl)
     (add-variable! Y dl)
     (add-predicate! parent dl)
@@ -257,16 +257,16 @@
 
   ;; Run a query in a Datalog program that has a recursive rule that should
   ;; "learn" something.
-  (let* ((dl (make-instance 'chilog-db))
-         (parent (make-instance 'chilog-predicate
-                                :name "parent"
-                                :arity 2))
-         (ancestor (make-instance 'chilog-predicate
-                                  :name "ancestor"
-                                  :arity 2))
-         (X (make-instance 'chilog-variable :name "X"))
-         (Y (make-instance 'chilog-variable :name "Y"))
-         (Z (make-instance 'chilog-variable :name "Z")))
+  (let ((dl (make-instance 'chilog-db))
+        (parent (make-instance 'chilog-predicate
+                               :name "parent"
+                               :arity 2))
+        (ancestor (make-instance 'chilog-predicate
+                                 :name "ancestor"
+                                 :arity 2))
+        (X (make-instance 'chilog-variable :name "X"))
+        (Y (make-instance 'chilog-variable :name "Y"))
+        (Z (make-instance 'chilog-variable :name "Z")))
     (add-variable! X dl)
     (add-variable! Y dl)
     (add-variable! Z dl)
