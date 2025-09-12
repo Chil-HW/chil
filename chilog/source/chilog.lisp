@@ -287,7 +287,13 @@ NOTE: This does NOT verify that the new rules are sane in any way!"
   (setf (slot-value pred 'rules) new-rules))
 
 (defmethod add-rule! (new-rule (pred chilog-predicate))
-  (setf (rules pred) (adjoin new-rule (rules pred))))
+  "Add a NEW-RULE to the `chilog-predicate' PRED. Returns the new state of the
+known rules set.
+
+NOTE: add-rule! does NOT add the same rule multiple times! A rule is considered
+the same according to the #'equal function."
+  (setf (rules pred) (adjoin new-rule (rules pred)
+                             :test #'equal)))
 
 (defmethod predicate->atom ((pred chilog-predicate) terms)
   "Convert the \"bare\" `chilog-predicate' PRED to a `chilog-atom' by providing
