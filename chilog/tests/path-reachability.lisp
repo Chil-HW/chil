@@ -115,3 +115,49 @@
      (facts (gethash "path" (predicates db)))
      :test #'equal))
   )
+
+(define-test undigraph-reachability ()
+  ;; This is similar to the digraph-reachability test, but uses the same graph
+  ;; as above, but with undirected edges instead. This means that the recursive
+  ;; rule has nearly double the number of inferred facts compared to the
+  ;; directed variant.  However, most of those facts are "reflections" of one
+  ;; another. The rule that expresses the undirected-ness of edges is an
+  ;; "equivalence relation" and offers unique optimization opportunities.
+
+  ;; The undirected graph is identical to the directed graph, but this program's
+  ;; formulation of path/2 does NOT form a proper equivalence relation.
+  (let ((db (make-instance 'chilog-db))
+        (X (make-instance 'chilog-variable :name "X"))
+        (Y (make-instance 'chilog-variable :name "Y"))
+        (Z (make-instance 'chilog-variable :name "Z"))
+        (edge (make-instance 'chilog-predicate :name "edge" :arity 2))
+        (path (make-instance 'chilog-predicate :name "path" :arity 2)))
+    (add-variable! X db)
+    (add-variable! Y db)
+    (add-variable! Z db)
+    (add-predicate! edge db)
+    (add-predicate! path db)
+    (add-fact! '(1 2) edge)
+    (add-fact! '(2 3) edge)
+    (add-fact! '(3 4) edge)
+    ;; path(x,y) :- path(y,x).
+    ;; NOTE: This rule means that a node can have an edge to itself!
+    (add-rules! path (list X Y) (predicate->atom path (list Y X)))
+    ;; path(x,y) :- edge(x,y).
+    (add-rules! path (list X Y) (predicate->atom edge (list X Y)))
+    ;; path(X,Z) :- edge(X,Y), path(Y,Z).
+    (add-rules! path (list X Z)
+                (predicate->atom edge (list X Y))
+                (predicate->atom path (list Y Z)))
+    (chilog/interpreter:infer db)
+    (assert-set-equal
+     '((1 2) (2 3) (3 4)
+       (1 3) (2 4)
+       (1 4)
+       (2 1) (3 2) (4 3)
+       (3 1) (4 2)
+       (4 1)
+       (1 1) (2 2) (3 3))
+     (facts (gethash "path" (predicates db)))
+     :test #'equal))
+  )
