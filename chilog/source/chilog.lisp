@@ -272,7 +272,7 @@ NOTE: This does NOT verify that the new facts are sane in any way!"
   ;; add-fact! should not add the same fact multiple times!
   (assert (not (member new-fact (facts pred) :test #'equalp)) (new-fact)
           "A predicate's facts must be unique")
-  (setf (facts pred) (cons new-fact (facts pred))))
+  (setf (facts pred) (adjoin new-fact (facts pred))))
 
 (defmethod (setf rules) (new-rules (pred chilog-predicate))
   "Set a new set of rules for PRED.
@@ -282,7 +282,7 @@ NOTE: This does NOT verify that the new rules are sane in any way!"
   (setf (slot-value pred 'rules) new-rules))
 
 (defmethod add-rule! (new-rule (pred chilog-predicate))
-  (setf (rules pred) (cons new-rule (rules pred))))
+  (setf (rules pred) (adjoin new-rule (rules pred))))
 
 (defmethod predicate->atom ((pred chilog-predicate) terms)
   "Convert the \"bare\" `chilog-predicate' PRED to a `chilog-atom' by providing
