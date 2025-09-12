@@ -266,13 +266,18 @@ NOTE: This does NOT verify that the new facts are sane in any way!"
   (setf (slot-value pred 'facts) new-facts))
 
 (defmethod add-fact! (new-fact (pred chilog-predicate))
+  "Add a NEW-FACT to the `chilog-predicate' PRED. Returns the new state of the
+known facts set.
+
+NOTE: add-fact! does NOT add the same fact multiple times! A fact is considered
+the same according to the #'equal function."
   (check-type new-fact chilog-fact)
   (assert (= (length new-fact) (arity pred)) ()
           "Facts must have the same length as the arity of their predicate")
-  ;; add-fact! should not add the same fact multiple times!
-  (assert (not (member new-fact (facts pred) :test #'equalp)) (new-fact)
-          "A predicate's facts must be unique")
-  (setf (facts pred) (adjoin new-fact (facts pred))))
+  ;; XXX: add-fact! should not add the same fact multiple times! adjoin handles
+  ;; this for us.
+  (setf (facts pred) (adjoin new-fact (facts pred)
+                             :test #'equal)))
 
 (defmethod (setf rules) (new-rules (pred chilog-predicate))
   "Set a new set of rules for PRED.
