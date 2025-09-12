@@ -4,7 +4,6 @@
 
 (in-package :chilog/tests/digraph)
 
-;;; TODO: Implement these tests as sanity checks!
 ;;; They are small enough that we can hand-check that the results are sensible
 ;;; while not tanking performance if we have a bad Datalog interpreter and/or
 ;;; query planner.
@@ -158,6 +157,55 @@
        (3 1) (4 2)
        (4 1)
        (1 1) (2 2) (3 3))
+     (facts (gethash "path" (predicates db)))
+     :test #'equal))
+
+  ;; Make the path predicate a full equivalence relation. This means that the
+  ;; '(4 4) fact on path/2 will be captured as well.
+  ;; Equivalence relations require: reflexivity, symmetry, and transitivity.
+  (let ((db (make-instance 'chilog-db))
+        (X (make-instance 'chilog-variable :name "X"))
+        (Y (make-instance 'chilog-variable :name "Y"))
+        (Z (make-instance 'chilog-variable :name "Z"))
+        (edge (make-instance 'chilog-predicate :name "edge" :arity 2))
+        (path (make-instance 'chilog-predicate :name "path" :arity 2)))
+    (add-variable! X db)
+    (add-variable! Y db)
+    (add-variable! Z db)
+    (add-predicate! edge db)
+    (add-predicate! path db)
+    (add-fact! '(1 2) edge)
+    (add-fact! '(2 3) edge)
+    (add-fact! '(3 4) edge)
+    ;; Reflexivity
+    ;; path(x, x) :- path(x, _).
+    ;; (add-rules! path (list X X) (predicate->atom path (list X placeholder)))
+    ;; FIXME: Chilog does not have a way to represent an unknown placeholder
+    ;; chilog-term in a chilog-atom.
+    ;; Symmetry
+    ;; path(x,y) :- path(y,x).
+    ;; NOTE: This rule means that a node can have an edge to itself!
+    (add-rules! path (list X Y) (predicate->atom path (list Y X)))
+    ;; path(x,y) :- edge(x,y).
+    (add-rules! path (list X Y) (predicate->atom edge (list X Y)))
+    ;; Transitivity
+    ;; path(x,z) :- path(x,y), path(y,z).
+    (add-rules! path (list X Z)
+                (predicate->atom path (list X Y))
+                (predicate->atom path (list Y Z)))
+    ;; path(X,Z) :- edge(X,Y), path(Y,Z).
+    (add-rules! path (list X Z)
+                (predicate->atom edge (list X Y))
+                (predicate->atom path (list Y Z)))
+    (chilog/interpreter:infer db)
+    (assert-set-equal
+     '((1 2) (2 3) (3 4)
+       (1 3) (2 4)
+       (1 4)
+       (2 1) (3 2) (4 3)
+       (3 1) (4 2)
+       (4 1)
+       (1 1) (2 2) (3 3) (4 4))
      (facts (gethash "path" (predicates db)))
      :test #'equal))
   )
