@@ -75,7 +75,12 @@ engine."))
       (stringp v)))
 
 (deftype chilog-value ()
-  "A Chilog value is a concretized and constant value."
+  "A Chilog value is a concretized and constant value.
+
+Despite Chilog accepting and allowing numbers (integers, reals, and complex)
+and Booleans, these should be treated as opaque constants. We explicitly DO NOT
+support mathematical or logical operations on the Common Lisp values that
+underly `chilog-value''s."
   `(satisfies chilog-value-p))
 
 (defun chilog-term-p (term)
