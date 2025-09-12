@@ -284,7 +284,7 @@ NOTE: This does NOT verify that the new rules are sane in any way!"
 (defmethod add-rule! (new-rule (pred chilog-predicate))
   (setf (rules pred) (cons new-rule (rules pred))))
 
-(defun predicate->atom (pred terms)
+(defmethod predicate->atom ((pred chilog-predicate) terms)
   "Convert the \"bare\" `chilog-predicate' PRED to a `chilog-atom' by providing
 semi-concrete TERMS that match the declared arity of the predicate. By
 semi-concrete, we mean that the terms can be either constant literals or
@@ -312,6 +312,10 @@ database."
                      (force-output *query-io*)
                      (list (eval (read *query-io*))))
       (predicate->atom pred new-terms))))
+
+;; "delete" the default method implementation
+(defmethod predicate->atom (pred terms)
+  (error "Only predicates can be converted to atoms!"))
 
 (declaim (ftype (function (chilog-term list-of-chilog-atoms) boolean) term-used?))
 (defun term-used? (term rhs)
