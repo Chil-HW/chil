@@ -59,3 +59,49 @@
    (check-it:check-it (check-it:generator (string))
     (lambda (s) (chilog:chilog-value-p s))))
   )
+
+(define-test chilog-atom ()
+  ;; A chilog-atom MUST have ALL their slots' values up front.
+  ;; A chilog-atom is treated as immutable.
+  (assert-error
+   'error
+   (eval (make-instance 'chilog:chilog-atom)))
+  (assert-error
+   'error
+   (eval (make-instance 'chilog:chilog-atom
+                        :predicate "missing-terms")))
+  (assert-error
+   'error
+   (eval
+    (let ((X (make-instance 'chilog:chilog-variable :name "X")))
+      (make-instance 'chilog:chilog-atom
+                     :terms (list 32 "hello" X)))))
+
+  ;; Creating an atom with everything provided should work.
+  (assert-true
+   (let ((X (make-instance 'chilog:chilog-variable :name "X")))
+     (eval (make-instance 'chilog:chilog-atom
+                          :predicate "functional"
+                          :terms (list 32 "hello" X)))))
+
+  ;; chilog-atom should satisfy its own predicate.
+  (assert-true
+   (eval
+    (let ((X (make-instance 'chilog:chilog-variable :name "X")))
+      (chilog:chilog-atom-p
+       (make-instance 'chilog:chilog-atom
+                      :predicate "functional"
+                      :terms (list 32 "hello" X))))))
+
+  ;; list-of-chilog-atoms
+  (assert-true
+   (eval
+    (let ((X (make-instance 'chilog:chilog-variable :name "X")))
+      (chilog:list-of-chilog-atoms-p
+       (list (make-instance 'chilog:chilog-atom
+                            :predicate "only-vals"
+                            :terms (list 32 "hello"))
+             (make-instance 'chilog:chilog-atom
+                            :predicate "with-var"
+                            :terms (list X)))))))
+  )
