@@ -105,3 +105,74 @@
                             :predicate "with-var"
                             :terms (list X)))))))
   )
+
+(define-test chilog-rule ()
+  ;; A chilog-rule MUST have ALL their slots' values up front.
+  ;; A chilog-rule is treated as immutable.
+  (assert-error
+   'error
+   (eval (make-instance 'chilog:chilog-rule)))
+  (assert-error
+   'error
+   (eval
+    (make-instance 'chilog:chilog-rule
+                   :head (make-instance
+                          'chilog:chilog-atom
+                          :predicate "missing-body"
+                          :terms '()))))
+  (assert-error
+   'error
+   (eval
+    (make-instance 'chilog:chilog-rule
+                   :body
+                   (list
+                    (make-instance 'chilog:chilog-atom
+                                   :predicate "missing-head"
+                                   :terms '())))))
+
+                       ;; :terms (list 32 "hello" X)))))
+
+
+  (let* ((X (make-instance 'chilog:chilog-variable :name "X"))
+         (Y (make-instance 'chilog:chilog-variable :name "Y"))
+         (rule-head (make-instance 'chilog:chilog-atom
+                                   :predicate "head"
+                                   :terms (list X Y)))
+         (rule-body (list (make-instance 'chilog:chilog-atom
+                                         :predicate "head"
+                                         :terms (list Y X)))))
+    ;; Creating a rule with everything provided should work.
+    (assert-true
+     (eval
+      (make-instance 'chilog:chilog-rule
+                     :head rule-head
+                     :body rule-body)))
+    ;; chilog-rule should satisfy its own predicate.
+    (assert-true
+     (eval
+      (chilog:chilog-rule-p
+       (make-instance 'chilog:chilog-rule
+                      :head rule-head
+                      :body rule-body)))))
+
+  ;; list-of-chilog-rules
+  (let* ((X (make-instance 'chilog:chilog-variable :name "X"))
+         (Y (make-instance 'chilog:chilog-variable :name "Y"))
+         (rule-body (list (make-instance 'chilog:chilog-atom
+                                         :predicate "head"
+                                         :terms (list Y X)))))
+    (assert-true
+     (eval
+      (chilog:list-of-chilog-rules-p
+       (list
+        (make-instance 'chilog:chilog-rule
+                       :head (make-instance 'chilog:chilog-atom
+                                            :predicate "head0"
+                                            :terms (list X Y))
+                       :body rule-body)
+        (make-instance 'chilog:chilog-rule
+                       :head (make-instance 'chilog:chilog-atom
+                                            :predicate "head1"
+                                            :terms (list X Y))
+                       :body rule-body))))))
+  )
