@@ -221,7 +221,7 @@
       (length (chilog:facts pred)))
     (assert-set-equal new-facts
       (chilog:facts pred)
-      :test #'equal))
+      :test #'chilog:chilog-equal))
 
   ;; setf rules
   (let* ((X (make-instance 'chilog:chilog-variable
@@ -246,7 +246,7 @@
       (length (chilog:rules pred)))
     (assert-equal new-rules
       (chilog:rules pred)
-      :test #'equal))
+      :test #'chilog:chilog-equal))
 
   ;; The actual setters defined on the predicate class's modifiable slots add
   ;; the provided information to the predicate object while obeying the rules
@@ -270,7 +270,7 @@
       (length (chilog:facts pred)))
     (assert-set-equal new-facts
       (chilog:facts pred)
-      :test #'equal))
+      :test #'chilog:chilog-equal))
 
   ;; Adding a malformed fact should not work
   (let ((pred (make-instance 'chilog:chilog-predicate
@@ -285,7 +285,7 @@
       (length (chilog:facts pred)))
     (assert-set-equal '()
       (chilog:facts pred)
-      :test #'equal))
+      :test #'chilog:chilog-equal))
 
   ;; A predicate's facts are a set, so adding duplicates should do nothing
   (let ((pred (make-instance 'chilog:chilog-predicate
@@ -299,9 +299,10 @@
           duplicated-facts)
     (assert-number-equal 1
       (length (chilog:facts pred)))
-    (assert-set-equal (remove-duplicates duplicated-facts :test #'equal)
+    (assert-set-equal (remove-duplicates duplicated-facts
+                                         :test #'chilog:chilog-equal)
       (chilog:facts pred)
-      :test #'equal))
+      :test #'chilog:chilog-equal))
 
   ;; add-rule!
   (let* ((X (make-instance 'chilog:chilog-variable :name "X"))
@@ -334,7 +335,7 @@
       (length (chilog:rules pred)))
     (assert-set-equal new-rules
       (chilog:rules pred)
-      :test #'equal))
+      :test #'chilog:chilog-equal))
 
   ;; Adding a malformed rule should not work
   (let ((X (make-instance 'chilog:chilog-variable :name "X"))
@@ -361,7 +362,7 @@
       (length (chilog:rules pred)))
     (assert-set-equal '()
       (chilog:rules pred)
-      :test #'equal))
+      :test #'chilog:chilog-equal))
 
   ;; A predicate's rules are a set, so adding duplicates should do nothing
   ;; NOTE: We have two kinds of duplicates:
@@ -389,12 +390,13 @@
       (length (chilog:rules pred)))
     (assert-set-equal (list new-rule)
       (chilog:rules pred)
-      :test #'equal))
+      :test #'chilog:chilog-equal))
 
   (let* ((X (make-instance 'chilog:chilog-variable :name "X"))
          (pred (make-instance 'chilog:chilog-predicate
                               :name "test"
                               :arity 1))
+         ;; Two structurally similar but distinct (according to eq) rules.
          (new-rules (list
                      (make-instance 'chilog:chilog-rule
                                     :head (make-instance 'chilog:chilog-atom
@@ -404,9 +406,6 @@
                                            (make-instance 'chilog:chilog-atom
                                                           :predicate "body"
                                                           :terms (list X))))
-                     ;; Two very similar but different rules
-                     ;; They are not the same according to #'eq, but SHOULD be
-                     ;; according to #'equal.
                      (make-instance 'chilog:chilog-rule
                                     :head (make-instance 'chilog:chilog-atom
                                                          :predicate "test"
@@ -419,15 +418,13 @@
       (length (chilog:rules pred)))
     (mapc (lambda (rule) (chilog:add-rule! rule pred))
         new-rules)
-    ;; FIXME: Fix this failing assertion.
-    ;; (assert-number-equal 1
-    ;;   (length (chilog:rules pred)))
-    (assert-set-equal (remove-duplicates new-rules :test #'equal)
+    (assert-number-equal 1
+      (length (chilog:rules pred)))
+    (assert-set-equal (remove-duplicates new-rules
+                                         :test #'chilog:chilog-equal)
       (chilog:rules pred)
-      :test #'equal))
+      :test #'chilog:chilog-equal))
 
-  ;; TODO: add-rules! is hard to test since we do not have #'equal deifned for
-  ;; predicates, atoms, etc.
   ;; add-rules!
   (let* ((X (make-instance 'chilog:chilog-variable :name "X"))
          (Y (make-instance 'chilog:chilog-variable :name "Y"))
@@ -453,22 +450,13 @@
                                                           :terms (list Y)))))))
     (assert-number-equal 0
       (length (chilog:rules pred)))
-    ;; (chilog:add-rules! pred (list X)
-    ;;                    (nth 0 (chilog:body (nth 0 new-rules))))
-    ;; (chilog:add-rules! pred (list X)
-    ;;                    (make-instance 'chilog:chilog-atom
-    ;;                                   :predicate "body"
-    ;;                                   :terms (list X)))
-    ;; (chilog:add-rules! pred (list Y)
-    ;;                    (make-instance 'chilog:chilog-atom
-    ;;                                   :predicate "body"
-    ;;                                   :terms (list Y)))
+    (mapc (lambda (rule) (chilog:add-rule! rule pred))
+        new-rules)
     (assert-number-equal 2
       (length (chilog:rules pred)))
     (assert-set-equal new-rules
       (chilog:rules pred)
-      :test #'equal)
-    )
+      :test #'chilog:chilog-equal))
 
   ;; predicate->atom
   ;;  Will have to somehow define #'equal for my classes.
@@ -637,4 +625,214 @@
       (hash-table-count (chilog:predicates db)))
     (assert-set-equal (list pred)
       (alexandria:hash-table-values (chilog:predicates db))))
+  )
+
+(define-test chilog-equal ()
+  ;;; Sanity checking chilog-equal for non-Chilog values/objects
+  ;; Verify that #'chilog-equal is "delete"d for normal Common Lisp values
+  ;; Since these simple tests can have inference performed on them, we need to
+  ;; prevent compile-time checks & evaluation from invalidating the tests.
+  (assert-false
+   (eval (chilog:chilog-equal 32 "hello")))
+  (assert-false
+   (eval
+    (chilog:chilog-equal 32
+                         (make-instance 'chilog:chilog-variable :name "X"))))
+  (assert-false
+   (eval
+    (chilog:chilog-equal (make-instance 'chilog:chilog-variable :name "X")
+                         #C(3 8.2))))
+  ;; But we should not "delete" nil comparisons, since we need those to work for
+  ;; map-style operations.
+  (assert-true
+   (eval (chilog:chilog-equal 'nil 'nil)))
+
+  ;;; chilog-variable
+  ;; Variables MUST be unique, pretty much according to #'eq rules (pointers are
+  ;; the same). We have other tools to ensure a Chilog program only has one of
+  ;; each variable.
+  (let ((X1 (make-instance 'chilog:chilog-variable :name "X"))
+        (X2 (make-instance 'chilog:chilog-variable :name "X")))
+    (assert-true (chilog:chilog-equal X1 X1))
+    (assert-true (chilog:chilog-equal X2 X2))
+    (assert-false (chilog:chilog-equal X1 X2)))
+
+  ;;; chilog-atom
+  (let ((a1 (make-instance 'chilog:chilog-atom
+                           :predicate "foo"
+                           :terms '()))
+        (a2 (make-instance 'chilog:chilog-atom
+                           :predicate "foo"
+                           :terms '())))
+    (assert-true (chilog:chilog-equal a1 a1))
+    (assert-true (chilog:chilog-equal a2 a2))
+    (assert-true (chilog:chilog-equal a1 a2)))
+
+  (let* ((X (make-instance 'chilog:chilog-variable :name "X"))
+         (a1 (make-instance 'chilog:chilog-atom
+                           :predicate "foo"
+                           :terms `(,X)))
+        (a2 (make-instance 'chilog:chilog-atom
+                           :predicate "foo"
+                           :terms (list X))))
+    (assert-true (chilog:chilog-equal a1 a1))
+    (assert-true (chilog:chilog-equal a2 a2))
+    (assert-true (chilog:chilog-equal a1 a2)))
+
+  ;; It is impossible to construct 2 atoms with different predicate names or
+  ;; terms that are equivalent according to #'eq, since that requires two calls
+  ;; to make-instance. So we expect #'chilog-equal to return false.
+  (let* ((X (make-instance 'chilog:chilog-variable :name "X"))
+         (a1 (make-instance 'chilog:chilog-atom
+                            :predicate "foo"
+                            :terms `("hello" ,X)))
+         (a2 (make-instance 'chilog:chilog-atom
+                            :predicate "foo"
+                            :terms '(32))))
+    (assert-true (chilog:chilog-equal a1 a1))
+    (assert-true (chilog:chilog-equal a2 a2))
+    (assert-false (chilog:chilog-equal a1 a2)))
+
+  ;;; chilog-rule
+  (let* ((head (make-instance 'chilog:chilog-atom
+                              :predicate "head"
+                              :terms '("foo" "bar")))
+         (r1 (make-instance 'chilog:chilog-rule
+                            :head head
+                            :body '()))
+         (r2 (make-instance 'chilog:chilog-rule
+                            :head head
+                            :body '())))
+    (assert-true (chilog:chilog-equal r1 r1))
+    (assert-true (chilog:chilog-equal r2 r2))
+    (assert-true (chilog:chilog-equal r1 r2)))
+
+  ;;; chilog-predicate
+
+  ;;; chilog-db
+  ;; Two databases that are empty should be equivalent
+  (let ((db1 (make-instance 'chilog:chilog-db))
+        (db2 (make-instance 'chilog:chilog-db)))
+    (assert-true (chilog:chilog-equal db1 db1))
+    (assert-true (chilog:chilog-equal db2 db2))
+    (assert-true (chilog:chilog-equal db1 db2)))
+
+  ;; Two databases with the same variables should be equivalent
+  ;; There are 2 cases:
+  ;;   1. The SAME variable (according to #'eq) is in both DBs.
+  ;;   2. Two variables with the same string name is in both DBs.
+  ;; For now, we treat the second case as something we do NOT want to allow.
+  ;; We don't want to get into the case where we have to figure out if two
+  ;; variables in different databases are actually the same.
+  (let ((db1 (make-instance 'chilog:chilog-db))
+        (db2 (make-instance 'chilog:chilog-db))
+        (X (make-instance 'chilog:chilog-variable :name "X")))
+    (assert-true
+     (and (zerop (hash-table-count (chilog:variables db1)))
+          (zerop (hash-table-count (chilog:variables db2)))))
+
+    (chilog:add-variable! X db1)
+    (chilog:add-variable! X db2)
+
+    (assert-true
+     (and (= 1 (hash-table-count (chilog:variables db1)))
+          (= 1 (hash-table-count (chilog:variables db2)))))
+    (assert-true
+     (chilog:chilog-equal db1 db2)))
+
+  (let ((db1 (make-instance 'chilog:chilog-db))
+        (db2 (make-instance 'chilog:chilog-db))
+        (X1 (make-instance 'chilog:chilog-variable :name "X"))
+        (X2 (make-instance 'chilog:chilog-variable :name "X")))
+    (assert-true
+     (and (zerop (hash-table-count (chilog:variables db1)))
+          (zerop (hash-table-count (chilog:variables db2)))))
+
+    (chilog:add-variable! X1 db1)
+    (chilog:add-variable! X2 db2)
+
+    (assert-true
+     (and (= 1 (hash-table-count (chilog:variables db1)))
+          (= 1 (hash-table-count (chilog:variables db2)))))
+    (assert-false
+     (chilog:chilog-equal db1 db2)))
+
+  ;; Two databases with the same predicates should be equivalent
+  ;; Like variables, there are 2 cases:
+  ;;   1. The SAME predicate (according to #'eq) is in both DBs.
+  ;;   2. Two predicates with the same names and arity are in both DBs.
+  ;; Similar to variables, we are not going to try to handle two distinct
+  ;; predicates (according to #'eq) that "just so happen" to have the same name
+  ;; and arity.
+  (let ((db1 (make-instance 'chilog:chilog-db))
+        (db2 (make-instance 'chilog:chilog-db))
+        (pred (make-instance 'chilog:chilog-predicate :name "test-pred"
+                                                      :arity 4)))
+    (assert-true
+     (and (zerop (hash-table-count (chilog:predicates db1)))
+          (zerop (hash-table-count (chilog:predicates db2)))))
+
+    (chilog:add-predicate! pred db1)
+    (chilog:add-predicate! pred db2)
+
+    (assert-true
+     (and (= 1 (hash-table-count (chilog:predicates db1)))
+          (= 1 (hash-table-count (chilog:predicates db2)))))
+    (assert-true
+     (chilog:chilog-equal db1 db2)))
+
+  (let ((db1 (make-instance 'chilog:chilog-db))
+        (db2 (make-instance 'chilog:chilog-db))
+        (pred1 (make-instance 'chilog:chilog-predicate :name "test-pred"
+                                                       :arity 4))
+        (pred2 (make-instance 'chilog:chilog-predicate :name "test-pred"
+                                                       :arity 4)))
+    (assert-true
+     (and (zerop (hash-table-count (chilog:predicates db1)))
+          (zerop (hash-table-count (chilog:predicates db2)))))
+
+    (chilog:add-predicate! pred1 db1)
+    (chilog:add-predicate! pred2 db2)
+
+    (assert-true
+     (and (= 1 (hash-table-count (chilog:predicates db1)))
+          (= 1 (hash-table-count (chilog:predicates db2)))))
+    (assert-true
+     (chilog:chilog-equal db1 db2)))
+
+  ;; 2 databases with different contents that are STRUCTURALLY the same SHOULD
+  ;; be equal, but only if they share the same variables!
+  (let ((db1 (make-instance 'chilog:chilog-db))
+        (db2 (make-instance 'chilog:chilog-db))
+        (db3 (make-instance 'chilog:chilog-db))
+        (X1 (make-instance 'chilog:chilog-variable :name "X"))
+        (X2 (make-instance 'chilog:chilog-variable :name "X"))
+        (pred1 (make-instance 'chilog:chilog-predicate :name "test-pred"
+                                                       :arity 4))
+        (pred2 (make-instance 'chilog:chilog-predicate :name "test-pred"
+                                                       :arity 4)))
+    (assert-true
+     (and (zerop (hash-table-count (chilog:variables db1)))
+          (zerop (hash-table-count (chilog:variables db1)))
+          (zerop (hash-table-count (chilog:predicates db1)))
+          (zerop (hash-table-count (chilog:predicates db2)))))
+
+    (chilog:add-variable! X1 db1)
+    (chilog:add-variable! X1 db3)
+    (chilog:add-variable! X2 db2)
+    (chilog:add-predicate! pred1 db1)
+    (chilog:add-predicate! pred1 db3)
+    (chilog:add-predicate! pred2 db2)
+
+    (assert-true
+     (and (= 1 (hash-table-count (chilog:variables db1)))
+          (= 1 (hash-table-count (chilog:variables db3)))
+          (= 1 (hash-table-count (chilog:variables db2)))
+          (= 1 (hash-table-count (chilog:predicates db1)))
+          (= 1 (hash-table-count (chilog:predicates db3)))
+          (= 1 (hash-table-count (chilog:predicates db2)))))
+    (assert-false
+     (chilog:chilog-equal db1 db2))
+    (assert-true
+     (chilog:chilog-equal db1 db3)))
   )

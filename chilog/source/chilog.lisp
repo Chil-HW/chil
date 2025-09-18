@@ -1,6 +1,7 @@
 (defpackage :chilog
   (:use :cl)
-  (:export #:chilog-variable
+  (:export #:chilog-equal
+           #:chilog-variable
            #:chilog-variable-p
            #:name
            #:chilog-value
@@ -43,6 +44,16 @@
 ;;;  2. Complex terms are not allowed, i.e. p(f(x), y) is disallowed
 ;;;  3. Every variable in the head of a clause MUST be used in the clause.
 
+(defgeneric chilog-equal (c1 c2)
+  (:documentation "Return 't if C1 and C2 are equal. Chilog's equality
+operation does STRUCTURAL equality. It does NOT check that the provide Chilog
+objects are equivalent. This is roughly equivalent to Common Lisp's `equal'."))
+
+(defmethod chilog-equal (c1 c2)
+  "\"Default implementation\" for Chilog's notion of equality.
+Since this is the most generic method, we fall back to `equal'."
+  (equal c1 c2))
+
 
 ;;;
 ;;; The various components and types of our modeling of the Datalog language,
@@ -73,6 +84,12 @@ engine."))
       ;; integer and floating-point, we need to add additional predicates.
       (numberp v)
       (stringp v)))
+
+(defmethod chilog-equal ((c1 chilog-variable) (c2 chilog-variable))
+  "Equality of Chilog variables is effectively an #'eq comparison, since all
+top-level variables in a Datalog program must be unique."
+  (and (eq c1 c2)
+       (string-equal (name c1) (name c2))))
 
 (deftype chilog-value ()
   "A Chilog value is a concretized and constant value.
@@ -133,6 +150,13 @@ predicate object."))
     (print-unreadable-object (atom stream :type t :identity t)
       (format stream "~a(~a)" (predicate atom) ts))))
 
+(defmethod chilog-equal ((c1 chilog-atom) (c2 chilog-atom))
+  "Equality of `chilog-atom's mostly amounts to checking that the terms in the
+atoom are the same."
+  (and (string-equal (predicate c1) (predicate c2))
+       (every (lambda (t1 t2) (chilog-equal t1 t2))
+              (terms c1) (terms c2))))
+
 (defun list-of-chilog-atoms-p (atoms)
   (and (listp atoms)
        (every #'chilog-atom-p atoms)))
@@ -167,6 +191,11 @@ The right-hand-side (RHS) of the :- is the body list of atoms."))
   (let ((body-str (format 'nil "~{~a~^, ~}" (body rule))))
     (print-unreadable-object (rule stream :type t :identity t)
       (format stream "~a :- ~a" (head rule) body-str))))
+
+(defmethod chilog-equal ((c1 chilog-rule) (c2 chilog-rule))
+  (and (chilog-equal (head c1) (head c2))
+       (every (lambda (b1 b2) (chilog-equal b1 b2))
+              (body c1) (body c2))))
 
 (defun chilog-fact-p (vals)
   (and (listp vals)
@@ -257,6 +286,16 @@ ancestor(X, Y) :- parent(X, Z), ancestor(Z, Y)"))
   (print-unreadable-object (pred stream :type t :identity t)
     (format stream "~a/~a" (name pred) (arity pred))))
 
+(defmethod chilog-equal ((c1 chilog-predicate) (c2 chilog-predicate))
+  (and (string-equal (name c1) (name c2))
+       (= (arity c1) (arity c2))
+       ;; We do not use facts to determine equality because two different
+       ;; chilog-predicates that have different pre-installed facts but are
+       ;; otherwise the same.
+       ;; We have to go through inference to find all facts anyways.
+       (every (lambda (r1 r2) (chilog-equal r1 r2))
+              (rules c1) (rules c2))))
+
 (defmethod (setf facts) (new-facts (pred chilog-predicate))
   "Set a new set of facts for PRED.
 
@@ -292,8 +331,9 @@ known rules set.
 
 NOTE: add-rule! does NOT add the same rule multiple times! A rule is considered
 the same according to the #'equal function."
+  (check-type new-rule chilog-rule)
   (setf (rules pred) (adjoin new-rule (rules pred)
-                             :test #'equal)))
+                             :test #'chilog-equal)))
 
 (defmethod predicate->atom ((pred chilog-predicate) terms)
   "Convert the \"bare\" `chilog-predicate' PRED to a `chilog-atom' by providing
@@ -430,6 +470,16 @@ all the `chilog-variable's and `chilog-predicate's in the Chilog/Datalog program
 
 This also includes a Datalog inference engine, using an iterative fixed-point
 depth-first search algorithm to find solutions."))
+
+(defmethod chilog-equal ((c1 chilog-db) (c2 chilog-db))
+  "Two Chilog databases are equal if they contain the same variables and they
+contain the same predicates according to `chilog-equal'."
+  (and (every (lambda (v1 v2) (chilog-equal v1 v2))
+              (alexandria:hash-table-values (variables c1))
+              (alexandria:hash-table-values (variables c2)))
+       (every (lambda (p1 p2) (chilog-equal p1 p2))
+              (alexandria:hash-table-values (predicates c1))
+              (alexandria:hash-table-values (predicates c2)))))
 
 (defmethod add-variable! ((new-var chilog-variable) (db chilog-db))
   "Register the `chilog-variable' NEW-VAR in the Datalog program and return it."
