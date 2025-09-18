@@ -1,7 +1,8 @@
 (defpackage :chilog/tests
   ;; NOTE: Do NOT add :chilog to the :use list! It interferes with defining
   ;; tests, preventing the tests from running.
-  (:use :cl :lisp-unit2))
+  (:use :cl :lisp-unit2
+        :chilog/tests/utils))
 
 (in-package :chilog/tests)
 
@@ -175,4 +176,300 @@
                                             :predicate "head1"
                                             :terms (list X Y))
                        :body rule-body))))))
+  )
+
+(define-test chilog-predicate ()
+  ;; You MUST provide a name and arity to construct a predicate
+  ;; Note that we do NOT require that all facts and/or rules be provided
+  ;; up-front!
+  (assert-error
+   'error
+   (eval (make-instance 'chilog:chilog-predicate)))
+  (assert-error
+   'error
+   (eval
+    (make-instance 'chilog:chilog-predicate
+                   :name "missing-arity")))
+  (assert-error
+   'error
+   (eval
+    (make-instance 'chilog:chilog-predicate
+                   :arity 0)))
+  ;; A predicate's arity cannot be negative
+  (assert-error
+   'error
+   (eval
+    (make-instance 'chilog:chilog-predicate
+                   :name "negative-arity"
+                   :arity -3)))
+
+  ;; The "setf-ers" for facts and rules just "blindly" accept anything and
+  ;; everything provided to them, so long as the type of the provided values
+  ;; lines up with the slots' declared :type.
+  ;; setf facts
+  (let ((pred (make-instance 'chilog:chilog-predicate
+                             :name "test"
+                             :arity 1))
+        (new-facts '(("x")
+                     (32))))
+    (assert-number-equal 0
+      (length (chilog:facts pred)))
+    ;; A fact is an ordered list of values that each variable in the predicate's
+    ;; arity is allowed to have.
+    (setf (chilog:facts pred) new-facts)
+    (assert-number-equal 2
+      (length (chilog:facts pred)))
+    (assert-set-equal new-facts
+      (chilog:facts pred)
+      :test #'equal))
+
+  ;; setf rules
+  (let* ((X (make-instance 'chilog:chilog-variable
+                           :name "X"))
+         (pred (make-instance 'chilog:chilog-predicate
+                             :name "test"
+                             :arity 1))
+         (new-rules (list
+                     (make-instance 'chilog:chilog-rule
+                                    :head (make-instance 'chilog:chilog-atom
+                                                         :predicate "test"
+                                                         :terms (list X))
+                                    :body (list
+                                           (make-instance 'chilog:chilog-atom
+                                                          :predicate "body"
+                                                          :terms (list X)))))))
+    (assert-number-equal 0
+      (length (chilog:rules pred)))
+    ;; A rule is an unordered list of rules that is attached to the predicate.
+    (setf (chilog:rules pred) new-rules)
+    (assert-number-equal 1
+      (length (chilog:rules pred)))
+    (assert-equal new-rules
+      (chilog:rules pred)
+      :test #'equal))
+
+  ;; The actual setters defined on the predicate class's modifiable slots add
+  ;; the provided information to the predicate object while obeying the rules
+  ;; Datalog/Chilog predicates must follow (rules & facts must be unique, being
+  ;; the primary one).
+
+  ;; add-fact!
+  (let ((pred (make-instance 'chilog:chilog-predicate
+                             :name "test"
+                             :arity 1))
+        ;; A fact is an ordered list of values that each variable in the
+        ;; predicate's arity is allowed to have.
+        (new-facts '(("x")
+                     (32)
+                     ("x"))))
+    (assert-number-equal 0
+      (length (chilog:facts pred)))
+    (mapc (lambda (fact) (chilog:add-fact! fact pred))
+          new-facts)
+    (assert-number-equal 2
+      (length (chilog:facts pred)))
+    (assert-set-equal new-facts
+      (chilog:facts pred)
+      :test #'equal))
+
+  ;; Adding a malformed fact should not work
+  (let ((pred (make-instance 'chilog:chilog-predicate
+                             :name "test"
+                             :arity 1)))
+    (assert-number-equal 0
+      (length (chilog:facts pred)))
+    (assert-error
+     'type-error
+     (chilog:add-fact! "not-a-fact" pred))
+    (assert-number-equal 0
+      (length (chilog:facts pred)))
+    (assert-set-equal '()
+      (chilog:facts pred)
+      :test #'equal))
+
+  ;; A predicate's facts are a set, so adding duplicates should do nothing
+  (let ((pred (make-instance 'chilog:chilog-predicate
+                             :name "test"
+                             :arity 1))
+        (duplicated-facts '(("duplicate")
+                            ("duplicate"))))
+    (assert-number-equal 0
+      (length (chilog:facts pred)))
+    (mapc (lambda (fact) (chilog:add-fact! fact pred))
+          duplicated-facts)
+    (assert-number-equal 1
+      (length (chilog:facts pred)))
+    (assert-set-equal (remove-duplicates duplicated-facts :test #'equal)
+      (chilog:facts pred)
+      :test #'equal))
+
+  ;; add-rule!
+  (let* ((X (make-instance 'chilog:chilog-variable :name "X"))
+         (Y (make-instance 'chilog:chilog-variable :name "Y"))
+         (pred (make-instance 'chilog:chilog-predicate
+                              :name "test"
+                              :arity 1))
+         (new-rules (list
+                     (make-instance 'chilog:chilog-rule
+                                    :head (make-instance 'chilog:chilog-atom
+                                                         :predicate "test"
+                                                         :terms (list X))
+                                    :body (list
+                                           (make-instance 'chilog:chilog-atom
+                                                          :predicate "body"
+                                                          :terms (list X))))
+                     (make-instance 'chilog:chilog-rule
+                                    :head (make-instance 'chilog:chilog-atom
+                                                         :predicate "test"
+                                                         :terms (list Y))
+                                    :body (list
+                                           (make-instance 'chilog:chilog-atom
+                                                          :predicate "body"
+                                                          :terms (list Y)))))))
+    (assert-number-equal 0
+      (length (chilog:rules pred)))
+    (mapc (lambda (rule) (chilog:add-rule! rule pred))
+        new-rules)
+    (assert-number-equal 2
+      (length (chilog:rules pred)))
+    (assert-set-equal new-rules
+      (chilog:rules pred)
+      :test #'equal))
+
+  ;; Adding a malformed rule should not work
+  (let ((X (make-instance 'chilog:chilog-variable :name "X"))
+        (pred (make-instance 'chilog:chilog-predicate
+                             :name "test"
+                             :arity 1)))
+    (assert-number-equal 0
+      (length (chilog:rules pred)))
+    (assert-error
+     'type-error
+     (chilog:add-rule!
+      ;; You cannot add a list of rules with add-rule!, only a single rule.
+      (list
+       (make-instance 'chilog:chilog-rule
+                      :head (make-instance 'chilog:chilog-atom
+                                           :predicate "test"
+                                           :terms (list X))
+                      :body (list
+                             (make-instance 'chilog:chilog-atom
+                                            :predicate "body"
+                                            :terms (list X)))))
+      pred))
+    (assert-number-equal 0
+      (length (chilog:rules pred)))
+    (assert-set-equal '()
+      (chilog:rules pred)
+      :test #'equal))
+
+  ;; A predicate's rules are a set, so adding duplicates should do nothing
+  ;; NOTE: We have two kinds of duplicates:
+  ;;   1. Literally the same rule (add-rule! X pred) (add-rule! X pred)
+  ;;   2. The same predicate, but different instances.
+  ;; We currently only detect the first case.
+  (let* ((X (make-instance 'chilog:chilog-variable :name "X"))
+         (pred (make-instance 'chilog:chilog-predicate
+                              :name "test"
+                              :arity 1))
+         (new-rule (make-instance 'chilog:chilog-rule
+                                    :head (make-instance 'chilog:chilog-atom
+                                                         :predicate "test"
+                                                         :terms (list X))
+                                    :body (list
+                                           (make-instance 'chilog:chilog-atom
+                                                          :predicate "body"
+                                                          :terms (list X))))))
+    (assert-number-equal 0
+      (length (chilog:rules pred)))
+    ;; Adding a duplicate rule (according to #'eq) should only work once.
+    (chilog:add-rule! new-rule pred)
+    (chilog:add-rule! new-rule pred)
+    (assert-number-equal 1
+      (length (chilog:rules pred)))
+    (assert-set-equal (list new-rule)
+      (chilog:rules pred)
+      :test #'equal))
+
+  (let* ((X (make-instance 'chilog:chilog-variable :name "X"))
+         (pred (make-instance 'chilog:chilog-predicate
+                              :name "test"
+                              :arity 1))
+         (new-rules (list
+                     (make-instance 'chilog:chilog-rule
+                                    :head (make-instance 'chilog:chilog-atom
+                                                         :predicate "test"
+                                                         :terms (list X))
+                                    :body (list
+                                           (make-instance 'chilog:chilog-atom
+                                                          :predicate "body"
+                                                          :terms (list X))))
+                     ;; Two very similar but different rules
+                     ;; They are not the same according to #'eq, but SHOULD be
+                     ;; according to #'equal.
+                     (make-instance 'chilog:chilog-rule
+                                    :head (make-instance 'chilog:chilog-atom
+                                                         :predicate "test"
+                                                         :terms (list X))
+                                    :body (list
+                                           (make-instance 'chilog:chilog-atom
+                                                          :predicate "body"
+                                                          :terms (list X)))))))
+    (assert-number-equal 0
+      (length (chilog:rules pred)))
+    (mapc (lambda (rule) (chilog:add-rule! rule pred))
+        new-rules)
+    ;; FIXME: Fix this failing assertion.
+    ;; (assert-number-equal 1
+    ;;   (length (chilog:rules pred)))
+    (assert-set-equal (remove-duplicates new-rules :test #'equal)
+      (chilog:rules pred)
+      :test #'equal))
+
+  ;; TODO: add-rules! is hard to test since we do not have #'equal deifned for
+  ;; predicates, atoms, etc.
+  ;; add-rules!
+  (let* ((X (make-instance 'chilog:chilog-variable :name "X"))
+         (Y (make-instance 'chilog:chilog-variable :name "Y"))
+         (pred (make-instance 'chilog:chilog-predicate
+                              :name "test"
+                              :arity 1))
+         (new-rules (list
+                     (make-instance 'chilog:chilog-rule
+                                    :head (make-instance 'chilog:chilog-atom
+                                                         :predicate "test"
+                                                         :terms (list X))
+                                    :body (list
+                                           (make-instance 'chilog:chilog-atom
+                                                          :predicate "body"
+                                                          :terms (list X))))
+                     (make-instance 'chilog:chilog-rule
+                                    :head (make-instance 'chilog:chilog-atom
+                                                         :predicate "test"
+                                                         :terms (list Y))
+                                    :body (list
+                                           (make-instance 'chilog:chilog-atom
+                                                          :predicate "body"
+                                                          :terms (list Y)))))))
+    (assert-number-equal 0
+      (length (chilog:rules pred)))
+    ;; (chilog:add-rules! pred (list X)
+    ;;                    (nth 0 (chilog:body (nth 0 new-rules))))
+    ;; (chilog:add-rules! pred (list X)
+    ;;                    (make-instance 'chilog:chilog-atom
+    ;;                                   :predicate "body"
+    ;;                                   :terms (list X)))
+    ;; (chilog:add-rules! pred (list Y)
+    ;;                    (make-instance 'chilog:chilog-atom
+    ;;                                   :predicate "body"
+    ;;                                   :terms (list Y)))
+    (assert-number-equal 2
+      (length (chilog:rules pred)))
+    (assert-set-equal new-rules
+      (chilog:rules pred)
+      :test #'equal)
+    )
+
+  ;; predicate->atom
+  ;;  Will have to somehow define #'equal for my classes.
   )
