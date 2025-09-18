@@ -473,3 +473,168 @@
   ;; predicate->atom
   ;;  Will have to somehow define #'equal for my classes.
   )
+
+(define-test chilog-db ()
+  ;; Constructing a brand-new empty DB should always work.
+  ;; There are no mandatory fields in the DB. It is intended to track all
+  ;; variables and predicates in the program in a single structure. You CAN
+  ;; provide these values at construction-time or by using the imperative
+  ;; add-<thing>! methods.
+  (assert-true
+   (make-instance 'chilog:chilog-db))
+
+  ;; Constructing a database with values provided should work.
+
+  ;;; setf add-variable
+  ;; You can set a whole table
+  (let ((new-vars (make-instance 'chilog:chilog-db-table
+                                 :table-predicate #'chilog:chilog-variable-p))
+        (db (make-instance 'chilog:chilog-db)))
+    (assert-false (eq (chilog:variables db) new-vars))
+    (setf (chilog:variables db) new-vars)
+    (assert-true (eq (chilog:variables db) new-vars)))
+
+  ;; You cannot set the wrong kind of table
+  (let* ((new-preds (make-instance 'chilog:chilog-db-table
+                                   :table-predicate #'chilog:chilog-predicate-p))
+         (db (make-instance 'chilog:chilog-db)))
+    (assert-error 'error
+      (setf (chilog:variables db) new-preds)))
+
+  ;; You cannot set just a single variable
+  (let* ((X (make-instance 'chilog:chilog-variable :name "X"))
+         (db (make-instance 'chilog:chilog-db)))
+    (assert-error 'error
+      (setf (chilog:variables db) X)))
+
+  ;; You cannot set a non-variable for a variable
+  (let* ((db (make-instance 'chilog:chilog-db)))
+    (assert-error 'error
+      (setf (chilog:variables db) 73))
+    (assert-error 'error
+      (setf (chilog:variables db) "foo")))
+
+  ;;; setf add-predicate
+  ;; You can set a whole table
+  (let ((new-preds (make-instance 'chilog:chilog-db-table
+                                 :table-predicate #'chilog:chilog-predicate-p))
+        (db (make-instance 'chilog:chilog-db)))
+    (assert-false (eq (chilog:predicates db) new-preds))
+    (setf (chilog:predicates db) new-preds)
+    (assert-true (eq (chilog:predicates db) new-preds)))
+
+  ;; You cannot set the wrong kind of table
+  (let* ((new-vars (make-instance 'chilog:chilog-db-table
+                                   :table-predicate #'chilog:chilog-variable-p))
+         (db (make-instance 'chilog:chilog-db)))
+    (assert-error 'error
+      (setf (chilog:predicates db) new-vars)))
+
+  ;; You cannot set just a single predicate
+  (let* ((foo (make-instance 'chilog:chilog-predicate :name "foo" :arity 3))
+         (db (make-instance 'chilog:chilog-db)))
+    (assert-error 'error
+      (setf (chilog:predicates db) foo)))
+
+  ;; You cannot set a non-predicate for a predicate
+  (let* ((db (make-instance 'chilog:chilog-db)))
+    (assert-error 'error
+      (setf (chilog:predicates db) 73))
+    (assert-error 'error
+      (setf (chilog:predicates db) "foo")))
+
+  ;; add-variable!
+  (let ((X (make-instance 'chilog:chilog-variable :name "X"))
+        (db (make-instance 'chilog:chilog-db)))
+    (assert-number-equal 0
+      (hash-table-count (chilog:variables db)))
+    (chilog:add-variable! X db)
+    (assert-number-equal 1
+      (hash-table-count (chilog:variables db)))
+    (assert-set-equal (list X)
+      (alexandria:hash-table-values (chilog:variables db))))
+
+  ;; Adding a raw string will create a chilog-variable for us and insert it.
+  (let ((db (make-instance 'chilog:chilog-db))
+        (x))
+    (assert-number-equal 0
+      (hash-table-count (chilog:variables db)))
+    ;; add-variable! returns the variable we just inserted, so we can capture
+    ;; that for later comparison.
+    (setf x (chilog:add-variable! "crazy-Name!00" db))
+    (assert-number-equal 1
+      (hash-table-count (chilog:variables db)))
+    (assert-set-equal (list x)
+      (alexandria:hash-table-values (chilog:variables db))))
+
+  ;; Adding a "malformed variable" should not work
+  (let ((db (make-instance 'chilog:chilog-db)))
+    (assert-number-equal 0
+      (hash-table-count (chilog:variables db)))
+    (assert-error
+     'error
+     (chilog:add-variable!
+      ;; We cannot add a predicate as a variable.
+      (make-instance 'chilog:chilog-predicate :name "bad-pred" :arity 3) db))
+    (assert-number-equal 0
+      (hash-table-count (chilog:variables db)))
+    (assert-set-equal '()
+      (alexandria:hash-table-values (chilog:variables db))))
+
+  ;; Adding the same variable multiple times should throw an exception
+  ;; condition, preventing us from adding the same variable multiple times.
+  (let ((X (make-instance 'chilog:chilog-variable :name "X"))
+        (db (make-instance 'chilog:chilog-db)))
+    (assert-number-equal 0
+      (hash-table-count (chilog:variables db)))
+    (chilog:add-variable! X db)
+    (assert-error
+     'error
+     (chilog:add-variable! X db))
+    (assert-number-equal 1
+      (hash-table-count (chilog:variables db)))
+    (assert-set-equal (list X)
+      (alexandria:hash-table-values (chilog:variables db))))
+
+  ;; add-predicate!
+  (let ((pred (make-instance 'chilog:chilog-predicate
+                             :name "pred"
+                             :arity 3))
+        (db (make-instance 'chilog:chilog-db)))
+    (assert-number-equal 0
+      (hash-table-count (chilog:predicates db)))
+    (chilog:add-predicate! pred db)
+    (assert-number-equal 1
+      (hash-table-count (chilog:predicates db)))
+    (assert-set-equal (list pred)
+      (alexandria:hash-table-values (chilog:predicates db))))
+
+  ;; Adding a "malformed predicate" should not work
+  (let ((db (make-instance 'chilog:chilog-db)))
+    (assert-number-equal 0
+      (hash-table-count (chilog:predicates db)))
+    (assert-error
+     'error
+     (chilog:add-predicate! "failing-predicate" db))
+    (assert-number-equal 0
+      (hash-table-count (chilog:predicates db)))
+    (assert-set-equal '()
+      (alexandria:hash-table-values (chilog:predicates db))))
+
+  ;; Adding the same predicate multiple times should throw an exception
+  ;; condition, preventing us from adding the same predicate multiple times.
+  (let ((pred (make-instance 'chilog:chilog-predicate
+                             :name "pred"
+                             :arity 3))
+        (db (make-instance 'chilog:chilog-db)))
+    (assert-number-equal 0
+      (hash-table-count (chilog:predicates db)))
+    (chilog:add-predicate! pred db)
+    (assert-error
+     'error
+     (chilog:add-predicate! pred db))
+    (assert-number-equal 1
+      (hash-table-count (chilog:predicates db)))
+    (assert-set-equal (list pred)
+      (alexandria:hash-table-values (chilog:predicates db))))
+  )
