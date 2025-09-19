@@ -47,8 +47,10 @@
   (assert-true
    (check-it:check-it
     (check-it:generator
-     ;; TODO: Generate complex numbers
-     (or (integer) (real)))
+     (or (integer)
+         (real)
+         (complex-generator (check-it:generator (real))
+                            (check-it:generator (real)))))
     (lambda (x) (chilog:chilog-value-p x))))
 
   ;; Strings
