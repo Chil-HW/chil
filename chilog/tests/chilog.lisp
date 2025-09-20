@@ -459,9 +459,48 @@
     (assert-set-equal new-rules
       (chilog:rules pred)
       :test #'chilog:chilog-equal))
+  )
 
-  ;; predicate->atom
-  ;;  Will have to somehow define #'equal for my classes.
+;; Despite #'predicate->atom being attached as a method, it is so commonly used
+;; that it deserves its own define-test.
+(define-test predicate->atom ()
+  (let* ((pred-name "test")
+         (pred (make-instance 'chilog:chilog-predicate
+                              :name pred-name
+                              :arity 1))
+         (X (make-instance 'chilog:chilog-variable :name "X"))
+         (terms (list X))
+         (the-atom))
+    (setf the-atom (chilog:predicate->atom pred terms))
+    (assert-true the-atom)
+    (assert-equal pred-name (chilog:predicate the-atom))
+    (assert-equal terms (chilog:terms the-atom) :test #'chilog:chilog-equal))
+
+  ;; Arity mis-match should throw an error
+  (let* ((pred (make-instance 'chilog:chilog-predicate
+                              :name "test"
+                              :arity 2))
+         (X (make-instance 'chilog:chilog-variable :name "X"))
+         (terms (list X)))
+    (assert-error 'error
+      (chilog:predicate->atom pred terms)))
+
+  ;; All provided terms must actually be terms. Throw an error otherwise.
+  (let* ((pred (make-instance 'chilog:chilog-predicate
+                              :name "test"
+                              :arity 2))
+         (X (make-instance 'chilog:chilog-variable :name "X")))
+    (assert-error 'error
+      (chilog:predicate->atom pred (list X pred))))
+
+  ;; Calling predicate->atom incorrectly should just break, even if things are
+  ;; fine otherwise.
+  (let* ((pred (make-instance 'chilog:chilog-predicate
+                              :name "test"
+                              :arity 1))
+         (X (make-instance 'chilog:chilog-variable :name "X")))
+    (assert-error 'error
+      (chilog:predicate->atom X (list pred))))
   )
 
 (define-test chilog-db ()
