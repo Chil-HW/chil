@@ -445,6 +445,16 @@ Which means the RHS is empty, because \"parent(alice, bob) :- .\" is a fact."
 ;;; iteratively grow until saturation to answer the desired logic question.
 ;;;
 
+(defun chilog-db-table-p (db-vars)
+  (and
+   ;; hash-table-test returns a symbol, NOT a function symbol.
+   (eq 'equal (hash-table-test db-vars))
+   (every (lambda (k v)
+            (and (stringp k)
+                 (chilog-variable-p v)))
+          (alexandria:hash-table-keys db-vars)
+          (alexandria:hash-table-values db-vars))))
+
 ;; NOTE: These hash tables are NOT thread-safe!
 (defclass chilog-db ()
   ((variables
@@ -452,8 +462,9 @@ Which means the RHS is empty, because \"parent(alice, bob) :- .\" is a fact."
     :writer add-variable!
     :initarg :variables
     :initform (make-hash-table :test #'equal)
-    ;; :type map-str-chilog-variable
-    ;; :type string
+    ;; We cannot use objects in a :type constructor, so we validate this slot
+    ;; with the initialize-instance :after method.
+    ;; :type chilog-db-table
     :documentation "The set of `chilog-variable's known to Chilog's
 program/database.")
    (predicates
@@ -461,8 +472,9 @@ program/database.")
     :writer add-predicate!
     :initarg :predicates
     :initform (make-hash-table :test #'equal)
-    ;; :type map-str-chilog-predicate
-    ;; :type hash-table
+    ;; We cannot use objects in a :type constructor, so we validate this slot
+    ;; with the initialize-instance :after method.
+    ;; :type chilog-db-table
     :documentation "The set of `chilog-predicate's known to Chilog's
 program/database."))
   (:documentation "Chilog's representation of a Datalog program. This contains
@@ -470,6 +482,13 @@ all the `chilog-variable's and `chilog-predicate's in the Chilog/Datalog program
 
 This also includes a Datalog inference engine, using an iterative fixed-point
 depth-first search algorithm to find solutions."))
+
+(defmethod initialize-instance :after ((db chilog-db) &key)
+  (with-slots ((vars variables)
+               (preds predicates))
+      db
+    (assert (and (chilog-db-table-p vars)
+                 (chilog-db-table-p preds)))))
 
 (defmethod chilog-equal ((c1 chilog-db) (c2 chilog-db))
   "Two Chilog databases are equal if they contain the same variables and they
