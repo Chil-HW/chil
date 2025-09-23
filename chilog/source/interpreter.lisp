@@ -85,7 +85,8 @@ Returns a list of valid substitutions (as hash-tables) for ATOMS."
         (log:debug "Completed DFS for " atoms ". Return " subs)
         subs)
       (let* ((atom (nth i atoms))
-             (atom-preds (gethash (predicate atom) (predicates chilog-db))))
+             (atom-preds (gethash (predicate atom)
+                                  (table->hash-table (predicates chilog-db)))))
         ;; Flatten the resulting list from searching the DB. The reasoning is
         ;; 2-fold:
         ;; 1. search-db returns lists and when search-db is called
@@ -132,7 +133,8 @@ program."
     ;; new-facts is List[Tuple[Predicate, Fact]]!
     ;; We treat it as (list (cons chilog-predicate chilog-fact)), an alist.
     (let ((new-facts '()))
-      (loop for predicate in (alexandria:hash-table-values (predicates chilog-db))
+      (loop for predicate in (alexandria:hash-table-values
+                              (table->hash-table (predicates chilog-db)))
             do
                (log:debug "Performing inference on " predicate)
                (loop for rule in (rules predicate) do
@@ -163,7 +165,8 @@ program."
       (if (alexandria:emptyp new-facts)
           (progn
             (log:debug "Finished inference!")
-            (loop for pred being the hash-value of (predicates chilog-db)
+            (loop for pred being the hash-value of (table->hash-table
+                                                    (predicates chilog-db))
                   for facts = (facts pred)
                   do (log:trace pred " = " facts))
             ;; Returns from outer loop

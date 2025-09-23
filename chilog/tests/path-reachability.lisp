@@ -57,7 +57,7 @@
      '((1 2) (2 3) (3 4)
        (1 3) (2 4)
        (1 4))
-     (facts (gethash "path" (predicates db)))
+     (facts (gethash "path" (chilog:table->hash-table (predicates db))))
      :test #'equal))
 
   (let ((db (make-instance 'chilog-db))
@@ -84,7 +84,7 @@
      '((1 2) (2 3) (3 4)
        (1 3) (2 4)
        (1 4))
-     (facts (gethash "path" (predicates db)))
+     (facts (gethash "path" (chilog:table->hash-table (predicates db))))
      :test #'equal))
 
   (let ((db (make-instance 'chilog-db))
@@ -111,7 +111,7 @@
      '((1 2) (2 3) (3 4)
        (1 3) (2 4)
        (1 4))
-     (facts (gethash "path" (predicates db)))
+     (facts (gethash "path" (chilog:table->hash-table (predicates db))))
      :test #'equal))
   )
 
@@ -157,7 +157,7 @@
        (3 1) (4 2)
        (4 1)
        (1 1) (2 2) (3 3))
-     (facts (gethash "path" (predicates db)))
+     (facts (gethash "path" (chilog:table->hash-table (predicates db))))
      :test #'equal))
 
   ;; Make the path predicate a full equivalence relation. This means that the
@@ -206,6 +206,6 @@
        (3 1) (4 2)
        (4 1)
        (1 1) (2 2) (3 3) (4 4))
-     (facts (gethash "path" (predicates db)))
+     (facts (gethash "path" (chilog:table->hash-table (predicates db))))
      :test #'equal))
   )

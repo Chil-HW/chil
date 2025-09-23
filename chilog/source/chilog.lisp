@@ -32,6 +32,11 @@
            #:add-fact! #:add-rule!
            #:predicate->atom ; DOES THIS NEED TO BE EXPORTED?
            #:add-rules!
+           #:chilog-db-table
+           #:chilog-db-table-p
+           #:table-predicate
+           #:table-count
+           #:table->hash-table
            #:chilog-db
            #:variables #:predicates
            #:add-variable! #:add-predicate!))
@@ -445,15 +450,53 @@ Which means the RHS is empty, because \"parent(alice, bob) :- .\" is a fact."
 ;;; iteratively grow until saturation to answer the desired logic question.
 ;;;
 
-(defun chilog-db-table-p (db-vars)
-  (and
-   ;; hash-table-test returns a symbol, NOT a function symbol.
-   (eq 'equal (hash-table-test db-vars))
-   (every (lambda (k v)
-            (and (stringp k)
-                 (chilog-variable-p v)))
-          (alexandria:hash-table-keys db-vars)
-          (alexandria:hash-table-values db-vars))))
+(defclass chilog-db-table ()
+  ((table
+    :reader table
+    :initform (make-hash-table :test #'equal)
+    :documentation "A table")
+   (table-predicate
+    :reader table-predicate
+    :initarg :table-predicate
+    :initform (error "You must provide a table predicate")
+    :documentation "Table's predicate"))
+  (:documentation "A \"table\" in the database."))
+
+(defmethod initialize-instance :after ((tbl-obj chilog-db-table) &key)
+  (with-slots ((table table)
+               (tbl-pred table-predicate))
+      tbl-obj
+    (assert (and
+             ;; We only accept variable & predicate tables.
+             (or (eq tbl-pred #'chilog-variable-p)
+                 (eq tbl-pred #'chilog-predicate-p))
+             ;; hash-table-test returns a symbol, NOT a function symbol.
+             (eq (hash-table-test table) 'equal)
+             ;; The actual table must obey the format we expect.
+             (every (lambda (k v)
+                      (and (stringp k)
+                           (funcall tbl-pred v)))
+                    (alexandria:hash-table-keys table)
+                    (alexandria:hash-table-values table))))))
+
+(defun chilog-db-table-p (db-table)
+  (typep db-table (find-class 'chilog-db-table)))
+
+(defmethod table-count ((db-table chilog-db-table))
+  "Return the count for the number of entries in the provided DB-TABLE."
+  (hash-table-count (table db-table)))
+
+(defmethod table->hash-table ((db-table chilog-db-table))
+  "Convert the provided DB-TABLE to a hash-table."
+  (table db-table))
+
+(defmethod chilog-equal ((c1 chilog-db-table) (c2 chilog-db-table))
+  ;; Both tables must use the same predicate and every value in the two database
+  ;; tables must be equivalent.
+  (and (eq (table-predicate c1) (table-predicate c2))
+       (every (lambda (v1 v2) (chilog-equal v1 v2))
+              (alexandria:hash-table-values (table c1))
+              (alexandria:hash-table-values (table c2)))))
 
 ;; NOTE: These hash tables are NOT thread-safe!
 (defclass chilog-db ()
@@ -461,7 +504,8 @@ Which means the RHS is empty, because \"parent(alice, bob) :- .\" is a fact."
     :reader variables
     :writer add-variable!
     :initarg :variables
-    :initform (make-hash-table :test #'equal)
+    :initform (make-instance 'chilog-db-table
+                             :table-predicate #'chilog-variable-p)
     ;; We cannot use objects in a :type constructor, so we validate this slot
     ;; with the initialize-instance :after method.
     ;; :type chilog-db-table
@@ -471,7 +515,8 @@ program/database.")
     :reader predicates
     :writer add-predicate!
     :initarg :predicates
-    :initform (make-hash-table :test #'equal)
+    :initform (make-instance 'chilog-db-table
+                             :table-predicate #'chilog-variable-p)
     ;; We cannot use objects in a :type constructor, so we validate this slot
     ;; with the initialize-instance :after method.
     ;; :type chilog-db-table
@@ -493,25 +538,21 @@ depth-first search algorithm to find solutions."))
 (defmethod chilog-equal ((c1 chilog-db) (c2 chilog-db))
   "Two Chilog databases are equal if they contain the same variables and they
 contain the same predicates according to `chilog-equal'."
-  (and (every (lambda (v1 v2) (chilog-equal v1 v2))
-              (alexandria:hash-table-values (variables c1))
-              (alexandria:hash-table-values (variables c2)))
-       (every (lambda (p1 p2) (chilog-equal p1 p2))
-              (alexandria:hash-table-values (predicates c1))
-              (alexandria:hash-table-values (predicates c2)))))
+  (and (chilog-equal (variables c1) (variables c2))
+       (chilog-equal (predicates c1) (predicates c2))))
 
 (defmethod add-variable! ((new-var chilog-variable) (db chilog-db))
   "Register the `chilog-variable' NEW-VAR in the Datalog program and return it."
   (restart-case
       (multiple-value-bind (_var present?)
-          (gethash (name new-var) (variables db))
+          (gethash (name new-var) (table (variables db)))
         ;; We don't hold onto _var for any reason right now. We cannot use _var
         ;; in the setf because that is not the location of the hash-table.
         (declare (ignore _var))
         (if present?
             ;; This error lets us go to the restart.
             (error "Variable already present in database.")
-            (setf (gethash (name new-var) (variables db)) new-var)))
+            (setf (gethash (name new-var) (table (variables db))) new-var)))
 
     (set-new-var (name)
       :report "New variable name"
@@ -549,12 +590,12 @@ NOTE: This does NOT verify that the new variables are sane!"
 it."
   (restart-case
       (multiple-value-bind (_pred present?)
-          (gethash (name new-pred) (predicates db))
+          (gethash (name new-pred) (table (predicates db)))
         (declare (ignore _pred))
         (if present?
             ;; This error lets us go to the restart.
             (error "Predicate already present in database.")
-            (setf (gethash (name new-pred) (predicates db)) new-pred)))
+            (setf (gethash (name new-pred) (table (predicates db))) new-pred)))
 
     (set-new-pred (restart-pred)
       :report "Give new predicate"

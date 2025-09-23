@@ -156,7 +156,7 @@
     (chilog/interpreter:infer dl)
     (assert-set-equal
      '(("foo"))
-     (facts (gethash "outer" (predicates dl)))
+     (facts (gethash "outer" (chilog:table->hash-table (predicates dl))))
      :test #'equal))
 
   (let ((dl (make-instance 'chilog-db))
@@ -182,7 +182,7 @@
     (assert-set-equal
      '(("alice" "bob")
        ("bob" "carol"))
-     (facts (gethash "ancestor" (predicates dl)))
+     (facts (gethash "ancestor" (chilog:table->hash-table (predicates dl))))
      :test #'equal))
 
   ;; Perform inference on a Datalog program with a recursive rule that should
@@ -213,7 +213,7 @@
     ;; Now verify that the ancestor/2 predicate itself carries the facts
     (assert-set-equal
      '(("alice" "carol") ("bob" "carol") ("alice" "bob"))
-     (facts (gethash "ancestor" (predicates dl)))
+     (facts (gethash "ancestor" (chilog:table->hash-table (predicates dl))))
      :test #'equal)
     (assert-set-equal
      '(("alice" "carol") ("bob" "carol") ("alice" "bob"))
@@ -292,7 +292,7 @@
     ;; Now verify that the ancestor/2 predicate itself carries these facts
     (assert-set-equal
      '(("alice" "carol") ("bob" "carol") ("alice" "bob"))
-     (facts (gethash "ancestor" (predicates dl)))
+     (facts (gethash "ancestor" (chilog:table->hash-table (predicates dl))))
      :test #'equal)
     (assert-set-equal
      '(("alice" "carol") ("bob" "carol") ("alice" "bob"))

@@ -503,6 +503,64 @@
       (chilog:predicate->atom X (list pred))))
   )
 
+(define-test chilog-db-table ()
+  ;; Constructing a brand-new empty table should always work.
+  (assert-true
+   (eval (make-instance 'chilog:chilog-db-table
+                        :table-predicate #'chilog:chilog-variable-p)))
+  (assert-true
+   (eval (make-instance 'chilog:chilog-db-table
+                        :table-predicate #'chilog:chilog-predicate-p)))
+
+  ;; Creating a table without a predicate should error
+  (assert-error 'error
+    (eval (make-instance 'chilog:chilog-db-table)))
+
+  ;; Creating an unsupported table type should error
+  (assert-error 'error
+    (eval (make-instance 'chilog:chilog-db-table
+                         :table-predicate #'chilog:chilog-rule-p)))
+
+  ;; We do not allow you to provide a table at db-table construction-time.
+  ;; This prevents you from installing already-known information, but means we
+  ;; do not have to verify the data in the table is well-formed.
+  (let ((ht (make-hash-table :test #'equal)))
+    (assert-error 'error
+      (make-instance 'chilog:chilog-db-table
+                     :table ht
+                     :table-predicate #'chilog:chilog-rule-p)))
+
+  ;; A table must satisfy its own type/class/instanceof predicate.
+  (assert-true
+   (eval
+    (chilog:chilog-db-table-p
+     (make-instance 'chilog:chilog-db-table
+                    :table-predicate #'chilog:chilog-variable-p))))
+
+  ;; The chilog-equal predicate should hold for DB tables
+  (let ((var-tab1 (make-instance 'chilog:chilog-db-table
+                                 :table-predicate #'chilog:chilog-variable-p))
+        (var-tab2 (make-instance 'chilog:chilog-db-table
+                                 :table-predicate #'chilog:chilog-variable-p)))
+    (assert-true
+     (chilog:chilog-equal var-tab1 var-tab2)))
+  (let ((pred-tab1 (make-instance 'chilog:chilog-db-table
+                                 :table-predicate #'chilog:chilog-predicate-p))
+        (pred-tab2 (make-instance 'chilog:chilog-db-table
+                                 :table-predicate #'chilog:chilog-predicate-p)))
+    (assert-true
+     (chilog:chilog-equal pred-tab1 pred-tab2)))
+  (let ((pred-tab (make-instance 'chilog:chilog-db-table
+                                 :table-predicate #'chilog:chilog-predicate-p))
+        (var-tab (make-instance 'chilog:chilog-db-table
+                                :table-predicate #'chilog:chilog-variable-p)))
+    (assert-false
+     (chilog:chilog-equal pred-tab var-tab))
+    (assert-false
+     (chilog:chilog-equal var-tab pred-tab)))
+
+  )
+
 (define-test chilog-db ()
   ;; Constructing a brand-new empty DB should always work.
   ;; There are no mandatory fields in the DB. It is intended to track all
@@ -512,7 +570,7 @@
   (assert-true
    (make-instance 'chilog:chilog-db))
 
-  ;; Constructing a database with values provided should work.
+  ;; We do not allow constructing a database with values already-provided.
 
   ;;; setf add-variable
   ;; You can set a whole table
@@ -576,54 +634,58 @@
   (let ((X (make-instance 'chilog:chilog-variable :name "X"))
         (db (make-instance 'chilog:chilog-db)))
     (assert-number-equal 0
-      (hash-table-count (chilog:variables db)))
+      (chilog:table-count (chilog:variables db)))
     (chilog:add-variable! X db)
     (assert-number-equal 1
-      (hash-table-count (chilog:variables db)))
+      (chilog:table-count (chilog:variables db)))
     (assert-set-equal (list X)
-      (alexandria:hash-table-values (chilog:variables db))))
+      (alexandria:hash-table-values
+       (chilog:table->hash-table (chilog:variables db)))))
 
   ;; Adding a raw string will create a chilog-variable for us and insert it.
   (let ((db (make-instance 'chilog:chilog-db))
         (x))
     (assert-number-equal 0
-      (hash-table-count (chilog:variables db)))
+      (chilog:table-count (chilog:variables db)))
     ;; add-variable! returns the variable we just inserted, so we can capture
     ;; that for later comparison.
     (setf x (chilog:add-variable! "crazy-Name!00" db))
     (assert-number-equal 1
-      (hash-table-count (chilog:variables db)))
+      (chilog:table-count (chilog:variables db)))
     (assert-set-equal (list x)
-      (alexandria:hash-table-values (chilog:variables db))))
+      (alexandria:hash-table-values
+       (chilog:table->hash-table (chilog:variables db)))))
 
   ;; Adding a "malformed variable" should not work
   (let ((db (make-instance 'chilog:chilog-db)))
     (assert-number-equal 0
-      (hash-table-count (chilog:variables db)))
+      (chilog:table-count (chilog:variables db)))
     (assert-error
      'error
      (chilog:add-variable!
       ;; We cannot add a predicate as a variable.
       (make-instance 'chilog:chilog-predicate :name "bad-pred" :arity 3) db))
     (assert-number-equal 0
-      (hash-table-count (chilog:variables db)))
+      (chilog:table-count (chilog:variables db)))
     (assert-set-equal '()
-      (alexandria:hash-table-values (chilog:variables db))))
+      (alexandria:hash-table-values
+       (chilog:table->hash-table (chilog:variables db)))))
 
   ;; Adding the same variable multiple times should throw an exception
   ;; condition, preventing us from adding the same variable multiple times.
   (let ((X (make-instance 'chilog:chilog-variable :name "X"))
         (db (make-instance 'chilog:chilog-db)))
     (assert-number-equal 0
-      (hash-table-count (chilog:variables db)))
+      (chilog:table-count (chilog:variables db)))
     (chilog:add-variable! X db)
     (assert-error
      'error
      (chilog:add-variable! X db))
     (assert-number-equal 1
-      (hash-table-count (chilog:variables db)))
+      (chilog:table-count (chilog:variables db)))
     (assert-set-equal (list X)
-      (alexandria:hash-table-values (chilog:variables db))))
+      (alexandria:hash-table-values
+       (chilog:table->hash-table (chilog:variables db)))))
 
   ;; add-predicate!
   (let ((pred (make-instance 'chilog:chilog-predicate
@@ -631,24 +693,26 @@
                              :arity 3))
         (db (make-instance 'chilog:chilog-db)))
     (assert-number-equal 0
-      (hash-table-count (chilog:predicates db)))
+      (chilog:table-count (chilog:predicates db)))
     (chilog:add-predicate! pred db)
     (assert-number-equal 1
-      (hash-table-count (chilog:predicates db)))
+      (chilog:table-count (chilog:predicates db)))
     (assert-set-equal (list pred)
-      (alexandria:hash-table-values (chilog:predicates db))))
+      (alexandria:hash-table-values
+       (chilog:table->hash-table (chilog:predicates db)))))
 
   ;; Adding a "malformed predicate" should not work
   (let ((db (make-instance 'chilog:chilog-db)))
     (assert-number-equal 0
-      (hash-table-count (chilog:predicates db)))
+      (chilog:table-count (chilog:predicates db)))
     (assert-error
      'error
      (chilog:add-predicate! "failing-predicate" db))
     (assert-number-equal 0
-      (hash-table-count (chilog:predicates db)))
+      (chilog:table-count (chilog:predicates db)))
     (assert-set-equal '()
-      (alexandria:hash-table-values (chilog:predicates db))))
+      (alexandria:hash-table-values
+       (chilog:table->hash-table (chilog:predicates db)))))
 
   ;; Adding the same predicate multiple times should throw an exception
   ;; condition, preventing us from adding the same predicate multiple times.
@@ -657,15 +721,16 @@
                              :arity 3))
         (db (make-instance 'chilog:chilog-db)))
     (assert-number-equal 0
-      (hash-table-count (chilog:predicates db)))
+      (chilog:table-count (chilog:predicates db)))
     (chilog:add-predicate! pred db)
     (assert-error
      'error
      (chilog:add-predicate! pred db))
     (assert-number-equal 1
-      (hash-table-count (chilog:predicates db)))
+      (chilog:table-count (chilog:predicates db)))
     (assert-set-equal (list pred)
-      (alexandria:hash-table-values (chilog:predicates db))))
+      (alexandria:hash-table-values
+       (chilog:table->hash-table  (chilog:predicates db)))))
   )
 
 (define-test chilog-equal ()
@@ -769,15 +834,15 @@
         (db2 (make-instance 'chilog:chilog-db))
         (X (make-instance 'chilog:chilog-variable :name "X")))
     (assert-true
-     (and (zerop (hash-table-count (chilog:variables db1)))
-          (zerop (hash-table-count (chilog:variables db2)))))
+     (and (zerop (chilog:table-count (chilog:variables db1)))
+          (zerop (chilog:table-count (chilog:variables db2)))))
 
     (chilog:add-variable! X db1)
     (chilog:add-variable! X db2)
 
     (assert-true
-     (and (= 1 (hash-table-count (chilog:variables db1)))
-          (= 1 (hash-table-count (chilog:variables db2)))))
+     (and (= 1 (chilog:table-count (chilog:variables db1)))
+          (= 1 (chilog:table-count (chilog:variables db2)))))
     (assert-true
      (chilog:chilog-equal db1 db2)))
 
@@ -786,15 +851,15 @@
         (X1 (make-instance 'chilog:chilog-variable :name "X"))
         (X2 (make-instance 'chilog:chilog-variable :name "X")))
     (assert-true
-     (and (zerop (hash-table-count (chilog:variables db1)))
-          (zerop (hash-table-count (chilog:variables db2)))))
+     (and (zerop (chilog:table-count (chilog:variables db1)))
+          (zerop (chilog:table-count (chilog:variables db2)))))
 
     (chilog:add-variable! X1 db1)
     (chilog:add-variable! X2 db2)
 
     (assert-true
-     (and (= 1 (hash-table-count (chilog:variables db1)))
-          (= 1 (hash-table-count (chilog:variables db2)))))
+     (and (= 1 (chilog:table-count (chilog:variables db1)))
+          (= 1 (chilog:table-count (chilog:variables db2)))))
     (assert-false
      (chilog:chilog-equal db1 db2)))
 
@@ -810,15 +875,15 @@
         (pred (make-instance 'chilog:chilog-predicate :name "test-pred"
                                                       :arity 4)))
     (assert-true
-     (and (zerop (hash-table-count (chilog:predicates db1)))
-          (zerop (hash-table-count (chilog:predicates db2)))))
+     (and (zerop (chilog:table-count (chilog:predicates db1)))
+          (zerop (chilog:table-count (chilog:predicates db2)))))
 
     (chilog:add-predicate! pred db1)
     (chilog:add-predicate! pred db2)
 
     (assert-true
-     (and (= 1 (hash-table-count (chilog:predicates db1)))
-          (= 1 (hash-table-count (chilog:predicates db2)))))
+     (and (= 1 (chilog:table-count (chilog:predicates db1)))
+          (= 1 (chilog:table-count (chilog:predicates db2)))))
     (assert-true
      (chilog:chilog-equal db1 db2)))
 
@@ -829,15 +894,15 @@
         (pred2 (make-instance 'chilog:chilog-predicate :name "test-pred"
                                                        :arity 4)))
     (assert-true
-     (and (zerop (hash-table-count (chilog:predicates db1)))
-          (zerop (hash-table-count (chilog:predicates db2)))))
+     (and (zerop (chilog:table-count (chilog:predicates db1)))
+          (zerop (chilog:table-count (chilog:predicates db2)))))
 
     (chilog:add-predicate! pred1 db1)
     (chilog:add-predicate! pred2 db2)
 
     (assert-true
-     (and (= 1 (hash-table-count (chilog:predicates db1)))
-          (= 1 (hash-table-count (chilog:predicates db2)))))
+     (and (= 1 (chilog:table-count (chilog:predicates db1)))
+          (= 1 (chilog:table-count (chilog:predicates db2)))))
     (assert-true
      (chilog:chilog-equal db1 db2)))
 
@@ -853,10 +918,10 @@
         (pred2 (make-instance 'chilog:chilog-predicate :name "test-pred"
                                                        :arity 4)))
     (assert-true
-     (and (zerop (hash-table-count (chilog:variables db1)))
-          (zerop (hash-table-count (chilog:variables db1)))
-          (zerop (hash-table-count (chilog:predicates db1)))
-          (zerop (hash-table-count (chilog:predicates db2)))))
+     (and (zerop (chilog:table-count (chilog:variables db1)))
+          (zerop (chilog:table-count (chilog:variables db1)))
+          (zerop (chilog:table-count (chilog:predicates db1)))
+          (zerop (chilog:table-count (chilog:predicates db2)))))
 
     (chilog:add-variable! X1 db1)
     (chilog:add-variable! X1 db3)
@@ -866,12 +931,12 @@
     (chilog:add-predicate! pred2 db2)
 
     (assert-true
-     (and (= 1 (hash-table-count (chilog:variables db1)))
-          (= 1 (hash-table-count (chilog:variables db3)))
-          (= 1 (hash-table-count (chilog:variables db2)))
-          (= 1 (hash-table-count (chilog:predicates db1)))
-          (= 1 (hash-table-count (chilog:predicates db3)))
-          (= 1 (hash-table-count (chilog:predicates db2)))))
+     (and (= 1 (chilog:table-count (chilog:variables db1)))
+          (= 1 (chilog:table-count (chilog:variables db3)))
+          (= 1 (chilog:table-count (chilog:variables db2)))
+          (= 1 (chilog:table-count (chilog:predicates db1)))
+          (= 1 (chilog:table-count (chilog:predicates db3)))
+          (= 1 (chilog:table-count (chilog:predicates db2)))))
     (assert-false
      (chilog:chilog-equal db1 db2))
     (assert-true
