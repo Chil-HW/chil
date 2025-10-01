@@ -41,7 +41,7 @@
   #:use-module (guix build-system asdf)
   #:use-module (gnu packages)
   #:use-module (gnu packages autotools)
-  #:use-module (gnu packages fpga)
+  #:use-module (gnu packages electronics)
   #:use-module (gnu packages texinfo)
   #:use-module (gnu packages lisp)
   #:use-module (gnu packages lisp-xyz)
