@@ -355,6 +355,8 @@ will have the variables X and Y applied as terms to each predicate to form a
 database."
   (assert (= (length terms) (arity pred)) (terms)
           "Number of provided terms does not match the predicate's arity")
+  (assert (list-of-chilog-terms-p terms) (terms)
+          "Provided terms must be a list of Chilog terms")
   (make-instance
    'chilog-atom
    :predicate (name pred)
