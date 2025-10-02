@@ -353,21 +353,12 @@ ancestor(X, Y) :- parent(X, Y)
 will have the variables X and Y applied as terms to each predicate to form a
 `chilog-atom'. This atom is then the given to `add-rules!' to be included in the
 database."
-  (restart-case
-      (if (= (length terms) (arity pred))
-          (make-instance
-           'chilog-atom
-           :predicate (name pred)
-           :terms terms)
-          (error "Number of provided terms does not match the predicate's arity"))
-
-    (set-new-terms (new-terms)
-      :report "New term set"
-      :interactive (lambda ()
-                     (format *query-io* "New terms: ")
-                     (force-output *query-io*)
-                     (list (eval (read *query-io*))))
-      (predicate->atom pred new-terms))))
+  (assert (= (length terms) (arity pred)) (terms)
+          "Number of provided terms does not match the predicate's arity")
+  (make-instance
+   'chilog-atom
+   :predicate (name pred)
+   :terms terms))
 
 ;; "delete" the default method implementation
 (defmethod predicate->atom (pred terms)
@@ -543,26 +534,14 @@ contain the same predicates according to `chilog-equal'."
 
 (defmethod add-variable! ((new-var chilog-variable) (db chilog-db))
   "Register the `chilog-variable' NEW-VAR in the Datalog program and return it."
-  (restart-case
-      (multiple-value-bind (_var present?)
-          (gethash (name new-var) (table (variables db)))
-        ;; We don't hold onto _var for any reason right now. We cannot use _var
-        ;; in the setf because that is not the location of the hash-table.
-        (declare (ignore _var))
-        (if present?
-            ;; This error lets us go to the restart.
-            (error "Variable already present in database.")
-            (setf (gethash (name new-var) (table (variables db))) new-var)))
-
-    (set-new-var (name)
-      :report "New variable name"
-      :interactive (lambda ()
-                     (format *query-io* "New variable name: ")
-                     (force-output *query-io*)
-                     ;; The eval lets us take in a make-instance call and turn
-                     ;; it into an actual object, as opposed to just a list.
-                     (list (eval (read *query-io*))))
-      (add-variable! name db))))
+  (multiple-value-bind (_var present?)
+      (gethash (name new-var) (table (variables db)))
+    ;; We don't hold onto _var for any reason right now. We cannot use _var
+    ;; in the setf because that is not the location of the hash-table.
+    (declare (ignore _var))
+    (assert (not present?) (new-var)
+            "Variable ~a already present in database" new-var)
+    (setf (gethash (name new-var) (table (variables db))) new-var)))
 
 (defmethod add-variable! ((var-name string) (db chilog-db))
   "Add VAR-NAME to DB, by creating the `chilog-variable' for you and then
@@ -588,24 +567,12 @@ NOTE: This does NOT verify that the new variables are sane!"
 (defmethod add-predicate! ((new-pred chilog-predicate) (db chilog-db))
   "Register the `chilog-predicate' NEW-PRED with the Datalog program and return
 it."
-  (restart-case
-      (multiple-value-bind (_pred present?)
-          (gethash (name new-pred) (table (predicates db)))
-        (declare (ignore _pred))
-        (if present?
-            ;; This error lets us go to the restart.
-            (error "Predicate already present in database.")
-            (setf (gethash (name new-pred) (table (predicates db))) new-pred)))
-
-    (set-new-pred (restart-pred)
-      :report "Give new predicate"
-      :interactive (lambda ()
-                     (format *query-io* "New predicate object: ")
-                     (force-output *query-io*)
-                     ;; The eval lets us take in a make-instance call and turn
-                     ;; it into an actual object, as opposed to just a list.
-                     (list (eval (read *query-io*))))
-      (add-predicate! restart-pred db))))
+  (multiple-value-bind (_pred present?)
+      (gethash (name new-pred) (table (predicates db)))
+    (declare (ignore _pred))
+    (assert (not present?) (new-pred)
+            "Predicate ~a already present in database" new-pred)
+    (setf (gethash (name new-pred) (table (predicates db))) new-pred)))
 
 ;; "delete" the default :writer method that CLOS created.
 (defmethod add-predicate! (new-pred (db chilog-db))
