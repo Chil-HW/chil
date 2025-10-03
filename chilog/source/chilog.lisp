@@ -4,6 +4,8 @@
            #:chilog-variable
            #:chilog-variable-p
            #:name
+           #:*placeholder-variable-counter*
+           #:make-placeholder-variable
            #:chilog-value
            #:chilog-value-p
            #:chilog-term
@@ -95,6 +97,19 @@ engine."))
 top-level variables in a Datalog program must be unique."
   (and (eq c1 c2)
        (string-equal (name c1) (name c2))))
+
+(defparameter *placeholder-variable-counter* 0
+  "Counter for generating unique Chilog placeholder variables.")
+
+(defun make-placeholder-variable (&optional
+                                    (prefix "GEN-chilog-variable"))
+  "Create and return a new, unique, and fresh Chilog variable.
+Optionally, you can provide a string PREFIX that will be used to uniquify the
+variable."
+  (let ((n *placeholder-variable-counter*))
+    (incf *placeholder-variable-counter*)
+    (make-instance 'chilog-variable
+                   :name (format nil "~a~a" prefix n))))
 
 (deftype chilog-value ()
   "A Chilog value is a concretized and constant value.

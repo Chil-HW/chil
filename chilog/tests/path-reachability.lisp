@@ -179,9 +179,8 @@
     (add-fact! '(3 4) edge)
     ;; Reflexivity
     ;; path(x, x) :- path(x, _).
-    ;; (add-rules! path (list X X) (predicate->atom path (list X placeholder)))
-    ;; FIXME: Chilog does not have a way to represent an unknown placeholder
-    ;; chilog-term in a chilog-atom.
+    (add-rules! path (list X X)
+                (predicate->atom path (list X (make-placeholder-variable))))
     ;; Symmetry
     ;; path(x,y) :- path(y,x).
     ;; NOTE: This rule means that a node can have an edge to itself!
