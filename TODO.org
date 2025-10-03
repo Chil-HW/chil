@@ -559,6 +559,152 @@ The list below is taken from the blog post [[https://walnut356.github.io/posts/l
 The language documentation the author believes satisfied all of these criteria was [[https://doc.rust-lang.org/std/index.html][Rust's standard library documentation]] system.
 The author further pointed out that even 3rd party crates get a similar documentation website generated for them, just by using the doc-comments in the files, and publicly-exported tools.
 
+* Chilog
+** Features
+  * Add some syntax helpers to make defining a new relation easier.
+    For example,
+    #+begin_src scheme
+(dl-rule! db (reachable ,?x ,?y) :- (edge ,?x ,?z) (reachable ,?z ,?y))
+    #+end_src
+    This is the level where unknown & unused variables should go.
+    In many Datalogs, ~_~ is a valid variable to represent an "unnamed" placeholder variable.
+    We already have a way to generate placeholder variables, but no convenient syntax to handle it.
+    We should look at Egglog too, since they implemented Datalog in a Scheme-like language for Equivalence Graph rewriting.
+  * Semi-naïve engine
+    This should be augmented by an optimizing join system too.
+    This will probably require an IR ([[https://github.com/frankmcsherry/blog/blob/master/posts/2025-06-03.md]]).
+    In the blog post linked here, McSherry optimized this with Egg.
+    This might an interesting spot for my E-Graph system to come in too?
+    Obviously, the naive n-way cross-product equijoin should have a bad/high extraction cost.
+  * Allow for negated predicates in Chilog.
+    The term to search for is "stratified Datalog".
+    Some papers cite "Foundations of Databases" for the term "stratified Datalog".
+  * Add a front-end for Soufflé-compliant Datalog
+  * SQL engine
+    Use a SQL database system (SQLite for example) to handle the join operations for us.
+    Look at the following links for more implementation ideas for SQL backends.
+    - [[https://github.com/philzook58/knuckledragger/blob/main/src/kdrag/solvers/datalog.py][Philip Zucker's Knuckledragger tool]]
+    - [[https://www.philipzucker.com/tiny-sqlite-datalog/][Philip Zucker's MiniLitelog]]
+    - [[https://www.philipzucker.com/compose_datalog/][Philip Zucker's Compositional Datalog on SQL]]
+  * Pre-compiled engine
+    Will rely on good indexes being built.
+
+** Testing
+  * Pull Soufflé's tests and run them through my system.
+    NOTE: This will require that I have a front-end for Soufflé-compliant Datalog.
+
+** Optimizations
+There are a variety of optimizations that we could make to Chilog that come straight from Soufflé.
+
+*** Facts
+Representing facts condensely is important for performance.
+Some of these are discussed in the [[*Relations][Relations]] section, but here we list only data-structure ideas that do not rely on us providing information to the relation itself.
+
+   * Use Log-structured merge-trees (LSM tree or LSMT).
+     Good performance for indexed access to data that has high insert volume.
+
+*** Relations
+These optimizations are coming from [[https://souffle-lang.github.io/relations]].
+   * Relations with a high arity are treated differently than ones with low arity.
+     In Soufflé, if the relation has arity <= 6, then terms are directly embedded in the relation.
+     If the arity > 6, then they are indirectly included.
+   * Support ~brie~; B-Trees to represent the set of facts.
+     This is most useful for very dense structures.
+     See "Brie: A Specialized Trie for Concurrent Datalog".
+   * Use ~eqrel~; to write reflexivity, symmetry, and transitivity automatically and apply equivalence relation optimizations.
+     See the "Fast Parallel Equivalence Relations in a Datalog Compiler" paper.
+     However, since this is an equivalence relation, the number of fact tuples grows quadratically.
+     This requires implementing a union-find data structure that is also compatible with the evaluation model of the Datalog in question.
+     For semi-naïve evaluation, this requires additional work; see the paper mentioned above.
+     #+begin_src prolog
+.decl equivalence(x:number, y:number)
+equivalence(a, b) :- rel1(a), rel2(b).      // every element of rel1 is equivalent to every element of rel2
+
+// The eqrel keyword also writes these relations for you
+equivalence(a, a) :- equivalence(a, _).     // reflexivity
+equivalence(a, b) :- equivalence(b, a).     // symmetry
+equivalence(a, c) :- equivalence(a, b), equivalence(b, c).  // transitivity
+
+// This is equivalent and faster, since duplicate fact tuples are not handled.
+.decl eqrel_fast(x : number, y : number) eqrel
+eqrel_fast(a,b) :- rel1(a), rel2(b).
+     #+end_src
+   * Null (zero-arity) relations can be modeled as a single Boolean variable.
+   * Use indexes (like a database index) on relations.
+     This will turn some amount of naive/semi-naive evaluation into what [[https://souffle-lang.github.io/relations#indexing][Soufflé calls]] "primitive searches".
+     See "Automatic Index Selection for Large-Scale Datalog Computation".
+   * ~magicset~ transformation to reduce the number of irrelevant tuples.
+     Soufflé has more documentation on the [[https://souffle-lang.github.io/relations#magic-set-transformation][relations page]] and [[https://souffle-lang.github.io/magicset][magicset documentation]].
+   * Support relation inlining with ~inline~.
+     This helps prevent a combinatorial fact explosion.
+     For example:
+     #+begin_src prolog
+.decl natural_number(x:number)
+natural_number(0).
+natural_number(x+1) :- natural_number(x), x < 10000.
+
+.decl natural_pairs(x:number, y:number) inline
+natural_pairs(x,y) :- natural_number(x), natural_number(y).
+
+.decl query(x:number)
+query(x) :- natural_pairs(x,y), x < 5, y < x.
+
+// natural_pairs will create 100,000,000 facts that are then used in the later
+// constraints
+
+// If we inline natural_pairs into query, then the number of facts generated
+// will be significantly lower
+.decl natural_number(x:number)
+natural_number(0).
+natural_number(x+1) :- natural_number(x), x < 10000.
+
+.decl query(x:number)
+query(x) :- natural_number(x), natural_number(y), x < 5, y < x.
+     #+end_src
+   * Add a ~choice~ keyword to allow random selection from a set.
+     See the "The Choice Construct in the Soufflé Language" paper.
+     This is important to add support for when writing worklist algorithms.
+     A worklist algorithm is one where you are "pulling elements from a set (worklist), and do not care about the iteration order".
+     Finding the spanning tree in a graph is the example the paper referenced above uses.
+     When we implement this, it should be a relation-based choice since that does not require the relation itself to be modified.
+     Using relation-based choice lets ~choice~ be considered "metadata" about the relation, as opposed to being part of the relation itself, which I think is far cleaner.
+
+** Equivalence Graphs
+[[https://github.com/egraphs-good/egglog][egglog]] uses [[https://github.com/egraphs-good/egg][Egg]] to work with equivalence graphs instead of Datalog because egg is.
+[[https://www.philipzucker.com/datalog-egraph-deux/][Philip Zucker]] (one of the authors of egglog) explained the reasoning in their [[https://www.philipzucker.com/datalog-egraph-deux/][naive E-graph rewriting]] blog post.
+#+begin_quote
+[Souffle's Datalog] was unlikely to beat egg at it’s own game, and it turned out actually doing the encoding I described before was not that clarifying or pleasant.
+A big issue is the stratification requirements of datalog (which maybe souffle let’s you turn off?)
+and my reliance on the gensym counter.
+I was tying myself in knots trying to macro expand into stages of ematching and congruence closure.
+It sucked.
+#+end_quote
+
+We should also support incremental equivalence saturation (see "Incremental Equality Saturation").
+The paper's author states the ability to perform these steps incrementally is import for compilers, since not all pieces are known ahead-of-time.
+
+A way to control equality saturation's E-Graphs from exploding in size due to rewrites is to use destructive rewrites.
+This is more fully described in the "Destructive E-Graph Rewrites" paper.
+You choose one side of your rewrite to use as your matcher and you delete the other side when the rewrite fires.
+  * Cranelift has a ~subsume()~ operation to handle something similar to this.
+    In Egg, this is the pruning step.
+  * Which terms are destructed in an e-class needs some work too.
+    Intuitively, you want the e-class to end up with the current minimal-cost e-node in the e-class at the end.
+You must be able to determine from which rewrite an e-node originated from.
+  * Egg handles this in their explanation system for proof systems.
+    Look there for ideas.
+Then you must also clean up e-classes that are now dead because of the destruction.
+The e-graph must remain *grounded* (a full term is able to be extracted from the e-graph).
+You also cannot remove the last e-node in an e-class, since you would end up with an empty e-class, which is disallowed.
+This leads to a potential question, what /should/ the last e-node in the e-class be?
+For implementation in Chil:
+  * Make destructive rewrites declarative as a property of the relation, like ~eqrel~ or ~choice~.
+    This would be opt-in on a relation by default.
+    But you could change it at the program level and then manually opt-out relations too (again as a property).
+  * This would be important because rarely does a single rule cause the e-graph to explode in size, but its the *combination of multiple rules* that causes this behavior.
+    In the paper's example, it is addition's associativity and addition to 0 that causes an explosion.
+    The PAIRING of these two relations should be marked as destructive.
+
 * Toolchain Driver
 If I intend to support multiple input formats and output formats, there will need to be a series of steps to define actions to take to produce an output.
 This may involve running the Chil compiler, but it might also involve running other tools (like a script to convert a JSON description of memory into a dat format).
