@@ -4,15 +4,15 @@ AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE([foreign])
 
 # Checks for a Lisp program.
-AC_SUBST(LISP_PROGRAM)
-AC_ARG_WITH(lisp,    [  --with-lisp=IMPL        use the specified lisp], LISP_PROGRAM=$withval, LISP_PROGRAM="sbcl")
+AC_SUBST(LISP_DIALECT)
+AC_ARG_WITH(lisp,    [  --with-lisp=IMPL        use the specified lisp dialect],
+            [LISP_DIALECT=$withval],
+            [LISP_PROGRAM="sbcl"])
 
-AC_CHECK_PROG(LISP_CHECK,$LISP_PROGRAM,yes,no)
-if test "$LISP_CHECK" = "no"; then
-   AC_MSG_ERROR([*** No lisp is available.])
+AC_PATH_PROG(LISP_PROGRAM, $LISP_DIALECT, no)
+if test "$LISP_PROGRAM" = "no"; then
+   AC_MSG_ERROR([$LISP_DIALECT is not available. Please install it or make it available in your \$PATH.])
 fi
-
-AC_MSG_NOTICE([Using $LISP at $LISP_PROGRAM])
 
 # Check for makeinfo
 AC_CHECK_PROG(MAKEINFO,makeinfo,yes,no)
