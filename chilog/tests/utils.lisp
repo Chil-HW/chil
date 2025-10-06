@@ -1,7 +1,8 @@
 (defpackage :chilog/tests/utils
   (:use :cl)
   (:export #:assert-set-equal
-           #:assert-set-not-equal))
+           #:assert-set-not-equal
+           #:complex-generator))
 
 (in-package :chilog/tests/utils)
 
@@ -28,3 +29,10 @@ test provided in :TEST. By default :TEST is set to `equal'."
     'lisp-unit2::equal-result ,form ,form ,expected ,extras
     :test #'(lambda (s1 s2) (set-exclusive-or s1 s2 :test ,test))
     :full-form ',whole))
+
+(check-it:def-generator complex-generator (real-gen imag-gen)
+  ;; Call the two generators provided to the complex-generator and pass those
+  ;; values to #'complex to build a complex number, returning that.
+  (check-it:generator
+   (complex (check-it:generate real-gen)
+            (check-it:generate imag-gen))))
