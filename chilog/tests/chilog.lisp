@@ -1,5 +1,6 @@
 (defpackage :chilog/tests
-  (:use :cl :lisp-unit2))
+  (:use :cl :lisp-unit2
+        :chilog/tests/utils))
 
 (in-package :chilog/tests)
 
