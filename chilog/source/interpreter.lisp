@@ -47,7 +47,9 @@ substitution, `nil' otherwise."
              ((chilog-variable-p term)
               (multiple-value-bind (v present?) (gethash term substitution)
                 (if (and present? (not (equal val v)))
-                    (return-from unify 'nil)
+                    (progn
+                      (log:debug "UNIFICATION FAILED! DIFFERING VALUES! " substitution " != " v)
+                      (return-from unify 'nil))
                     ;; XXX: It is important that the passed-in substitution hash-table
                     ;; be modified directly! We want pass-by-reference semantics, not
                     ;; pass-by-value here!
@@ -55,15 +57,20 @@ substitution, `nil' otherwise."
              ;; term was not a chilog-variable, so it must be a chilog-value and we
              ;; can compare them directly.
              ((not (equal term val))
-              (return-from unify 'nil))
+              (progn
+                (log:debug "UNIFICATION FAILED! " term " != " val)
+                (return-from unify 'nil)))
              ;; term was not a chilog-variable and the values were not (not (equal ...))
              ;; which means they are, and unification has not found anything new.
              ((equal term val)
-              'nil)
+              (progn
+                (log:trace "UNIFICATION Nothing! " term " = " val)
+                'nil))
              ;; Below is dead code. The two cond branches above should handle
              ;; all terms (chilog-variables and chilog-values). This last case
              ;; should never happen.
              (t (error "Attempted to unify something other than a chilog-value or chilog-variable!"))))
+  (log:debug "Unification successful! " substitution)
   't)
 
 ;; NOTE: Renamed from search because the CL standard defines #'search.
@@ -72,10 +79,10 @@ substitution, `nil' otherwise."
 I is used to control how \"far\" in the ATOM list we are currently searching.
 
 Returns a list of valid substitutions (as hash-tables) for ATOMS."
-  (log:debug "Searching")
+  (log:trace "Searching DB with " atoms " and " subs " Currently at search depth " i)
   (if (= i (length atoms))
       (progn
-        (log:info "Completed DFS for " atoms ". Return " subs)
+        (log:debug "Completed DFS for " atoms ". Return " subs)
         subs)
       (let* ((atom (nth i atoms))
              (atom-preds (gethash (predicate atom)
@@ -94,6 +101,7 @@ Returns a list of valid substitutions (as hash-tables) for ATOMS."
         (alexandria:flatten
          (loop for fact in (facts atom-preds)
                for new-sub = (alexandria:copy-hash-table subs)
+               do (log:debug "Try another fact! Try to unify " atom " with " fact " while " new-sub)
                when (unify atom fact new-sub)
                  collect (search-db chilog-db (1+ i) atoms new-sub))))))
 
@@ -105,7 +113,10 @@ substitutions for the variables in ATOMS.
 Returns a list of valid substitutions (as hash-tables) for ATOMS.
 Evaluate the provided list of ATOMS in CHILOG-DB to produce a set/list of
 possible substitions."
-  (search-db chilog-db 0 atoms (make-hash-table :test #'equal)))
+  (log:trace "Evaluating " atoms)
+  (let ((res (search-db chilog-db 0 atoms (make-hash-table :test #'equal))))
+    (log:trace "Evaluation results: " res)
+    res))
 
 (defun infer (chilog-db)
   "Perform a fixed-point iteration \"inference\" on the Datalog program to
@@ -115,6 +126,7 @@ In particular, this implementation performs a depth-first walk of the
 predicates, rules, and facts in the Datalog program while performing a
 fixed-point iteration to produce the complete universe of facts present in the
 program."
+  (log:debug "Inferring")
   ;; NOTE: The "do" is not important here! I only have it so Emacs indents the
   ;; loop's body nicely.
   (loop do
@@ -124,7 +136,9 @@ program."
       (loop for predicate in (alexandria:hash-table-values
                               (table->hash-table (predicates chilog-db)))
             do
+               (log:debug "Performing inference on " predicate)
                (loop for rule in (rules predicate) do
+                 (log:debug predicate " has rule " rule "! Eval it!")
                  (loop for sub in (evaluate chilog-db (body rule)) do
                    ;; The substitution hash-table has a substitution for EVERY
                    ;; variable in the rule we just evaluated. However, we only
@@ -138,18 +152,28 @@ program."
                                                 (gethash term sub)
                                                 term)
                                  collect fact)))
-                     (unless (member sub-facts (facts predicate) :test #'equal)
-                       (setf new-facts
-                             (acons predicate sub-facts new-facts)))))))
+                     (if (not (member sub-facts (facts predicate) :test #'equal))
+                         (progn
+                           (log:debug "Got a new fact! " predicate " = " sub-facts)
+                           (setf new-facts
+                                 (acons predicate sub-facts new-facts)))
+                         (log:debug predicate " = " sub-facts " already known. Do nothing!"))))))
       ;; If we did NOT find new facts (new-facts is empty), then we have reached
       ;; the fixed-point and are done. Otherwise, we discovered new facts, so we
       ;; add them to the database and continue through our fixed-point again.
       ;; Chose alexandria here for no particular reason.
       (if (alexandria:emptyp new-facts)
-          ;; Returns from outer loop
-          (return)
+          (progn
+            (log:debug "Finished inference!")
+            (loop for pred being the hash-value of (table->hash-table
+                                                    (predicates chilog-db))
+                  for facts = (facts pred)
+                  do (log:trace pred " = " facts))
+            ;; Returns from outer loop
+            (return))
           (loop for (p . f) in new-facts
-                do (add-fact! f p))))))
+                do (log:debug "Recording new fact! " p " = " f)
+                   (add-fact! f p))))))
 
 (defun query (chilog-db &rest atoms)
   "Query the Datalog program to return a set of valid substitutions for the
