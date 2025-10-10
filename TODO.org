@@ -189,7 +189,101 @@ Many of the concepts discussed in this section come from [[https://jakob.space/b
      Specialization of an enum/FSM that only allows you to traverse in one direction.
      ~(next oneway-enum signal)~ moves you to next state when signal goes high.
      Special-case this because complicated FSMs typically have cycles in their control flow (looping).
-  4. Like Chisel have ~Valid~ and ~Decoupled~ wrapper modules, but *prevent* data use/writing without first entering an environment/scope where the ~valid~/~ready~ signal is first checked.
+  4. Enumerated values *must* be supported.
+     Chisel gained support for proper enumerated values quite some time ago, but they still lack some quality-of-life tools.
+     For example, take the micro-op enumeration from BOOM:
+     #+begin_src scala
+/**
+ ,* Mixin for scalar operation constants
+ ,*/
+trait ScalarOpConstants
+{
+  // Micro-op opcodes
+  // TODO change micro-op opcodes into using enum
+  val UOPC_SZ = 7
+  val uopX    = BitPat.dontCare(UOPC_SZ)
+  val uopNOP  =  0.U(UOPC_SZ.W)
+  val uopLD   =  1.U(UOPC_SZ.W)
+  val uopSTA  =  2.U(UOPC_SZ.W)  // store address generation
+  val uopSTD  =  3.U(UOPC_SZ.W)  // store data generation
+  val uopLUI  =  4.U(UOPC_SZ.W)
+  // ...
+  // Many more uops
+}
+     #+end_src
+     I envision this being something like the following
+     #+begin_src lisp
+(chil:defenum boom-micro-ops
+  UOPC_X ; Don't care. Should be auto-generated?
+  UOPC_SZ ; Auto-generated based on final number of elements in enum
+  UOP_LD
+  UOP_STA
+  UOP_STD
+  UOP_LUI
+  ;; ...
+  )
+     #+end_src
+     Ideally, there would be some kind of namespacing here too, so you could not just refer to ~UOP_STA~, but must qualify it somehow.
+
+     You should be allowed to pattern match on enumerated values, and exhaustiveness *must* be required.
+     The pattern matching should be proper pattern matching with no fall-through semantics.
+     Obviously, we will need a catch-all/don't care representation, since you likely will not want to work with all of the enum cases at the same time.
+     We also need a way to state that a branch of the pattern-match should be unreachable.
+
+     When pattern matching, we need to decide if the patterns are ordered or not.
+     Lisp (both ~cond~ and ~trivia:match~) and Haskell use first-to-last/top-down matching.
+     Effectively, the patterns are matched in the order they are written in.
+     Is there something interesting we could do by pattern matching against all branches simultaneously?
+  5. Union/Bit-mask style enum.
+     The goal with this is two-fold.
+     First, if the user uses a non-enumerated value, an error is raised.
+     Second, the user needs to only define the enumerated values, and you get masking "for free".
+     This second point means the user does not need to select hard-coded values for the enumerated values any more.
+     This is more subtle, so an example in Chisel from BOOM's functional unit bit-mask is shown below:
+     #+begin_src scala
+/**
+ ,* Functional unit constants
+ ,*/
+object FUConstants
+{
+  // bit mask, since a given execution pipeline may support multiple functional units
+  val FUC_SZ = 10
+  val FU_X   = BitPat.dontCare(FUC_SZ)
+  val FU_ALU =   1.U(FUC_SZ.W)
+  val FU_JMP =   2.U(FUC_SZ.W)
+  val FU_MEM =   4.U(FUC_SZ.W)
+  val FU_MUL =   8.U(FUC_SZ.W)
+  val FU_DIV =  16.U(FUC_SZ.W)
+  val FU_CSR =  32.U(FUC_SZ.W)
+  val FU_FPU =  64.U(FUC_SZ.W)
+  val FU_FDV = 128.U(FUC_SZ.W)
+  val FU_I2F = 256.U(FUC_SZ.W)
+  val FU_F2I = 512.U(FUC_SZ.W)
+
+  // FP stores generate data through FP F2I, and generate address through MemAddrCalc
+  val FU_F2IMEM = 516.U(FUC_SZ.W)
+}
+     #+end_src
+     See how each functional unit needed to have a bit value manually assigned to it and ~FU_F2IMEM~ is a bit-mask that needed to be manually computed?
+     Chil would ideally provide some helper syntax for this:
+     #+begin_src lisp
+(chil:defenum FUConstants
+  ;; :properties could be hidden behind a function too
+  :properties '(bitmask)
+  FU_X ; Perhaps this should be auto-generated?
+  FU_SZ ; Auto-generated based on final width of all elements in bitmask.
+  FU_ALU
+  FU_JMP
+  FU_MEM
+  ;; ...
+  FU_F2I
+
+  (FU_F2IMEM FU_F2I FU_MEM)
+  ;; Or identically
+  (FU_F2IMEM FU_F2I FU_MEM))
+     #+end_src
+     The ~:properties~ field could allow us to define other kinds of enums too, like one-hot enums.
+  6. Like Chisel have ~Valid~ and ~Decoupled~ wrapper modules, but *prevent* data use/writing without first entering an environment/scope where the ~valid~/~ready~ signal is first checked.
      Something like
      #+begin_src common-lisp
 ;; This should work
@@ -211,15 +305,15 @@ Many of the concepts discussed in this section come from [[https://jakob.space/b
        This was probably to avoid naming collisions.
        But there are cases (namely around nesting depth and length of identifiers) where this would become extremely annoying (See BOOM's ROB).
        We need to check to ensure the user does not have a ~.valid~ signal in their bundle already.
-  5. I want a way to mark implementations that are *deliberately* incomplete.
+  7. I want a way to mark implementations that are *deliberately* incomplete.
      This is like Rust's [[https://doc.rust-lang.org/std/macro.todo.html][~todo!()~]] and [[https://doc.rust-lang.org/std/macro.unimplemented.html][~unimplemented!()~]] macros or Scala's ~Predef.???~ operator.
-  6. The equivalent to Chisel's ~Flipped~ constructor could be a macro that just switches all ~(inputs ...)~ to ~(outputs ...)~.
+  8. The equivalent to Chisel's ~Flipped~ constructor could be a macro that just switches all ~(inputs ...)~ to ~(outputs ...)~.
      ~(defmacro ... `(,module (inputs ,(module-outputs)) (outputs ,(module-inputs)) rest is same?)~
-  7. Need to provide a way to disable any implicit signals installed (clock, reset, etc.).
+  9. Need to provide a way to disable any implicit signals installed (clock, reset, etc.).
      Implicit clocks make it harder to specify clock domains & gating logic when interfacing with non-Chil hardware.
      (Perhaps this is obviated by the fact that Chil will read Verilog & add it to the final IR?)
      Implicit resets make it harder to pipeline reset logic & add balanced flop trees.
-  8. Need a way to control naming.
+  10. Need a way to control naming.
 
 ** A Language to Build Correct-by-Construction Concurrent Software
 [[https://dezyne.org/dezyne/manual/dezyne/dezyne.html#Ideas-and-Concepts][Dezyne]] is a language that is designed to produce correct-by-construction concurrent software.
