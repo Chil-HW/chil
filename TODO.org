@@ -825,6 +825,8 @@ You can look at [[https://docs.amd.com/r/en-US/ug949-vivado-design-methodology][
         1. [[https://mrisc32.bitsnbites.eu/][mrisc32]]
      5. Multi-issue in-order pipelined
      6. Single-issue out-of-order
+        1. Design feature?
+           Loads/stores are 2 uops, one to compute the absolute address with result going into physical register, the second uop uses that absolute address and submits the memory request.
      7. Multi-issue out-of-order
         1. [[https://github.com/mathis-s/SoomRV][SoomRV]] is an example of this.
   10. [[https://github.com/adam-maj/tiny-gpu][tiny-gpu]]: A minimal GPU that executes a single kernel at a time with many threads per core.
