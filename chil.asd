@@ -82,14 +82,18 @@ run.")
   (let ((packages (list (find-package :chil/tests)
                         (find-package :chil/tests/verilog)
                         (find-package :chil/tests/vhdl))))
-    (uiop:symbol-call
-     :lisp-unit2 :run-tests
-     :package packages
-     :name :chil
-     :exclude-tags (append
-                    (unless verilator-installed-p '(:verilator))
-                    (unless (program-installed-p "ghdl") '(:ghdl)))
-     :run-contexts (find-symbol "WITH-SUMMARY-CONTEXT" :lisp-unit2))))
+    (unless (null
+             (uiop:symbol-call
+              :lisp-unit2 :failed
+              (uiop:symbol-call
+               :lisp-unit2 :run-tests
+               :package packages
+               :name :chil
+               :exclude-tags (append
+                              (unless verilator-installed-p '(:verilator))
+                              (unless (program-installed-p "ghdl") '(:ghdl)))
+               :run-contexts (find-symbol "WITH-SUMMARY-CONTEXT" :lisp-unit2))))
+      (uiop:quit 1))))
 
 (defsystem :chil/sim
   :author "Karl Hallsby <karl@hallsby.com>"
