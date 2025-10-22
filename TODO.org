@@ -681,6 +681,18 @@ Once the Ninja is generated, Calyx "leaves" the world of Rust and Rhai and just 
 Since we are in the dynamic world of Common Lisp, could actually have our system run inside of the "current" Common Lisp image itself.
 Whether or not that is a good idea, remains to be seen.
 
+** Driver Plan Serialization
+fud2, the Calyx infrastructure's toolchain driver, is adding plan serialization and deserialization support.
+I think this is a good idea, because it could let us bypass having to invoke the hypergraph-traversal in common cases.
+For example, think of the common case where you are doing quick incremental development (fixing an error, recompiling, loop).
+Traversing the hypergraph might be a very expensive operation (I don't know yet, but I imagine it will be).
+In this quick case, it is unlikely that the chosen plan will change much, if at all.
+By serializing and caching the plan that the hypergraph traversal found, we could make Chil's toolchain react much faster.
+
+fud2 currently supports JSON and is planning on adding a custom language of their own, called flang.
+In my case, I think the plan will just be an s-exp tree.
+Converting the s-exp tree to JSON is relatively trivial and we do not need to do too much to create a parser for the language (just ~read~ the s-exps).
+
 * Optimization
 Within Chil, I would like to have an optimization framework for the higher-level language.
 I am not sure how much optimization is possible in the long-run.
