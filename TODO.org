@@ -314,6 +314,10 @@ object FUConstants
      (Perhaps this is obviated by the fact that Chil will read Verilog & add it to the final IR?)
      Implicit resets make it harder to pipeline reset logic & add balanced flop trees.
   10. Need a way to control naming.
+  11. You should be able to mark components (modules, bundles/IO) as debug at creation time, to prevent them from being optimized away in normal builds.
+      You need to run a high-speed low-debug build to have these be optimized away.
+      Effectively, I want a way to mark things as Chisel's ~dontTouch~ at their point of instantiation and never have them get optimized away unless I have explicitly asked for it.
+      This could also be extended as a kind of "optional part" where the user can *choose* to *not* instantiate the component marked as ~debug~ so that irrelevant pieces can be omitted from the source.
 
 ** A Language to Build Correct-by-Construction Concurrent Software
 [[https://dezyne.org/dezyne/manual/dezyne/dezyne.html#Ideas-and-Concepts][Dezyne]] is a language that is designed to produce correct-by-construction concurrent software.
